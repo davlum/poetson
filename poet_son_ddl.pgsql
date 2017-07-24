@@ -1,11 +1,11 @@
 -- THINK ABOUT KEEPING IT VERSATILE ENOUGH TO STORE ANALYTICS
 
-CREATE TABLE IF NOT EXISTS autor (
+CREATE TABLE IF NOT EXISTS poetica_sonora.autor (
   autor_id serial PRIMARY KEY
  ,coment_autor tsvector
 );
 
-CREATE TABLE IF NOT EXISTS artista (
+CREATE TABLE IF NOT EXISTS poetica_sonora.artista (
   nom_primero text NOT NULL
  ,nom_segundo text
  ,apellido text
@@ -21,12 +21,12 @@ CREATE TABLE IF NOT EXISTS artista (
  ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
-CREATE TABLE IF NOT EXISTS tipo (
+CREATE TABLE IF NOT EXISTS poetica_sonora.tipo (
   tipo_id serial PRIMARY KEY
  ,tipo_nom text UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS artista_institucion (
+CREATE TABLE IF NOT EXISTS poetica_sonora.artista_institucion (
   artista_id int REFERENCES artista
  ,institucion_id int REFERENCES institucion
  ,fecha_comenzio date
@@ -35,14 +35,14 @@ CREATE TABLE IF NOT EXISTS artista_institucion (
  ,PRIMARY KEY (artista_id, institucion_id)
 );
 
-CREATE TABLE IF NOT EXISTS lugar ( 
+CREATE TABLE IF NOT EXISTS poetica_sonora.lugar ( 
   lugar_id serial PRIMARY KEY
  ,ciudad text NOT NULL
  ,provincio text NOT NULL
  ,pais text NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS colectivo (
+CREATE TABLE IF NOT EXISTS poetica_sonora.colectivo (
   colectivo_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
  ,fecha_comenzio date
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS colectivo (
  ,CONSTRAINT colectivo_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
  
-CREATE TABLE IF NOT EXISTS institucion (
+CREATE TABLE IF NOT EXISTS poetica_sonora.institucion (
   institucion_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
  ,tipo_inst int REFERENCES tipo_institucion
@@ -58,18 +58,18 @@ CREATE TABLE IF NOT EXISTS institucion (
  ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
-CREATE TABLE IF NOT EXISTS tipo_institucion (
+CREATE TABLE IF NOT EXISTS poetica_sonora.tipo_institucion (
   tipo_inst_id serial PRIMARY KEY
  ,tipo_inst text UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS artista_colectivo (
+CREATE TABLE IF NOT EXISTS poetica_sonora.artista_colectivo (
   artista_id int REFERENCES artista ON DELETE CASCADE
  ,colectivo_id int REFERENCES colectivo ON DELETE CASCADE
  ,PRIMARY KEY (artista_id, colectivo_id)
 );
 
-CREATE TABLE IF NOT EXISTS publicador (
+CREATE TABLE IF NOT EXISTS poetica_sonora.publicador (
   publicador_id serial PRIMARY KEY
  ,autor_id int REFERENCES autor
  ,clave_publicador varchar(4) UNIQUE
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS publicador (
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
-CREATE TABLE IF NOT EXISTS contribuidor (
+CREATE TABLE IF NOT EXISTS poetica_sonora.contribuidor (
   contribuidor_id serial PRIMARY KEY 
  ,autor_id int REFERENCES autor
  ,nom_contribuidor text               
@@ -97,38 +97,39 @@ CREATE TABLE IF NOT EXISTS contribuidor (
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
-CREATE TABLE IF NOT EXISTS genero_musical (
+CREATE TABLE IF NOT EXISTS poetica_sonora.genero_musical (
   genero_musical serial PRIMARY KEY
  ,nom_genero text UNIQUE NOT NULL
  ,genero_descrip tsvector
 );
 
-CREATE TABLE IF NOT EXISTS idioma (
+CREATE TABLE IF NOT EXISTS poetica_sonora.idioma (
   idioma_id serial PRIMARY KEY
  ,nom_idioma text UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS serie (
+CREATE TABLE IF NOT EXISTS poetica_sonora.serie (
   serie_id serial PRIMARY KEY
  ,nom_serie text NOT NULL
  ,giro text
  ,lugar_id int REFERENCES lugar
 );
 
-CREATE TABLE IF NOT EXISTS album (
+CREATE TABLE IF NOT EXISTS poetica_sonora.album (
   album_id serial PRIMARY KEY
  ,nom_album text NOT NULL
  ,giro text
  ,lugar_id int REFERENCES lugar
 );
 
-CREATE TABLE IF NOT EXISTS album_serie (
+CREATE TABLE IF NOT EXISTS poetica_sonora.album_serie (
   album_id int REFERENCES album
  ,serie_id int REFERENCES serie
  ,PRIMARY KEY (album_id, serie_id)
 );
 
-CREATE TABLE IF NOT EXISTS instrumento (
+-- None mus be a type of instrument
+CREATE TABLE IF NOT EXISTS poetica_sonora.instrumento (
   instrumento_id serial PRIMARY KEY
  ,nom_inst text NOT NULL
  ,familia_inst text REFERENCES familia_instrumento
@@ -140,12 +141,12 @@ CREATE TABLE IF NOT EXISTS instrumento (
  ,instrumento_comentario text
 );
 
-CREATE TABLE IF NOT EXISTS familia_instrumento (
+CREATE TABLE IF NOT EXISTS poetica_sonora.familia_instrumento (
   nom_familia_inst text PRIMARY KEY
 );
 
 -- Where the copyrights of the track apply
-CREATE TABLE IF NOT EXISTS cobertura (
+CREATE TABLE IF NOT EXISTS poetica_sonora.cobertura (
   cobertura_id serial PRIMARY KEY
  ,pais_cobertura text NOT NULL
  ,license_cobertura text
@@ -153,20 +154,20 @@ CREATE TABLE IF NOT EXISTS cobertura (
  ,fecha_final date
 );
 
-CREATE TABLE IF NOT EXISTS cobertura_pista (
+CREATE TABLE IF NOT EXISTS poetica_sonora.cobertura_pista (
   cobertura_id int REFERENCES cobertura
  ,pista_son_id int REFERENCES pista_son
  ,PRIMARY KEY (cobertura_id, pista_son_id)
 );
 
-CREATE TABLE IF NOT EXISTS cobertura_composicion (
+CREATE TABLE IF NOT EXISTS poetica_sonora.cobertura_composicion (
   cobertura_id int REFERENCES cobertura
  ,composicion_id int REFERENCES composicion
  ,PRIMARY KEY (cobertura_id, composicion_id)
 );
 
 -- This table will be mutable
-CREATE TABLE IF NOT EXISTS editor (
+CREATE TABLE IF NOT EXISTS poetica_sonora.editor (
   editor_id serial PRIMARY KEY
  ,email text
  ,acceso date DEFAULT now()
@@ -176,12 +177,12 @@ CREATE TABLE IF NOT EXISTS editor (
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
-CREATE TABLE IF NOT EXISTS codec (
+CREATE TABLE IF NOT EXISTS poetica_sonora.codec (
   codec_id serial PRIMARY KEY
  ,nom_codec text UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS pista_son (
+CREATE TABLE IF NOT EXISTS poetica_sonora.pista_son (
   pista_son_id serial PRIMARY KEY
  ,nom_pista text NOT NULL
  ,numero_de_pista int CHECK (numero_de_pista > 1)
@@ -204,7 +205,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
 );
 
 -- SOUNDFILE                                  
-CREATE TABLE IF NOT EXISTS archivo (
+CREATE TABLE IF NOT EXISTS poetica_sonora.archivo (
   archivo_id serial PRIMARY KEY
  ,pista_son_id int REFERENCES pista_son NOT NULL
  ,ruta text NOT NULL -- path of the file /<first letter of artist name>/<artist name>/audio/
@@ -217,33 +218,33 @@ CREATE TABLE IF NOT EXISTS archivo (
  ,tamano numeric(5,2) NOT NULL -- in MBs
 );  
 
-CREATE TABLE IF NOT EXISTS genero_pista (
+CREATE TABLE IF NOT EXISTS poetica_sonora.genero_pista (
   pista_son_id int REFERENCES pista_son
  ,gen_mus int REFERENCES genero_musical
  ,PRIMARY KEY (pista_son_id, gen_mus)
 );
 
-CREATE TABLE IF NOT EXISTS idioma_pista (
+CREATE TABLE IF NOT EXISTS poetica_sonora.idioma_pista (
   pista_son_id int REFERENCES pista_son
  ,idioma_id int REFERENCES idioma
  ,PRIMARY KEY (pista_son_id, idioma_id)
 );
 
-CREATE TABLE IF NOT EXISTS intepretacion (
+CREATE TABLE IF NOT EXISTS poetica_sonora.intepretacion (
   pista_son_id int REFERENCES pista_son
  ,autor_id int REFERENCES autor
  ,instrumento_id int REFERENCES instrumento
- ,PRIMARY KEY (autor_id, pista_son_id)
+ ,PRIMARY KEY (autor_id, pista_son_id, instrumento_id)
 );
 
-CREATE TABLE IF NOT EXISTS composicion_autor (
+CREATE TABLE IF NOT EXISTS poetica_sonora.composicion_autor (
   composicion_id int REFERENCES composicion
  ,autor_id int REFERENCES autor
  ,tipo_autor tipo_autor
  ,PRIMARY KEY (composicion_id, autor_id)
 );
 
-CREATE TABLE IF NOT EXISTS composicion ( -- what is this? composition? own entity or relation
+CREATE TABLE IF NOT EXISTS poetica_sonora.composicion ( -- what is this? composition? own entity or relation
   composicion_id serial PRIMARY KEY
  ,nom_tit text NOT NULL
  ,tit_alt text
@@ -253,13 +254,13 @@ CREATE TABLE IF NOT EXISTS composicion ( -- what is this? composition? own entit
  ,lugar_comp int REFERENCES lugar -- place reference place entity
 );
 
-CREATE TABLE IF NOT EXISTS termas (
+CREATE TABLE IF NOT EXISTS poetica_sonora.termas (
   terma_id serial PRIMARY KEY
  ,terma text UNIQUE NOT NULL
  ,CONSTRAINT proper_terma CHECK (terma ~ '[a-z][a-z0-9_]+')
 );
 
-CREATE TABLE IF NOT EXISTS termas_pista_son (
+CREATE TABLE IF NOT EXISTS poetica_sonora.termas_pista_son (
   pista_son_id int REFERENCES pista_son
  ,terma_id int REFERENCES termas
  ,PRIMARY KEY (pista_son_id, terma_id)
