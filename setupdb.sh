@@ -1,12 +1,9 @@
 #!/bin/bash/
 # setup poetica_sonora database
 
-psql -U davidlum -d davidlum -a -f poet_son_sch.pgsql
+dropdb postgres
 
-psql -U davidlum -d davidlum -a -f poet_son_dtypes.pgsql
+createdb -O postgres postgres
 
-psql -U davidlum -d davidlum -a -f poet_son_ddl.pgsql
-
-psql -U davidlum -d davidlum -a -f audit.sql
-
-psql -U davidlum -d davidlum -a -f poet_son_audit_tables.pgsql
+psql postgres -c 'set role postgres;' -c '\i poet_son_sch.pgsql' -c '\i
+poet_son_dtypes.pgsql' -c '\i poet_son_ddl.pgsql' -c '\i audit.sql' -c '\i poet_son_audit_tables.pgsql'
