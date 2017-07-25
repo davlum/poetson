@@ -30,3 +30,4 @@ DROP TABLE IF EXISTS composicion_autor;
 DROP TABLE IF EXISTS composicion;
 DROP TABLE IF EXISTS termas;
 DROP TABLE IF EXISTS terma_pista_son;
+DROP TABLE IF EXISTS cobertura_pista;

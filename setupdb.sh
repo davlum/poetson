@@ -3,6 +3,8 @@
 
 dropdb postgres
 
+createuser -s -l postgres
+
 createdb -O postgres postgres
 
 psql postgres -c 'set role postgres;' -c '\i poet_son_sch.pgsql' -c '\i

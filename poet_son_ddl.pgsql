@@ -1,21 +1,30 @@
--- THINK ABOUT KEEPING IT VERSATILE ENOUGH TO STORE ANALYTICS
+-- Talk about specifics
+CREATE TABLE IF NOT EXISTS lugar ( 
+  lugar_id serial PRIMARY KEY
+ ,ciudad text NOT NULL
+ ,estado text
+ ,provincia text 
+ ,pais text NOT NULL
+);
+
+COMMENT ON TABLE lugar IS 'City, country, region and maybe specify type of region with its own entity';
+
+----------------------------------
+----- Author related entities ----
 
 CREATE TABLE IF NOT EXISTS autor (
   autor_id serial PRIMARY KEY
  ,coment_autor tsvector
 );
 
-CREATE TABLE IF NOT EXISTS lugar ( 
-  lugar_id serial PRIMARY KEY
- ,ciudad text NOT NULL
- ,provincio text NOT NULL
- ,pais text NOT NULL
-);
+COMMENT ON TABLE autor IS 'The author superclass which artista, institucion, and colectivo inherit from.';
 
 CREATE TABLE IF NOT EXISTS tipo (
   tipo_id serial PRIMARY KEY
  ,tipo_nom text UNIQUE NOT NULL
 );
+
+COMMENT ON TABLE tipo IS 'Comprehensive list of genders. Works as a look up table.';
 
 CREATE TABLE IF NOT EXISTS artista (
   nom_primero text NOT NULL
@@ -33,48 +42,41 @@ CREATE TABLE IF NOT EXISTS artista (
  ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
+COMMENT ON TABLE artista IS 'A singular artist, child class of author';
+
 CREATE TABLE IF NOT EXISTS tipo_institucion (
   tipo_inst_id serial PRIMARY KEY
  ,tipo_inst text UNIQUE NOT NULL
 );
 
+COMMENT ON TABLE tipo_institucion IS 'Look up table of abstract institucion type, e.g. streaming service, festival, university.';
+
 CREATE TABLE IF NOT EXISTS institucion (
   institucion_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
  ,tipo_inst int REFERENCES tipo_institucion
- ,fecha_comenzio date
+ ,fecha_comienzio date
  ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
-CREATE TABLE IF NOT EXISTS artista_institucion (
-  artista_id int REFERENCES artista
- ,institucion_id int REFERENCES institucion
- ,fecha_comenzio date
- ,fecha_finale date
- ,titulo text
- ,PRIMARY KEY (artista_id, institucion_id)
-);
+COMMENT ON TABLE institucion IS 'An actual institucion';
 
 CREATE TABLE IF NOT EXISTS colectivo (
   colectivo_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
- ,fecha_comenzio date
+ ,fecha_comienzio date
  ,fecha_final date
  ,CONSTRAINT colectivo_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
- 
-CREATE TABLE IF NOT EXISTS artista_colectivo (
-  artista_id int REFERENCES artista ON DELETE CASCADE
- ,colectivo_id int REFERENCES colectivo ON DELETE CASCADE
- ,PRIMARY KEY (artista_id, colectivo_id)
-);
+
+COMMENT ON TABLE colectivo IS 'A collective of authors';
 
 CREATE TABLE IF NOT EXISTS publicador (
   publicador_id serial PRIMARY KEY
  ,autor_id int REFERENCES autor
  ,clave_publicador varchar(4) UNIQUE
  ,lugar_id int REFERENCES lugar
- ,web_publidacor text -- website of publisher
+ ,web_publicador text -- website of publisher
  ,dir_publicador text -- address
  ,email text
  ,telefono text
@@ -82,6 +84,8 @@ CREATE TABLE IF NOT EXISTS publicador (
  ,coment_publicador tsvector
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
+
+COMMENT ON TABLE publicador IS 'Entity that made the resource available, e.g. streaming service or foundation.';
 
 CREATE TABLE IF NOT EXISTS contribuidor (
   contribuidor_id serial PRIMARY KEY 
@@ -97,16 +101,37 @@ CREATE TABLE IF NOT EXISTS contribuidor (
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
+COMMENT ON TABLE contribuidor IS 'Entity that donated the resource';
+
+-- This table will be mutable
+CREATE TABLE IF NOT EXISTS editor (
+  editor_id serial PRIMARY KEY
+ ,email text
+ ,nom text
+ ,apellido text
+ ,acceso date DEFAULT now()
+ ,autor_id int REFERENCES autor 
+ ,clave varchar(4) UNIQUE
+ ,puesto text DEFAULT 'Servicio social' -- Such as undergrad?
+ ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
+);
+
+COMMENT ON TABLE editor IS 'Individual who uploaded the data.';
+
 CREATE TABLE IF NOT EXISTS genero_musical (
   genero_musical serial PRIMARY KEY
  ,nom_genero text UNIQUE NOT NULL
  ,genero_descrip tsvector
 );
 
+COMMENT ON TABLE genero_musical IS 'Genres of music. Works as a lookup table.';
+
 CREATE TABLE IF NOT EXISTS idioma (
   idioma_id serial PRIMARY KEY
  ,nom_idioma text UNIQUE NOT NULL
 );
+
+COMMENT ON TABLE idioma IS 'Possible Languages. Works as a lookup table.';
 
 CREATE TABLE IF NOT EXISTS serie (
   serie_id serial PRIMARY KEY
@@ -115,6 +140,8 @@ CREATE TABLE IF NOT EXISTS serie (
  ,lugar_id int REFERENCES lugar
 );
 
+COMMENT ON TABLE serie IS 'A compilation of pista_son';
+
 CREATE TABLE IF NOT EXISTS album (
   album_id serial PRIMARY KEY
  ,nom_album text NOT NULL
@@ -122,18 +149,16 @@ CREATE TABLE IF NOT EXISTS album (
  ,lugar_id int REFERENCES lugar
 );
 
-CREATE TABLE IF NOT EXISTS album_serie (
-  album_id int REFERENCES album
- ,serie_id int REFERENCES serie
- ,PRIMARY KEY (album_id, serie_id)
-);
+COMMENT ON TABLE album IS 'A collection of pista_son.';
 
 CREATE TABLE IF NOT EXISTS familia_instrumento (
   familia_instr_id serial PRIMARY KEY
  ,nom_familia_instr text NOT NULL UNIQUE
 );
 
--- None mus be a type of instrument
+COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for instrument.';
+
+-- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
   instrumento_id serial PRIMARY KEY
  ,nom_inst text NOT NULL
@@ -150,42 +175,39 @@ CREATE TABLE IF NOT EXISTS instrumento (
 CREATE TABLE IF NOT EXISTS cobertura (
   cobertura_id serial PRIMARY KEY
  ,pais_cobertura text NOT NULL
- ,license_cobertura text
- ,fecha_comenzio date
+ ,licencia_cobertura text
+ ,fecha_comienzio date
  ,fecha_final date
 );
 
--- This table will be mutable
-CREATE TABLE IF NOT EXISTS editor (
-  editor_id serial PRIMARY KEY
- ,email text
- ,acceso date DEFAULT now()
- ,autor_id int REFERENCES autor -- Necessary?
- ,clave varchar(4) UNIQUE
- ,puesto text DEFAULT 'Servicio social' -- And this
- ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
-);
+COMMENT ON TABLE cobertura IS 'The copyright on the track.';
 
 CREATE TABLE IF NOT EXISTS codec (
   codec_id serial PRIMARY KEY
  ,nom_codec text UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS termas (
-  terma_id serial PRIMARY KEY
- ,terma text UNIQUE NOT NULL
- ,CONSTRAINT proper_terma CHECK (terma ~ '[a-z][a-z0-9_]+')
+COMMENT ON TABLE codec IS 'Possible Audio Codecs. Is a lookup table for archivo';
+
+CREATE TABLE IF NOT EXISTS tema (
+  tema_id serial PRIMARY KEY
+ ,tema text UNIQUE NOT NULL
+ ,CONSTRAINT proper_tema CHECK (tema ~ '[a-z][a-z0-9_]+')
 );
 
-CREATE TABLE IF NOT EXISTS composicion ( -- what is this? composition? own entity or relation
+COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
+
+CREATE TABLE IF NOT EXISTS composicion ( 
   composicion_id serial PRIMARY KEY
  ,nom_tit text NOT NULL
  ,tit_alt text
- ,ano_pub int CONSTRAINT ano_pub_constr CHECK (ano_pub > 1000 AND ano_pub < 3000)
+ ,fecha_pub date
  ,fecha_comp date -- Null
  ,composicion tsvector -- Text itself
  ,lugar_comp int REFERENCES lugar -- place reference place entity
 );
+
+COMMENT ON TABLE composicion IS 'The physical representation of the performed work.';
 
 CREATE TABLE IF NOT EXISTS pista_son (
   pista_son_id serial PRIMARY KEY
@@ -209,7 +231,8 @@ CREATE TABLE IF NOT EXISTS pista_son (
  ,fecha_inc timestamp DEFAULT now() -- date added
 );
 
--- SOUNDFILE                                  
+COMMENT ON TABLE pista_son IS 'The audio track. Domain Constraint will be put on the front end.';
+                                 
 CREATE TABLE IF NOT EXISTS archivo (
   archivo_id serial PRIMARY KEY
  ,pista_son_id int REFERENCES pista_son NOT NULL
@@ -221,26 +244,31 @@ CREATE TABLE IF NOT EXISTS archivo (
  ,codec int REFERENCES codec 
  ,frecuencia frecuencia_valido NOT NULL
  ,tamano numeric(5,2) NOT NULL -- in MBs
-);  
-
-CREATE TABLE IF NOT EXISTS genero_pista (
-  pista_son_id int REFERENCES pista_son
- ,gen_mus int REFERENCES genero_musical
- ,PRIMARY KEY (pista_son_id, gen_mus)
 );
 
-CREATE TABLE IF NOT EXISTS idioma_pista (
-  pista_son_id int REFERENCES pista_son
- ,idioma_id int REFERENCES idioma
- ,PRIMARY KEY (pista_son_id, idioma_id)
+COMMENT ON TABLE pista_son IS 'M:1 with pista_son. The different audio codecs that the recorded track is available in.';
+
+-----------------------------------------------------
+---------- Relations relating to author -------------
+
+CREATE TABLE IF NOT EXISTS artista_institucion (
+  artista_id int REFERENCES artista
+ ,institucion_id int REFERENCES institucion
+ ,fecha_comienzio date
+ ,fecha_final date
+ ,titulo text
+ ,PRIMARY KEY (artista_id, institucion_id)
 );
 
-CREATE TABLE IF NOT EXISTS intepretacion (
-  pista_son_id int REFERENCES pista_son
+COMMENT ON TABLE artista_institucion IS 'M:M relationship of artists and institucions.';
+
+CREATE TABLE IF NOT EXISTS cobertura_autor (
+  cobertura_id int REFERENCES cobertura
  ,autor_id int REFERENCES autor
- ,instrumento_id int REFERENCES instrumento
- ,PRIMARY KEY (autor_id, pista_son_id, instrumento_id)
+ ,PRIMARY KEY (autor_id, cobertura_id)
 );
+
+COMMENT ON TABLE cobertura_autor IS 'M:M The copyrights an abstract author may hold.';
 
 CREATE TABLE IF NOT EXISTS composicion_autor (
   composicion_id int REFERENCES composicion
@@ -249,11 +277,54 @@ CREATE TABLE IF NOT EXISTS composicion_autor (
  ,PRIMARY KEY (composicion_id, autor_id)
 );
 
-CREATE TABLE IF NOT EXISTS termas_pista_son (
-  pista_son_id int REFERENCES pista_son
- ,terma_id int REFERENCES termas
- ,PRIMARY KEY (pista_son_id, terma_id)
+COMMENT ON TABLE composicion_autor IS 'M:M The authors involved in a single composicion.';
+
+CREATE TABLE IF NOT EXISTS artista_colectivo (
+  artista_id int REFERENCES artista ON DELETE CASCADE
+ ,colectivo_id int REFERENCES colectivo ON DELETE CASCADE
+ ,fecha_comienzio date
+ ,fecha_final date
+ ,PRIMARY KEY (artista_id, colectivo_id)
 );
+
+COMMENT ON TABLE artista_colectivo IS 'artists that make up a collective.';
+
+CREATE TABLE IF NOT EXISTS idioma_pista (
+  pista_son_id int REFERENCES pista_son
+ ,idioma_id int REFERENCES idioma
+ ,PRIMARY KEY (pista_son_id, idioma_id)
+);
+
+------------------------------------------------------
+-------- Other Relationship start here ---------------
+
+COMMENT ON TABLE idioma_pista IS 'M:M relationship of languages and recorded audio.';
+
+CREATE TABLE IF NOT EXISTS genero_pista (
+  pista_son_id int REFERENCES pista_son
+ ,gen_mus int REFERENCES genero_musical
+ ,PRIMARY KEY (pista_son_id, gen_mus)
+);
+
+COMMENT ON TABLE genero_pista IS 'M:M relationship of genres and recorded audio.';
+
+CREATE TABLE IF NOT EXISTS intepretacion (
+  pista_son_id int REFERENCES pista_son
+ ,autor_id int REFERENCES autor
+ ,tipo_autor tipo_autor
+ ,instrumento_id int REFERENCES instrumento
+ ,PRIMARY KEY (autor_id, pista_son_id, instrumento_id)
+);
+
+COMMENT ON TABLE intepretacion IS 'The interpretacion of a piece. M:M:M of autor, audio track and instrument';
+
+CREATE TABLE IF NOT EXISTS tema_pista_son (
+  pista_son_id int REFERENCES pista_son
+ ,tema_id int REFERENCES tema
+ ,PRIMARY KEY (pista_son_id, tema_id)
+);
+
+COMMENT ON TABLE tema_pista_son IS 'M:M Many tags a single audio track may have.';
 
 CREATE TABLE IF NOT EXISTS cobertura_pista (
   cobertura_id int REFERENCES cobertura
@@ -261,12 +332,21 @@ CREATE TABLE IF NOT EXISTS cobertura_pista (
  ,PRIMARY KEY (cobertura_id, pista_son_id)
 );
 
+COMMENT ON TABLE cobertura_pista IS 'The copyright associated with a single track.';
+
 CREATE TABLE IF NOT EXISTS cobertura_composicion (
   cobertura_id int REFERENCES cobertura
  ,composicion_id int REFERENCES composicion
  ,PRIMARY KEY (cobertura_id, composicion_id)
 );
 
+COMMENT ON TABLE cobertura_composicion IS 'The copyright associated with a written work.';
 
+CREATE TABLE IF NOT EXISTS album_serie (
+  album_id int REFERENCES album
+ ,serie_id int REFERENCES serie
+ ,PRIMARY KEY (album_id, serie_id)
+);
 
--- List all indexes at end, make sure to include FKs and tsvectors. Use GIN
+COMMENT ON TABLE album_serie IS 'Albums that may be part of a serie and vice versa';
+
