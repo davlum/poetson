@@ -1,5 +1,7 @@
 CREATE TYPE tipo_autor AS ENUM ('Primero', 'Segundo');
 
+CREATE TYPE tipo_publicador AS ENUM ('publicador', 'contribuidor', 'ambos');
+
 CREATE TYPE medio AS ENUM ('Digital', 'CD', 'Tape', 'Vinyl');
 
 CREATE DOMAIN profundidad_valido int CHECK (VALUE = 4 OR
