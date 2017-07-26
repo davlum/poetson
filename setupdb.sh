@@ -7,5 +7,6 @@ createuser -s -l postgres
 
 createdb -O postgres postgres
 
-psql postgres -c 'set role postgres;' -c '\i poet_son_sch.pgsql' -c '\i
-poet_son_dtypes.pgsql' -c '\i poet_son_ddl.pgsql' -c '\i audit.sql' -c '\i poet_son_audit_tables.pgsql'
+psql postgres -c 'set role postgres;' -c '\i create_schema.sql' -c '\i
+udt.sql' -c '\i schema.sql' -c '\i audit_script.sql' -c '\i
+audit_tables.sql' -c '\i populate_tema.sql' -c '\i populate_tipo.sql'

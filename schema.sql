@@ -19,12 +19,12 @@ CREATE TABLE IF NOT EXISTS autor (
 
 COMMENT ON TABLE autor IS 'The author superclass which artista, institucion, and colectivo inherit from.';
 
-CREATE TABLE IF NOT EXISTS tipo (
-  tipo_id serial PRIMARY KEY
- ,tipo_nom text UNIQUE NOT NULL
+CREATE TABLE IF NOT EXISTS genero_artista (
+  genero_id serial PRIMARY KEY
+ ,genero_nom text UNIQUE NOT NULL
 );
 
-COMMENT ON TABLE tipo IS 'Comprehensive list of genders. Works as a look up table.';
+COMMENT ON TABLE genero_artista IS 'Comprehensive list of genders. Works as a look up table.';
 
 CREATE TABLE IF NOT EXISTS artista (
   nom_primero text NOT NULL
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS artista (
  ,local_muer int REFERENCES lugar
  ,fecha_nac date
  ,fecha_muer date
- ,tipo_id int REFERENCES tipo
+ ,genero_id int REFERENCES genero_artista
  ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS institucion (
  ,lugar_id int REFERENCES lugar
  ,tipo_inst int REFERENCES tipo_institucion
  ,fecha_comienzo date
+ ,fecha_finale date
  ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
 
@@ -148,19 +149,13 @@ CREATE TABLE IF NOT EXISTS instrumento (
  ,nom_inst text NOT NULL
  ,familia_instr_id int REFERENCES familia_instrumento
  ,electronico boolean
- ,orig_inst text
- ,marc_inst text
- ,mod_inst text
- ,inv_inst text
- ,instrumento_comentario text
+ ,instrumento_comentario tsvector
 );
-
-COMMENT ON TABLE cobertura IS 'The copyright on the track.';
 
 CREATE TABLE IF NOT EXISTS tema (
   tema_id serial PRIMARY KEY
- ,tema text UNIQUE NOT NULL
- ,CONSTRAINT proper_tema CHECK (tema ~ '[a-z][a-z0-9_]+')
+ ,tema_nom text UNIQUE NOT NULL
+ ,CONSTRAINT proper_tema CHECK (tema_nom ~ '[:alpha:][[:alpha:]0-9_]+')
 );
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
@@ -179,7 +174,7 @@ COMMENT ON TABLE composicion IS 'The physical representation of the performed wo
 
 CREATE TABLE IF NOT EXISTS pista_son (
   pista_son_id serial PRIMARY KEY
- ,nom_pista text NOT NULL
+ ,nombre_del_archivo text NOT NULL
  ,numero_de_pista int CHECK (numero_de_pista > 1)
  ,composicion_id int REFERENCES composicion
  ,editor_id int REFERENCES editor NOT NULL DEFAULT 1
@@ -313,4 +308,3 @@ CREATE TABLE IF NOT EXISTS album_serie (
 );
 
 COMMENT ON TABLE album_serie IS 'Albums that may be part of a serie and vice versa';
-
