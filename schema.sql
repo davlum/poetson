@@ -29,13 +29,12 @@ COMMENT ON TABLE genero_artista IS 'Comprehensive list of genders. Works as a lo
 CREATE TABLE IF NOT EXISTS artista (
   nom_primero text NOT NULL
  ,nom_segundo text
- ,apellido text
  ,ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
  ,materno_nom text
  ,paterno_nom text
  ,seudonimo text
- ,local_nac int REFERENCES lugar
- ,local_muer int REFERENCES lugar
+ ,lugar_nac int REFERENCES lugar
+ ,lugar_muer int REFERENCES lugar
  ,fecha_nac date
  ,fecha_muer date
  ,genero_id int REFERENCES genero_artista
@@ -55,7 +54,6 @@ CREATE TABLE IF NOT EXISTS institucion (
   institucion_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
  ,tipo_inst int REFERENCES tipo_institucion
- ,fecha_comienzo date
  ,fecha_finale date
  ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
 ) INHERITS (autor);
@@ -96,7 +94,6 @@ CREATE TABLE IF NOT EXISTS editor (
  ,apellido text
  ,acceso date DEFAULT now()
  ,autor_id int REFERENCES autor 
- ,clave varchar(4) UNIQUE
  ,posicion text DEFAULT 'Servicio social' -- Such as undergrad?
  ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
