@@ -118,20 +118,13 @@ COMMENT ON TABLE idioma IS 'Possible Languages. Works as a lookup table.';
 CREATE TABLE IF NOT EXISTS serie (
   serie_id serial PRIMARY KEY
  ,nom_serie text NOT NULL
+ ,nom_album text
+ ,ruta_foto text
  ,giro text
  ,lugar_id int REFERENCES lugar
 );
 
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
-
-CREATE TABLE IF NOT EXISTS album (
-  album_id serial PRIMARY KEY
- ,nom_album text NOT NULL
- ,ruta_foto text
- ,lugar_id int REFERENCES lugar
-);
-
-COMMENT ON TABLE album IS 'A collection of pista_son.';
 
 CREATE TABLE IF NOT EXISTS familia_instrumento (
   familia_instr_id serial PRIMARY KEY
@@ -179,7 +172,6 @@ CREATE TABLE IF NOT EXISTS pista_son (
  ,medio_id medio 
  ,lugar_interp int REFERENCES lugar
  ,serie_id int REFERENCES serie
- ,album_id int REFERENCES album
  ,comentario tsvector
  ,fecha_grab date -- date recorded
  ,fecha_dig date -- date digitized
@@ -297,11 +289,3 @@ CREATE TABLE IF NOT EXISTS cobertura (
 );
 
 COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';
-
-CREATE TABLE IF NOT EXISTS album_serie (
-  album_id int REFERENCES album
- ,serie_id int REFERENCES serie
- ,PRIMARY KEY (album_id, serie_id)
-);
-
-COMMENT ON TABLE album_serie IS 'Albums that may be part of a serie and vice versa';
