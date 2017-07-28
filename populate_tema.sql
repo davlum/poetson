@@ -1000,4 +1000,4 @@ INSERT INTO tema (tema_nom) VALUES
   ('zanate'),
   ('Zócalo'),
   ('zombie'),
-  ('zorro);
+  ('zorro');

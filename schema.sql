@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS instrumento (
 CREATE TABLE IF NOT EXISTS tema (
   tema_id serial PRIMARY KEY
  ,tema_nom text UNIQUE NOT NULL
- ,CONSTRAINT proper_tema CHECK (tema_nom ~ '[:alpha:][[:alpha:]0-9_]+')
+ ,CONSTRAINT proper_tema CHECK (tema_nom ~ '[a-zà-ÿ0-9 ]+')
 );
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS archivo (
  ,abr int NOT NULL DEFAULT 128000 CHECK (abr > 700)
  ,profundidad_de_bits profundidad_valido
  ,canales int CHECK (canales > 0 AND canales < 12) NOT NULL DEFAULT 2
- ,codec int REFERENCES codec 
+ ,codec text
  ,frecuencia frecuencia_valido NOT NULL
  ,tamano numeric(5,2) NOT NULL -- in MBs
 );
@@ -212,6 +212,19 @@ CREATE TABLE IF NOT EXISTS artista_institucion (
 );
 
 COMMENT ON TABLE artista_institucion IS 'M:M relationship of artists and institucions.';
+
+CREATE TABLE IF NOT EXISTS cobertura (
+  cobertura_id serial PRIMARY KEY
+ ,pista_son_id int REFERENCES pista_son
+ ,composicion_id int REFERENCES composicion
+ ,pais_cobertura text NOT NULL
+ ,licencia_cobertura text
+ ,fecha_comienzo date
+ ,fecha_final date
+ ,CHECK (composicion_id IS NULL OR pista_son_id IS NULL)
+);
+
+COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';
 
 CREATE TABLE IF NOT EXISTS cobertura_autor (
   cobertura_id int REFERENCES cobertura
@@ -277,15 +290,3 @@ CREATE TABLE IF NOT EXISTS tema_pista_son (
 
 COMMENT ON TABLE tema_pista_son IS 'M:M Many tags a single audio track may have.';
 
-CREATE TABLE IF NOT EXISTS cobertura (
-  cobertura_id serial PRIMARY KEY
- ,pista_son_id int REFERENCES pista_son
- ,composicion_id int REFERENCES composicion
- ,pais_cobertura text NOT NULL
- ,licencia_cobertura text
- ,fecha_comienzo date
- ,fecha_final date
- ,CHECK (composicion_id IS NULL OR pista_son_id IS NULL)
-);
-
-COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';
