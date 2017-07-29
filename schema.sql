@@ -36,9 +36,13 @@ CREATE TABLE IF NOT EXISTS artista (
  ,lugar_nac int REFERENCES lugar
  ,lugar_muer int REFERENCES lugar
  ,fecha_nac date
+ ,ano_nac ano
  ,fecha_muer date
+ ,ano_muer ano 
  ,genero_id int REFERENCES genero_artista
  ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
+ ,COOSTRAINT ano_o_fecha_nac CHECK (fecha_nac IS NULL OR ano_nac IS NULL)
+ ,CONSTRAINT ano_o_fecha_muer CHECK (fecha_muer IS NULL OR ano_muer IS NULL)
 ) INHERITS (autor);
 
 COMMENT ON TABLE artista IS 'A singular artist, child class of author';
@@ -54,8 +58,10 @@ CREATE TABLE IF NOT EXISTS institucion (
   institucion_nom text NOT NULL
  ,lugar_id int REFERENCES lugar
  ,tipo_inst int REFERENCES tipo_institucion
- ,fecha_finale date
+ ,fecha_final date
+ ,ano_final ano
  ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
+ ,CONSTRAINT ano_o_fecha_final CHECK (fecha_final IS NULL OR ano_final IS NULL)
 ) INHERITS (autor);
 
 COMMENT ON TABLE institucion IS 'An actual institucion';
@@ -65,7 +71,11 @@ CREATE TABLE IF NOT EXISTS colectivo (
  ,lugar_id int REFERENCES lugar
  ,fecha_comienzo date
  ,fecha_final date
+ ,ano_comienzo ano
+ ,ano_final ano
  ,CONSTRAINT colectivo_id_constr PRIMARY KEY (autor_id)
+ ,CONSTRAINT ano_o_fecha_comienzo CHECK (fecha_comienzo IS NULL OR ano_comienzo IS NULL)
+ ,CONSTRAINT ano_o_fecha_final CHECK (fecha_final IS NULL OR ano_final IS NULL)
 ) INHERITS (autor);
 
 COMMENT ON TABLE colectivo IS 'A collective of authors';
@@ -118,13 +128,20 @@ COMMENT ON TABLE idioma IS 'Possible Languages. Works as a lookup table.';
 CREATE TABLE IF NOT EXISTS serie (
   serie_id serial PRIMARY KEY
  ,nom_serie text NOT NULL
- ,nom_album text
- ,ruta_foto text
  ,giro text
  ,lugar_id int REFERENCES lugar
 );
 
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
+
+CREATE TABLE IF NOT EXISTS album (
+  serie_id int REFERENCES serie
+ ,nom_album text
+ ,ruta_foto text
+ ,PRIMARY KEY (serie_id, nom_album)
+);
+
+COMMENT ON TABLE album IS 'a weak entity from serie with nom_album as discrimator.';
 
 CREATE TABLE IF NOT EXISTS familia_instrumento (
   familia_instr_id serial PRIMARY KEY
@@ -156,8 +173,12 @@ CREATE TABLE IF NOT EXISTS composicion (
  ,tit_alt text
  ,fecha_pub date
  ,fecha_comp date
+ ,ano_pub ano
+ ,ano_comp ano
  ,composicion tsvector -- The text itself
- ,lugar_comp int REFERENCES lugar 
+ ,lugar_comp int REFERENCES lugar
+ ,CONSTRAINT ano_o_fecha_pub CHECK (fecha_pub IS NULL OR ano_pub IS NULL)
+ ,CONSTRAINT ano_o_fecha_comp CHECK (fecha_comp IS NULL OR ano_comp IS NULL)
 );
 
 COMMENT ON TABLE composicion IS 'The physical representation of the performed work.';
@@ -178,7 +199,17 @@ CREATE TABLE IF NOT EXISTS pista_son (
  ,fecha_mod date -- date migrated
  ,fecha_cont date -- date donated
  ,fecha_acep date -- date accepted
+ ,ano_grab ano -- ano recorded
+ ,ano_dig ano -- ano digitized
+ ,ano_mod ano -- ano migrated
+ ,ano_cont ano -- ano donated
+ ,ano_acep ano -- ano accepted
  ,fecha_inc timestamp DEFAULT now() -- date added
+ ,CONSTRAINT ano_o_fecha_grab CHECK (fecha_grab IS NULL OR ano_grab IS NULL)
+ ,CONSTRAINT ano_o_fecha_dig CHECK (fecha_dig IS NULL OR ano_dig IS NULL)
+ ,CONSTRAINT ano_o_fecha_mod CHECK (fecha_mod IS NULL OR ano_mod IS NULL)
+ ,CONSTRAINT ano_o_fecha_cont CHECK (fecha_cont IS NULL OR ano_cont IS NULL)
+ ,CONSTRAINT ano_o_fecha_acep CHECK (fecha_acep IS NULL OR ano_acep IS NULL)
 );
 
 COMMENT ON TABLE pista_son IS 'The audio track. Domain Constraint will be put on the front end. Add not null to composicion';
@@ -207,21 +238,34 @@ CREATE TABLE IF NOT EXISTS artista_institucion (
  ,institucion_id int REFERENCES institucion
  ,fecha_comienzo date
  ,fecha_final date
+ ,ano_comienzo ano
+ ,ano_final ano
  ,titulo text
  ,PRIMARY KEY (artista_id, institucion_id)
+ ,CONSTRAINT ano_o_fecha_comienzo CHECK (fecha_comienzo IS NULL OR ano_comienzo IS NULL)
+ ,CONSTRAINT ano_o_fecha_final CHECK (fecha_final IS NULL OR ano_final IS NULL)
 );
 
 COMMENT ON TABLE artista_institucion IS 'M:M relationship of artists and institucions.';
 
+CREATE TABLE IF NOT EXISTS cobertura_tipo (
+  cobertura_tipo_id serial PRIMARY KEY,
+  cobertura_tipo text UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS cobertura (
   cobertura_id serial PRIMARY KEY
+ ,cobertura_tipo_id int REFERENCES cobertura_tipo NOT NULL 
  ,pista_son_id int REFERENCES pista_son
  ,composicion_id int REFERENCES composicion
  ,pais_cobertura text NOT NULL
  ,licencia_cobertura text
  ,fecha_comienzo date
  ,fecha_final date
- ,CHECK (composicion_id IS NULL OR pista_son_id IS NULL)
+ ,ano_comienzo ano
+ ,ano_final ano
+ ,CONSTRAINT ano_o_fecha_comienzo CHECK (fecha_comienzo IS NULL OR ano_comienzo IS NULL)
+ ,CONSTRAINT ano_o_fecha_final CHECK (fecha_final IS NULL OR ano_final IS NULL)
 );
 
 COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';
@@ -249,6 +293,10 @@ CREATE TABLE IF NOT EXISTS artista_colectivo (
  ,colectivo_id int REFERENCES colectivo ON DELETE CASCADE
  ,fecha_comienzo date
  ,fecha_final date
+ ,ano_comienzo ano
+ ,ano_final ano
+ ,CONSTRAINT ano_o_fecha_comienzo CHECK (fecha_comienzo IS NULL OR ano_comienzo IS NULL)
+ ,CONSTRAINT ano_o_fecha_final CHECK (fecha_final IS NULL OR ano_final IS NULL)
  ,PRIMARY KEY (artista_id, colectivo_id)
 );
 

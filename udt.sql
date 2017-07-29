@@ -4,6 +4,8 @@ CREATE TYPE tipo_publicador AS ENUM ('publicador', 'contribuidor', 'ambos');
 
 CREATE TYPE medio AS ENUM ('Digital', 'CD', 'Tape', 'Vinyl');
 
+CREATE DOMAIN ano int CHECK ((VALUE > 0 AND VALUE < 10000) OR IS NULL);
+
 CREATE DOMAIN profundidad_valido int CHECK (VALUE = 4 OR
                                             VALUE = 8 OR
                                             VALUE = 11 OR
