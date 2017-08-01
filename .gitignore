@@ -1,0 +1,9 @@
+.idea/
+.idea/*
+*.swp
+*.*.swp
+.*.*.swp
+*.swo
+*.*.swo
+.*.*.swo
+*.pyc
