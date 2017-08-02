@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS artista (
  ,ano_muer ano 
  ,genero_id int REFERENCES genero_artista
  ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
- ,COOSTRAINT ano_o_fecha_nac CHECK (fecha_nac IS NULL OR ano_nac IS NULL)
+ ,CONSTRAINT ano_o_fecha_nac CHECK (fecha_nac IS NULL OR ano_nac IS NULL)
  ,CONSTRAINT ano_o_fecha_muer CHECK (fecha_muer IS NULL OR ano_muer IS NULL)
 ) INHERITS (autor);
 
@@ -153,7 +153,7 @@ COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for in
 -- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
   instrumento_id serial PRIMARY KEY
- ,nom_inst text NOT NULL
+ ,nom_inst text DEFAULT 'UNKNOWN'
  ,familia_instr_id int REFERENCES familia_instrumento
  ,electronico boolean
  ,instrumento_comentario tsvector

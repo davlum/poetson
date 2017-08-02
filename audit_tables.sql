@@ -1,6 +1,6 @@
 SELECT audit.audit_table('autor', 'true', 'false');
 SELECT audit.audit_table('artista', 'true', 'false');
-SELECT audit.audit_table('tipo', 'true', 'false');
+SELECT audit.audit_table('genero_artista', 'true', 'false');
 SELECT audit.audit_table('artista_institucion', 'true', 'false');
 SELECT audit.audit_table('lugar', 'true', 'false');
 SELECT audit.audit_table('colectivo', 'true', 'false');
@@ -8,7 +8,6 @@ SELECT audit.audit_table('institucion', 'true', 'false');
 --SELECT audit.audit_table('tipo_institucion', 'true', 'false');
 SELECT audit.audit_table('artista_colectivo', 'true', 'false');
 SELECT audit.audit_table('publicador', 'true', 'false'); 
-SELECT audit.audit_table('contribuidor', 'true', 'false');
 --SELECT audit.audit_table('genero_musical', 'true', 'false');
 SELECT audit.audit_table('idioma', 'true', 'false');
 SELECT audit.audit_table('serie', 'true', 'false');
