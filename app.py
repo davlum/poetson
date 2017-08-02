@@ -73,6 +73,7 @@ class RegisterForm(Form):
     ])
     confirm = PasswordField('Confirm Password')
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
@@ -91,19 +92,31 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password_candidate = request.form['password']
 
-        result = Users.query.filter_by(usrname = username).first()
+        result = Users.query.filter_by(usrname=username).first()
         if result is not None:
-            if sah256_crypt.verify(password_candidate, result.password):
-                app.logger.info('PASSWORD MATCHED')
+            if sha256_crypt.verify(password_candidate, result.password):
+                session['logged_in'] = True
+                session['username'] = username
+                flash('You are now logged in', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                error = 'Invalid login'
+                app.logger.info('PASSWORD NOT MATCHED', error=error)
         else:
-            app.logger.info('NO USER')
+            error = 'Username not found'
+            return render_template('login.html', error=error)
+
     return render_template('login.html')
+
+
+
 
 if __name__ == '__main__':
     manager.run()
