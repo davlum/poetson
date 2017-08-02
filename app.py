@@ -8,7 +8,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 app.config.from_pyfile('config.py')
 
 Articles = Articles()
@@ -39,24 +39,23 @@ class Users(db.Model):
 
 
 @app.route('/')
-def index():
+def home():
     return render_template('home.html')
 
-
-@app.route('/<name>')
-def hello_name(name):
-    return "Hello {}!".format(name)
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
 
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
 
 @app.route('/articles')
 def articles():
     return render_template('articles.html', articles=Articles)
-
 
 
 @app.route('/article/<string:id>/')

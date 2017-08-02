@@ -1,19 +1,42 @@
 <!DOCTYPE html>
-  <html>
+<html lang="en" data-predefined-style="true" data-css-presets="true">
     <head>
-      <meta charset="utf-8">
-      <title>Poética Sonora</title>
-      <link rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <title>PoéticaSonora | México 2016</title>
+
+        <meta name="ROBOTS" content="INDEX,FOLLOW">
+        <meta name="description" content="Voz, legibilidad, escucha">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <!-- Twitter Cards -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="PoéticaSonora | México 2016" />
+        <meta name="twitter:description" content="Voz, legibilidad, escucha" />
+        <meta name="twitter:image" content="http://payload.persona.co/1/0/28105/headerimg/social_1465783242.png" />
+
+        <!-- Open Graph -->
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="PoéticaSonora | México 2016" />
+        <meta property="og:description" content="Voz, legibilidad, escucha" />
+        <meta property="og:url" content="http://poeticasonora.mx"/>
+        <meta property="og:image" content="http://payload.persona.co/1/0/28105/headerimg/social_1465783242.png" />
+        <meta property="og:type" content="website"/>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link href="{{ url_for('static', filename='css/stylesheet.css') }}" id="member_stylesheet" rel="stylesheet" type="text/css" />
+        <link href="{{ url_for('static', filename='css/global.css') }}" id="" rel="stylesheet" type="text/css" />
     </head>
-    <body>
+
+    <body data-bodyview="index" class="default">
       {% include 'includes/_navbar.html' %}
       <div class="container">
         {% include 'includes/_messages.html' %}
         {% block body %}{% endblock %}
       </div>
-      <script src =
-        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
-      </script>
+
+        <div data-subpage-overlay class="subpage_overlay"></div>
+        <div data-content-ruler class="content_width"></div>
+        <script src ="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </body>
-  </html>
+</html>
