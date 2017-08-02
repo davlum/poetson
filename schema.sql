@@ -135,10 +135,9 @@ CREATE TABLE IF NOT EXISTS serie (
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
 
 CREATE TABLE IF NOT EXISTS album (
-  serie_id int REFERENCES serie
+  album_id serial PRIMARY KEY
  ,nom_album text
  ,ruta_foto text
- ,PRIMARY KEY (serie_id, nom_album)
 );
 
 COMMENT ON TABLE album IS 'a weak entity from serie with nom_album as discrimator.';
@@ -193,7 +192,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
  ,medio_id medio 
  ,lugar_interp int REFERENCES lugar
  ,serie_id int REFERENCES serie
- ,comentario tsvector
+ ,comentario_pista_son tsvector
  ,fecha_grab date -- date recorded
  ,fecha_dig date -- date digitized
  ,fecha_mod date -- date migrated
@@ -228,7 +227,7 @@ CREATE TABLE IF NOT EXISTS archivo (
  ,tamano numeric(5,2) NOT NULL -- in MBs
 );
 
-COMMENT ON TABLE pista_son IS 'M:1 with pista_son. The different audio codecs that the recorded track is available in.';
+COMMENT ON TABLE archivo IS 'M:1 with pista_son. The different audio codecs that the recorded track is available in.';
 
 -----------------------------------------------------
 ---------- Relations relating to author -------------
@@ -249,9 +248,12 @@ CREATE TABLE IF NOT EXISTS artista_institucion (
 COMMENT ON TABLE artista_institucion IS 'M:M relationship of artists and institucions.';
 
 CREATE TABLE IF NOT EXISTS cobertura_tipo (
-  cobertura_tipo_id serial PRIMARY KEY,
-  cobertura_tipo text UNIQUE NOT NULL
+  cobertura_tipo_id serial PRIMARY KEY
+ ,cobertura_tipo text UNIQUE NOT NULL
+ ,cobertura_comentario text
 );
+
+
 
 CREATE TABLE IF NOT EXISTS cobertura (
   cobertura_id serial PRIMARY KEY
@@ -282,7 +284,7 @@ CREATE TABLE IF NOT EXISTS composicion_autor (
   composicion_id int REFERENCES composicion
  ,autor_id int REFERENCES autor
  ,tipo_autor tipo_autor
- ,comentario tsvector
+ ,comentario_autor tsvector
  ,PRIMARY KEY (composicion_id, autor_id)
 );
 
@@ -337,4 +339,12 @@ CREATE TABLE IF NOT EXISTS tema_pista_son (
 );
 
 COMMENT ON TABLE tema_pista_son IS 'M:M Many tags a single audio track may have.';
+
+CREATE TABLE IF NOT EXISTS serie_album (
+  album_id int REFERENCES album
+ ,serie_id int REFERENCES serie
+ ,PRIMARY KEY (album_id, serie_id)
+);
+
+COMMENT ON TABLE serie_album IS 'M:M serie might belong to several albums and vice versa.';
 
