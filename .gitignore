@@ -7,3 +7,7 @@
 *.*.swo
 .*.*.swo
 *.pyc
+bin/
+include/
+lib/
+.Python
