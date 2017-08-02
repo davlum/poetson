@@ -28,15 +28,22 @@
         <link href="{{ url_for('static', filename='css/global.css') }}" id="" rel="stylesheet" type="text/css" />
     </head>
 
+
+
     <body data-bodyview="index" class="default">
       {% include 'includes/_navbar.html' %}
       <div class="container">
         {% include 'includes/_messages.html' %}
         {% block body %}{% endblock %}
-      </div>
 
+
+
+
+        <directlink link="http://poeticasonora.mx/PS-Inicio" id="dl_145850"></directlink>
         <div data-subpage-overlay class="subpage_overlay"></div>
         <div data-content-ruler class="content_width"></div>
         <script src ="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
+      </div>
     </body>
 </html>

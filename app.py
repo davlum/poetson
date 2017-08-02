@@ -20,7 +20,7 @@ manager = Manager(app)
 manager.add_command('db', MigrateCommand)
 
 class Users(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key= True)
     name = db.Column(db.Text)
     email = db.Column(db.Text)
     username = db.Column(db.Text)
