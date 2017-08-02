@@ -4,7 +4,17 @@ CREATE TYPE tipo_publicador AS ENUM ('publicador', 'contribuidor', 'ambos');
 
 CREATE TYPE medio AS ENUM ('Digital', 'CD', 'Tape', 'Vinyl');
 
-CREATE DOMAIN ano int CHECK ((VALUE > 0 AND VALUE < 10000) OR VALUE IS NULL);
+CREATE DOMAIN fecha AS text 
+  DEFAULT 'desconocido' 
+  CHECK (VALUE ~ '^[1-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$' 
+       OR VALUE = 'desconocido');
+      
+CREATE FUNCTION caststr(fec fecha) RETURNS int AS
+      'select cast(substring(fec, 1, 4) AS int);'
+      LANGUAGE SQL
+      IMMUTABLE
+      RETURNS NULL ON NULL INPUT;
+
 
 CREATE DOMAIN profundidad_valido int CHECK (VALUE = 4 OR
                                             VALUE = 8 OR
