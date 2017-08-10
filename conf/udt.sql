@@ -4,6 +4,7 @@ CREATE TYPE tipo_publicador AS ENUM ('publicador', 'contribuidor', 'ambos');
 
 CREATE TYPE medio AS ENUM ('Digital', 'CD', 'Tape', 'Vinyl');
 
+
 CREATE DOMAIN fecha AS text 
   DEFAULT 'desconocido' 
   CHECK (VALUE ~ '^[1-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$' 
@@ -15,8 +16,9 @@ CREATE FUNCTION caststr(fec fecha) RETURNS int AS
       IMMUTABLE
       RETURNS NULL ON NULL INPUT;
 
+CREATE DOMAIN proper_email AS text CHECK (VALUE ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$');
 
-CREATE DOMAIN profundidad_valido int CHECK (VALUE = 4 OR
+CREATE DOMAIN profundidad_valido AS int CHECK (VALUE = 4 OR
                                             VALUE = 8 OR
                                             VALUE = 11 OR
                                             VALUE = 16 OR
@@ -26,7 +28,7 @@ CREATE DOMAIN profundidad_valido int CHECK (VALUE = 4 OR
                                             VALUE = 48 OR
                                             VALUE = 64); 
 
-CREATE DOMAIN frecuencia_valido int CHECK (VALUE = 8000 OR
+CREATE DOMAIN frecuencia_valido AS int CHECK (VALUE = 8000 OR
                                            VALUE = 11025 OR
                                            VALUE = 16000 OR
                                            VALUE = 22050 OR
@@ -34,7 +36,7 @@ CREATE DOMAIN frecuencia_valido int CHECK (VALUE = 8000 OR
                                            VALUE = 37800 OR
                                            VALUE = 44056 OR
                                            VALUE = 44100 OR
-                                           VALUE = 47250 OR
+                                           VALUE = 47250 OR                               
                                            VALUE = 48000 OR
                                            VALUE = 50000 OR
                                            VALUE = 50400 OR

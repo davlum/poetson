@@ -1,7 +1,7 @@
 POSTGRES = {
-    'user': 'davidlum',
-    'pw': 'password',
-    'db': 'myflaskapp',
+    'user': 'postgres',
+    'pw': 'postgres',
+    'db': 'postgres',
     'host': 'localhost',
     'port': '5432',
 }
@@ -12,6 +12,7 @@ TESTING = False
 CSRF_ENABLED = True
 SECRET_KEY = 'this-really-needs-to-be-changed'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_ECHO = True
 SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
     %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 

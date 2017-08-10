@@ -77,11 +77,10 @@ CREATE TABLE IF NOT EXISTS publicador (
  ,tipo tipo_publicador
  ,web_publicador text -- website of publisher
  ,dir_publicador text -- address
- ,email text
+ ,email proper_email
  ,telefono text
  ,contact_publicador int REFERENCES autor
  ,coment_publicador tsvector
- ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE publicador IS 'Entity that made the resource available, e.g. streaming service or foundation.';
@@ -89,13 +88,12 @@ COMMENT ON TABLE publicador IS 'Entity that made the resource available, e.g. st
 -- This table will be mutable
 CREATE TABLE IF NOT EXISTS editor (
   editor_id serial PRIMARY KEY
- ,email text
+ ,email proper_email NOT NULL UNIQUE
  ,nom text
- ,apellido text
- ,acceso fecha DEFAULT now()
+ ,clave text
+ ,acceso timestamp DEFAULT now()
  ,autor_id int REFERENCES autor 
  ,posicion text DEFAULT 'Servicio social' -- Such as undergrad?
- ,CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE editor IS 'Individual who uploaded the data.';
