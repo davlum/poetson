@@ -52,6 +52,9 @@ def about():
 def search():
     return render_template('search.html')
 
+@app.route('/searchall/')
+def searchall():
+    return render_template('searchAll.html')
 
 @app.route('/articles')
 def articles():
