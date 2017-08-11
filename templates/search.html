@@ -1,90 +1,28 @@
 {% extends 'layout.html' %}
 {% block body %}
 
-<div id="main-page" class="container" xmlns="http://www.w3.org/1999/html">
-    <main class="content_width" data-container="content">
-        <div data-container-padding>
-            <div class="content_padded">
-                <div class="bodycopy" data-sortable="Content" data-view="ProjectDetail" data-set="Project" style="display:block;">
-                    <a href="#" class="show_index" rel="show_index" style="display: none">✕</a>
-                    <div id="content" class="padded" data-id="145850">
-                        <div class="project_title" style="display: none">PS Inicio</div>
-                        <div class="content clearfix" data-elementresizer data-resize-parent>
-                            <div id="project-title">
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                <div style="text-align: center;">
-                                    <h1><b>POÉTICA<i>S</i>ONORA</b></h1>
-                                    <br>
-                                    <h2><b>Voz, legibilidad, escucha</b><br></h2><br><br>
-                                    <br>
-                                    <br>
-                                    <div><b><u><a rel="history">Repositorio Digital de Audio</a></u></b>
-                                        <br>
-                                    Digital Audio Repository
-                                        <br>
-                                    (2016-2017)
-                                    </div>
-                                    <br>
-                                    <br>
-                                    <br>
-                                    <br>
-                                    <br>
-                                <div class="container">
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="input-group" id="adv-search">
-                                                <input type="text" class="form-control" placeholder="Search" />
-                                                <div class="input-group-btn">
-                                                    <div class="btn-group" role="group">
-                                                        <div class="dropdown dropdown-lg">
-                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-                                                            <div class="dropdown-menu dropdown-menu-right" role="menu">
-                                                                <form class="form-horizontal" role="form">
-                                                                  <div class="form-group">
-                                                                    <label for="filter">Filter by</label>
-                                                                    <select class="form-control">
-                                                                        <option value="0" selected>All Categories</option>
-                                                                        <option value="1">Autor</option>
-                                                                        <option value="2">Composicion</option>
-                                                                        <option value="3"></option>
-                                                                        <option value="4">Most commented</option>
-                                                                    </select>
-                                                                  </div>
-                                                                  <div class="form-group">
-                                                                    <label for="contain">Author</label>
-                                                                    <input class="form-control" type="text" />
-                                                                  </div>
-                                                                  <div class="form-group">
-                                                                    <label for="contain">Contains the words</label>
-                                                                    <input class="form-control" type="text" />
-                                                                  </div>
-                                                                  <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                        <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+{% include 'includes/_header.html' %}
+   <div class="center-block" style="width: 80%;">
+   {% if result %}
+    <h3>Autor</h3>
+    <table class="table table-striped">
+        <tr>
+            <th>Nom</th>
+        </tr>
+        {% for aut in result %}
+        <tr>
+            <td>
+                <a style="text-decoration: none;" href="/autor/{{ aut.autor_id }}">{{ aut.nom_primero }}
+                {% if aut.nom_segundo is not none %}
+                    {{ aut.nom_segundo }}
+                {% endif %}
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+   {% endif %}
+   </div>
+    {% include 'includes/_footer.html' %}
 
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                          </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% include 'includes/_footer.html' %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-</div>
 {% endblock %}

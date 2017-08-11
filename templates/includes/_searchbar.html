@@ -1,0 +1,52 @@
+<form class="form-horizontal" role="form" action="/search" method="post">
+    <div class="input-group" id="adv-search">
+        <input name="search-main" type="text" class="form-control" placeholder="Search"/>
+        <div class="input-group-btn">
+            <div class="btn-group" role="group">
+                <div class="dropdown dropdown-lg">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+                    <div class="dropdown-menu dropdown-menu-right" role="menu">
+                        <div class="form-horizontal" role="form">
+                          <div class="form-group">
+                            <label for="filter">Filter by</label>
+                            <select name="filter-by" onclick="noPropagate(event);" id="no-click" class="form-control">
+                                <option value="0" selected>All Categories</option>
+                                <option value="1">Autor</option>
+                                <option value="2">Composicion</option>
+                                <option value="3">Tema</option>
+                                <option value="4">Genero</option>
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <label for="contain">Author</label>
+                            <input class="form-control" type="text" />
+                          </div>
+                          <div class="form-group">
+                            <label for="contain">Contains the words</label>
+                            <input class="form-control" type="text" />
+                          </div>
+                          <button name="search" type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+                </div>
+                <button name="search" type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function noPropagate(e)
+        {
+            if (!e)
+              e = window.event;
+
+            //IE9 & Other Browsers
+            if (e.stopPropagation) {
+              e.stopPropagation();
+            }
+            //IE8 and Lower
+            else {
+              e.cancelBubble = true;
+            }
+        }
+    </script>
+</form>

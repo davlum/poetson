@@ -32,22 +32,42 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/search')
-def search():
-    return render_template('search.html')
+@app.route('/searchhome')
+def searchhome():
+    return render_template('searchhome.html')
 
-@app.route('/searchall/')
-def searchall():
-    return render_template('searchAll.html')
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    result_authors = []
+    if request.method == "POST":
+        param = request.form["search-main"]
+        authors_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
+                          nom_segundo ~* :name;""");
+        result_authors = db.engine.execute(authors_query, name=param)
+    return render_template('search.html', result=result_authors)
+
 
 @app.route('/articles')
 def articles():
     return render_template('articles.html', articles=Articles)
 
 
-@app.route('/article/<string:id>/')
-def article(id):
-    return render_template('article.html', id=id)
+@app.route('/article/<string:articleid>/')
+def article(articleid):
+    return render_template('article.html', articleid=articleid)
+
+
+@app.route('/autor/<string:autorid>/')
+def autor(autorid):
+    author_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
+    author_result = db.engine.execute(author_query, id=autorid).first()
+    lugar_nac_query = text("""SELECT * FROM public.lugar WHERE lugar_id=:id """)
+    lugar_nac_result = db.engine.execute(lugar_nac_query, id=author_result.lugar_nac).first()
+    print(lugar_nac_result.nom_subdivision)
+    lugar_muer_query = text("""SELECT * FROM public.lugar WHERE lugar_id=:id """)
+    lugar_muer_result = db.engine.execute(lugar_muer_query, id=author_result.lugar_muer).first()
+    return render_template('autor.html', autor=author_result, nac=lugar_nac_result, muer=lugar_muer_result).encode("utf-8")
 
 
 class RegisterForm(Form):

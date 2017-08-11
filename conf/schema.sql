@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS genero_artista (
 
 COMMENT ON TABLE genero_artista IS 'Comprehensive list of genders. Works as a look up table.';
 
+
+-- CREATE INDEXES ON NAMES AND STUFF
 CREATE TABLE IF NOT EXISTS artista (
   nom_primero text NOT NULL
  ,nom_segundo text
