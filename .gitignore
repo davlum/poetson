@@ -10,5 +10,7 @@
 bin/
 include/
 lib/
+pip-selfcheck.json
+pyvenv.cfg
 .Python
 *.json

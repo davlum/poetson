@@ -1,8 +1,6 @@
-from datetime import datetime
 from flask import Flask, render_template, request, flash, redirect, url_for, session, logging, request
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import text, create_engine
-import psycopg2
+from sqlalchemy import text
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from data import Articles
