@@ -1,7 +1,6 @@
-{% extends 'layout.html' %}
+{% extends 'searchlayout.html' %}
 {% block body %}
 
-{% include 'includes/_header.html' %}
    <div class="center-block" style="width: 80%;">
        {% if result['artista'] != "" and result['artista'].rowcount > 1 %}
            <div>
@@ -52,6 +51,5 @@
        </div>
    {% endif %}
    </div>
-    {% include 'includes/_footer.html' %}
 
 {% endblock %}
