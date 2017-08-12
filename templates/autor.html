@@ -2,22 +2,26 @@
 
 {% block body %}
     {% include 'includes/_header.html' %}
-    <div>
+    <div class="center-block" style="width: 80%;">
+        <hr>
         <h4>Nom</h4>
-        <h3>{{ autor.nom_primero }}
+        <h3 class="indented">{{ autor.nom_primero }}
             {% if autor.nom_segundo is not none %}
                     {{ autor.nom_segundo }}
             {% endif %}
         </h3>
-        <br>
             {% if autor.seudonimo is not none %}
-                <h4>Seudonimo</h4>
-                <h3>{{ autor.seudonimo }}</h3>
-                <br>
+                <h3 class="indented">'{{ autor.seudonimo }}'</h3>
             {% endif %}
-        {% if nac.pais != "Desconocido" %}
-            <h4>Lugar</h4>
-            <h3>
+         <br>
+        {% if autor.lugar_nac is not none%}
+            <h4>Nac</h4>
+            <h3 class="indented">
+                {% if autor.fecha_nac != "desconocido" %}
+                    {{ autor.fecha_nac }}
+                {% endif %}
+            </h3>
+            <h3 class="indented">
                 {% if nac.ciudad != "Desconocida" %}
                     {{ nac.ciudad }},
                 {% endif %}
@@ -26,9 +30,54 @@
                 {% endif %}
                 {{ nac.pais }}
             </h3>
+            <br>
         {% endif %}
-        </h3>
-        <br>
+        {% if autor.lugar_muer is not none %}
+            <h4>Muer</h4>
+            <h3 class="indented">
+                {% if autor.fecha_muer != "desconocido" %}
+                    {{ autor.fecha_muer }}
+                {% endif %}
+            </h3>
+            <h3 class="indented">
+                {% if muer.ciudad != "Desconocida" %}
+                    {{ muer.ciudad }},
+                {% endif %}
+                {% if muer.nom_subdivision != "Desconocida" %}
+                    {{ muer.nom_subdivision }},
+                {% endif %}
+                {{ muer.pais }}
+            </h3>
+            <br>
+        {% endif %}
+        {% if autor.coment_autor is not none %}
+            <h4>Sobre el Autor</h4>
+            <h3 class="indented"> {{ autor.coment_autor }}</h3>
+            <br>
+        {% endif %}
+        <hr>
+        {% if comps.rowcount > 1 %}
+           <table class="table table-striped">
+                <tr>
+                    <th>Nom</th>
+                    <th>Fecha</th>
+                    <th>Lugar</th>
+                </tr>
+                {% for comp in comps %}
+                <tr>
+                    <td>
+                        <a style="text-decoration: none;" href="/composicion/{{ comp.composicion_id }}">{{ comp.nom_tit }}
+                        {% if comp.tit_alt is not none %}
+                            {{ comp.tit_alt }}
+                        {% endif %}
+                        </a>
+                    </td>
+                    <td>{{ comp.fecha_pub }}</td>
+                    <td>{{ comp.lugar_comp }}</td>
+                </tr>
+                {% endfor %}
+           </table>
+        {% endif %}
     </div>
     {% include 'includes/_footer.html' %}
 {% endblock %}

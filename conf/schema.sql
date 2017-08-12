@@ -15,7 +15,7 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 
 CREATE TABLE IF NOT EXISTS autor (
     autor_id serial PRIMARY KEY
-   ,coment_autor tsvector
+   ,coment_autor text
 );
 
 COMMENT ON TABLE autor IS 'The author superclass which artista, institucion, and colectivo inherit from.';
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS publicador (
    ,email proper_email
    ,telefono text
    ,contact_publicador int REFERENCES autor
-   ,coment_publicador tsvector
+   ,coment_publicador text
 );
 
 COMMENT ON TABLE publicador IS 'Entity that made the resource available, e.g. streaming service or foundation.';
@@ -113,7 +113,7 @@ COMMENT ON TABLE editor IS 'Individual who uploaded the data.';
 CREATE TABLE IF NOT EXISTS genero_musical (
     genero_musical serial PRIMARY KEY
    ,nom_genero text UNIQUE NOT NULL
-   ,genero_descrip tsvector
+   ,genero_descrip text
 );
 
 COMMENT ON TABLE genero_musical IS 'Genres of music. Works as a lookup table.';
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS instrumento (
    ,nom_inst text DEFAULT 'Ninguno'
    ,familia_instr_id int REFERENCES familia_instrumento
    ,electronico boolean
-   ,instrumento_comentario tsvector
+   ,instrumento_comentario text
 );
 
 
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS composicion (
    ,nom_tit text NOT NULL
    ,tit_alt text
    ,fecha_pub fecha
-   ,texto_original tsvector -- The text itself
+   ,texto_original text -- The text itself
    ,lugar_comp int REFERENCES lugar
 );
 
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS composicion_traduccion (
    traduccion_id serial PRIMARY KEY
   ,composicion_id int REFERENCES composicion
   ,nombre_de_version text
-  ,texto tsvector -- Translated text
+  ,texto text -- Translated text
 );
 
 COMMENT ON TABLE composicion_traduccion IS 'A translation or different version of a composicion.';
@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
    ,medio_id medio
    ,lugar_interp int REFERENCES lugar
    ,serie_id int REFERENCES serie
-   ,comentario_pista_son tsvector
+   ,comentario_pista_son text
    ,fecha_grab fecha -- fecha recorded
    ,fecha_dig fecha -- fecha digitized
    ,fecha_cont fecha -- fecha donated
@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS composicion_autor (
     composicion_id int REFERENCES composicion
    ,autor_id int REFERENCES autor
    ,tipo_autor tipo_autor
-   ,comentario_autor tsvector
+   ,comentario_autor text
    ,PRIMARY KEY (composicion_id, autor_id)
 );
 

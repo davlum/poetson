@@ -3,6 +3,7 @@
  */
 
 
+
 .col-centered{
     float: none;
     margin: 0 auto;
@@ -265,7 +266,7 @@ main a.icon-link:hover {
 }
 
 [data-predefined-style="true"] h2 {
-	font-family: 'Cormorant Garamond', Social /*!Google*/;
+	font-family: "Palatino Linotype" , serif;
 	font-style: normal;
 	font-weight: 400;
 	padding: 0;

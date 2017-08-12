@@ -35,37 +35,50 @@ def searchhome():
     return render_template('searchhome.html')
 
 
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    result_authors = []
-    if request.method == "POST":
-        param = request.form["search-main"]
-        authors_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
-                          nom_segundo ~* :name;""");
-        result_authors = db.engine.execute(authors_query, name=param)
-    return render_template('search.html', result=result_authors)
+def artistaQuery(param):
+    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
+                          nom_segundo ~* :name;""")
+    return db.engine.execute(artista_query, name=param)
 
 
-@app.route('/articles')
-def articles():
-    return render_template('articles.html', articles=Articles)
-
-
-@app.route('/article/<string:articleid>/')
-def article(articleid):
-    return render_template('article.html', articleid=articleid)
+# The main search page. The logic is designed to be
+# comprehensive enough to cover all filtering
+@app.route('/search')
+def search(param=None):
+    result = {'artista': '', 'colectivo': '', 'institucion': '', 'composicion': ''}
+    if request.args.get('search-main', None):
+        param = request.args['search-main']
+        result['artista'] = artistaQuery(param)
+    return render_template('search.html', result=result)
 
 
 @app.route('/autor/<string:autorid>/')
 def autor(autorid):
+    # Query author
     author_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
     author_result = db.engine.execute(author_query, id=autorid).first()
+
+    # Query place_of birth
     lugar_nac_query = text("""SELECT * FROM public.lugar WHERE lugar_id=:id """)
     lugar_nac_result = db.engine.execute(lugar_nac_query, id=author_result.lugar_nac).first()
-    print(lugar_nac_result.nom_subdivision)
+
+    # Query place of death
     lugar_muer_query = text("""SELECT * FROM public.lugar WHERE lugar_id=:id """)
     lugar_muer_result = db.engine.execute(lugar_muer_query, id=author_result.lugar_muer).first()
-    return render_template('autor.html', autor=author_result, nac=lugar_nac_result, muer=lugar_muer_result).encode("utf-8")
+
+    # Query all compositions including those made by this artist when in a colectivo
+    composicion_query = text("""SELECT c.composicion_id, c.nom_tit, c.tit_alt, c.fecha_pub, c.lugar_comp 
+                                FROM public.artista_colectivo ac
+                                JOIN public.composicion_autor ca 
+                                  ON ca.autor_id = ac.colectivo_id
+                                  OR ca.autor_id = ac.artista_id
+                                JOIN public.composicion c 
+                                  ON c.composicion_id = ca.composicion_id
+                                WHERE ac.artista_id=:id""")
+    composicion_result = db.engine.execute(lugar_muer_query, id=autorid)
+
+    return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
+                           muer=lugar_muer_result, comps=composicion_result)
 
 
 class RegisterForm(Form):
