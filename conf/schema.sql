@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS editor (
     editor_id serial PRIMARY KEY
    ,email proper_email NOT NULL UNIQUE
    ,nom text
+   ,apellido text
    ,clave text
    ,acceso timestamp DEFAULT now()
    ,autor_id int REFERENCES autor
