@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session, logging, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
-from flask_script import Manager
+from flask_script import Manager, Server
 from flask_migrate import Migrate, MigrateCommand
 from data import Articles
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
@@ -19,6 +19,8 @@ migrate = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+manager.add_command('runvserver', Server())
+
 
 @app.route('/')
 def home():
