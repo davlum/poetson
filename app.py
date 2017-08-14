@@ -35,24 +35,131 @@ def searchhome():
     return render_template('searchhome.html')
 
 
-def artistaQuery(param):
+def artistaQuery(param, yearFrom, yearTo, contains):
+    query = text("""SELECT * FROM public.artista a 
+                    JOIN public.lugar l ON a.lugar_nac = l.lugar_id
+                    WHERE nom_primero ~* :nom OR 
+                    nom_segundo ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def composicionQuery(param, yearFrom, yearTo, contains):
+    query = text("""SELECT * FROM public.composicion c
+                    JOIN public.lugar l ON c.lugar_comp = l.lugar_id
+                    WHERE nom_tit ~* :nom OR tit_alt ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def colectivoQuery(param, yearFrom, yearTo, contains):
+    query = text("""SELECT * FROM public.colectivo c 
+                    JOIN public.lugar l ON c.lugar_id = l.lugar_id
+                    WHERE colectivo_nom ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def serieQuery(param, yearFrom, yearTo, containas):
+    query = text("""SELECT * FROM public.serie WHERE nom_serie ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def pistaQuery(param, yearFrom, yearTo, containas):
+    query = text("""SELECT * FROM public.pista_son ps
+                          JOIN public.composicion c ON ps.composicion_id = c.composicion_id
+                          JOIN public.lugar l ON ps.lugar_interp = l.lugar_id
+                          WHERE c.nom_tit ~* :nom OR 
+                          c.tit_alt ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def temaQuery(param, yearFrom, yearTo, containas):
+    query = text("""SELECT * FROM public.composicion c
+                        JOIN public.tema_composicion tc ON tc.composicion_id = c.composicion_id
+                        JOIN public.tema t ON tc.tema_id = t.tema_id
+                        WHERE t.tema_nom ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+def generoQuery(param, yearFrom, yearTo, containas):
+    query = text("""SELECT l.pais, c.nom_tit, c.nom_alt FROM public.pista_son ps 
+                        JOIN public.tema_comp tc ON tc.composicion_id = c.composicion_id
+                        JOIN public.tema t ON tc.tema_id = t.tema_id
+                        WHERE t.tema_nom ~* :nom;""")
+    return db.engine.execute(query, nom=param)
+
+
+
+def instrumentoQuery(param, yearFrom, yearTo, containas):
     artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
                           nom_segundo ~* :name;""")
     return db.engine.execute(artista_query, name=param)
 
 
+
+
+def lugarQuery(param, yearFrom, yearTo, containas):
+    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
+                          nom_segundo ~* :name;""")
+    return db.engine.execute(artista_query, name=param)
+
+
+def idiomaQuery(param, yearFrom, yearTo, containas):
+    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
+                          nom_segundo ~* :name;""")
+    return db.engine.execute(artista_query, name=param)
+
+
+def interpQuery(param, yearFrom, yearTo, containas):
+    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
+                          nom_segundo ~* :name;""")
+    return db.engine.execute(artista_query, name=param)
+
+
+# Tries to parse an Int, returns An empty string on failure
+def parseInt(s):
+    try:
+        return abs(int(s))
+    except ValueError:
+        return ""
+
 # The main search page. The logic is designed to be
 # comprehensive enough to cover all filtering
 @app.route('/search')
 def search(param=None):
-    result = {'artista': '', 'colectivo': '', 'institucion': '', 'composicion': ''}
-    if request.args.get('search-main', None):
+    result = {}
+    if request.args.get('filter-by', None):
         param = request.args['search-main']
-        result['artista'] = artistaQuery(param)
-    return render_template('search.html', result=result)
+        filt = int(request.args['filter-by'])
+        yearFrom = parseInt(request.args['ano-start'])
+        yearTo = parseInt(request.args['ano-end'])
+        contains = request.args['contains']
+        # General search
+        if filt == 0:
+            result['artista'] = artistaQuery(param, yearFrom, yearTo, contains)
+            result['colectivo'] = colectivoQuery(param, yearFrom, yearTo, contains)
+            result['composicion'] = composicionQuery(param, yearFrom, yearTo, contains)
+            result['serie'] = serieQuery(param, yearFrom, yearTo, contains)
+            result['pista'] = pistaQuery(param,  yearFrom, yearTo, contains)
+        # Search through artistas
+        if filt == 1:
+            result['artista'] = artistaQuery(param, yearFrom, yearTo, contains)
+        # Search through colectivos
+        if filt == 2:
+            result['colectivo'] = colectivoQuery(param, yearFrom, yearTo, contains)
+        # search through composicions
+        if filt == 3:
+            result['composicion'] = composicionQuery(param, yearFrom, yearTo, contains)
+        # Search through serie
+        if filt == 4:
+            result['serie'] = serieQuery(param, yearFrom, yearTo, contains)
+        # Search through composicion by Tema
+        if filt == 5:
+            result['composicion'] = temaQuery(param, yearFrom, yearTo, contains)
+        if filt == 6:
+            result['pista'] = generoQuery(param, yearFrom, yearTo, contains)
+        return render_template('search.html', result=result)
 
 
-@app.route('/autor/<string:autorid>/')
+@app.route('/autor/<int:autorid>/')
 def autor(autorid):
     # Query author
     author_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
@@ -67,19 +174,129 @@ def autor(autorid):
     lugar_muer_result = db.engine.execute(lugar_muer_query, id=author_result.lugar_muer).first()
 
     # Query all compositions including those made by this artist when in a colectivo
-    composicion_query = text("""SELECT c.composicion_id, c.nom_tit, c.tit_alt, c.fecha_pub, c.lugar_comp 
-                                FROM public.artista_colectivo ac
-                                JOIN public.composicion_autor ca 
+    composicion_query = text("""SELECT c.composicion_id
+                                     , c.nom_tit
+                                     , c.tit_alt
+                                     , c.fecha_pub
+                                     , c.lugar_comp 
+                                  FROM public.artista_colectivo ac
+                                  JOIN public.composicion_autor ca 
                                   ON ca.autor_id = ac.colectivo_id
                                   OR ca.autor_id = ac.artista_id
-                                JOIN public.composicion c 
+                                  JOIN public.composicion c 
                                   ON c.composicion_id = ca.composicion_id
-                                WHERE ac.artista_id=:id""")
+                                  WHERE ac.artista_id=:id""")
     composicion_result = db.engine.execute(lugar_muer_query, id=autorid)
 
     return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
-                           muer=lugar_muer_result, comps=composicion_result)
+                           muer=lugar_muer_result, result=composicion_result)
 
+
+@app.route('/colectivo/<int:autorid>/')
+def colectivo(autorid):
+    result = {}
+    # Query colectivo
+    colectivo_query = text("""SELECT c.colectivo_nom
+                                   , c.fecha_comienzo
+                                   , l.pais 
+                                   FROM public.colectivo c 
+                                   JOIN public.lugar l ON l.lugar_id = c.lugar_id
+                                   WHERE autor_id=:id;""")
+    colectivo = db.engine.execute(colectivo_query, id=autorid).first()
+
+    # get the list of artists in that colectivo
+    author_query = text("""SELECT a.nom_primero
+                                , a.nom_segundo
+                                , a.seudonimo
+                                , l.pais 
+                                FROM public.artista a 
+                                JOIN public.lugar l ON l.lugar_id = a.lugar_nac
+                                JOIN public.artista_colectivo ac ON ac.artista_id = a.autor_id
+                                WHERE ac.colectivo_id=:id""")
+    result['artista'] = db.engine.execute(author_query, id=autorid)
+
+    # Query all compositions including those made by this artist when in a colectivo
+    composicion_query = text("""SELECT c.composicion_id
+                                     , c.nom_tit
+                                     , c.tit_alt
+                                     , c.fecha_pub
+                                     , c.lugar_comp 
+                                  FROM public.composicion c
+                                  JOIN public.composicion_autor ca 
+                                  ON ca.composicion_id = c.composicion_id
+                                  WHERE ca.autor_id=:id""")
+    result['composicion'] = db.engine.execute(composicion_query, id=autorid)
+
+    return render_template('colectivo.html', autor=colectivo, result=result)
+
+
+@app.route('/pistason/<int:pistaid>/')
+def pistason(pistaid):
+    result = {}
+    # Query pista_son
+    pista_query = text("""SELECT * FROM
+                              public.pista_son ps
+                              JOIN public.composicion c
+                                ON ps.composicion_id = c.composicion_id
+                              JOIN public.lugar l 
+                                ON ps.lugar_interp = l.lugar_id
+                                WHERE pista_son_id=:id""")
+    result['pista'] = db.engine.execute(pista_query, id=pistaid).first()
+
+    # get the list of Instruments and playters associated with that pista son
+    inst_query = text("""SELECT a.nom_primero
+                                , a.nom_segundo
+                                , a.seudonimo
+                                , inst.nom_inst 
+                                FROM public.intepretacion i
+                                JOIN public.artista a 
+                                  ON a.autor_id = i.artista_id 
+                                JOIN public.instrumento inst 
+                                  ON i.instrumento_id = inst.instrumento_id 
+                                  WHERE i.pista_son_id=:id""")
+    inst_result = db.engine.execute(inst_query, id=pistaid)
+
+    # Query all the associated files with this query
+    archivo_query = text("""SELECT etiqueta
+                                 , duracion
+                                 , abr
+                                 , profundidad_de_bits
+                                 , canales
+                                 , codec
+                                 , frecuencia
+                                FROM public.archivo
+                                WHERE pista_son_id=:id""")
+    archivo_result = db.engine.execute(archivo_query, id=pistaid)
+
+    return render_template('pistason.html', pista=pista_query, inst=inst_result, arch=archivo_result)
+
+
+@app.route('/composicion/<int:compoid>/')
+def composicion(compoid):
+    result = {}
+
+    # Query author
+    composicion_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
+    composicion_result = db.engine.execute(composicion_query, id=compoid).first()
+
+
+    # Query all compositions including those made by this artist when in a colectivo
+    pista_query = text("""SELECT c.composicion_id
+                                     , c.nom_tit
+                                     , c.tit_alt
+                                     , c.fecha_pub
+                                     , c.lugar_comp 
+                                  FROM public.artista_colectivo ac
+                                  JOIN public.composicion_autor ca 
+                                  ON ca.autor_id = ac.colectivo_id
+                                  OR ca.autor_id = ac.artista_id
+                                  JOIN public.composicion c 
+                                  ON c.composicion_id = ca.composicion_id
+                                  WHERE ac.artista_id=:id""")
+    result['pista'] = db.engine.execute(pista_query, id=compoid)
+
+    return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
+                           muer=lugar_muer_result, result=composicion_result)
 
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])

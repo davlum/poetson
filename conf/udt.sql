@@ -1,3 +1,6 @@
+
+-- Changes these to checks and relations
+
 CREATE TYPE tipo_autor AS ENUM ('Primero', 'Segundo');
 
 CREATE TYPE tipo_publicador AS ENUM ('publicador', 'contribuidor', 'ambos');

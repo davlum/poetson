@@ -179,21 +179,12 @@ CREATE TABLE IF NOT EXISTS composicion (
    ,nom_tit text NOT NULL
    ,tit_alt text
    ,fecha_pub fecha
-   ,texto_original text -- The text itself
+   ,composicion_orig int REFERENCES composicion
+   ,texto text -- The text itself
    ,lugar_comp int REFERENCES lugar
 );
 
 COMMENT ON TABLE composicion IS 'The physical representation of the performed work.';
-
-
-CREATE TABLE IF NOT EXISTS composicion_traduccion (
-   traduccion_id serial PRIMARY KEY
-  ,composicion_id int REFERENCES composicion
-  ,nombre_de_version text
-  ,texto text -- Translated text
-);
-
-COMMENT ON TABLE composicion_traduccion IS 'A translation or different version of a composicion.';
 
 
 CREATE TABLE IF NOT EXISTS pista_son (
@@ -201,7 +192,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
    ,numero_de_pista int CHECK (numero_de_pista > 1)
    ,composicion_id int REFERENCES composicion
    ,editor_id int REFERENCES editor NOT NULL DEFAULT 1
-   ,medio_id medio
+   ,medio text -- add Check
    ,lugar_interp int REFERENCES lugar
    ,serie_id int REFERENCES serie
    ,comentario_pista_son text
@@ -305,13 +296,6 @@ CREATE TABLE IF NOT EXISTS idioma_composicion (
 
 COMMENT ON TABLE idioma_composicion IS 'M:M relationship of languages and the composicion.';
 
-
-CREATE TABLE IF NOT EXISTS idioma_composicion_traduccion (
-    traduccion_id int REFERENCES composicion_traduccion
-   ,idioma_id int REFERENCES idioma
-   ,PRIMARY KEY (traduccion_id, idioma_id)
-);
-
 ------------------------------------------------------
 -------- Other Relationship start here ---------------
 
@@ -327,9 +311,9 @@ COMMENT ON TABLE genero_pista IS 'M:M relationship of genres and recorded audio.
 
 CREATE TABLE IF NOT EXISTS intepretacion (
     pista_son_id int REFERENCES pista_son
-   ,autor_id int REFERENCES autor
+   ,artista_id int REFERENCES artista
    ,instrumento_id int REFERENCES instrumento DEFAULT 1
-   ,PRIMARY KEY (autor_id, pista_son_id, instrumento_id)
+   ,PRIMARY KEY (artista_id, pista_son_id, instrumento_id)
 );
 
 COMMENT ON TABLE intepretacion IS 'The interpretacion of a piece. M:M:M of autor, audio track and instrument. 

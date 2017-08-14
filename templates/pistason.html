@@ -3,16 +3,17 @@
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
-        <h2>Autor</h2>
+        <h2>Pista Son</h2>
         <hr>
         <div>
         <h4>Nom</h4>
-            <h3 class="indented">{{ autor.nom_primero }}
-                {% if autor.nom_segundo is not none %}
-                        {{ autor.nom_segundo }}
+            <h3 class="indented">
+                {{ pista.nom_tit }}
+                {% if pista.nom_alt is not none %}
+                        {{ pista.nom_alt }}
                 {% endif %}
             </h3>
-                {% if autor.seudonimo is not none %}
+                {% if autor.pista_son is not none %}
                     <h3 class="indented">'{{ autor.seudonimo }}'</h3>
                 {% endif %}
         </div>
@@ -65,6 +66,6 @@
         {% endif %}
         </div>
         <hr>
-        {{ query.composicion(result) }}
+        {{ querycomp(result) }}
     </div>
 {% endblock %}

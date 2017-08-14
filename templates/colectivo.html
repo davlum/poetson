@@ -1,0 +1,41 @@
+{% extends 'searchlayout.html' %}
+{% import 'queryMacros.html' as query %}
+
+{% block resultbody %}
+    <div class="center-block" style="width: 80%;">
+        <h2>Colectivo</h2>
+        <hr>
+        <div>
+            <h4>Nom</h4>
+            <h3 class="indented">
+                {{ autor.colectivo_nom }}
+            </h3>
+        </div>
+         <br>
+        <div>
+        <h4>Origin</h4>
+            <h3 class="indented">
+                {% if autor.pais != "desconocido" %}
+                    {{ autor.pais }}
+                {% endif %}
+            </h3>
+            <h3 class="indented">
+                {% if autor.fecha_comienzo != "desconocido" %}
+                    {{ autor.fecha_comienzo }},
+                {% endif %}
+            </h3>
+        </div>
+        <br>
+        <div>
+            {% if autor.coment_autor is not none %}
+                <h4>Sobre el Autor</h4>
+                <h3 class="indented"> {{ autor.coment_autor }}</h3>
+                <br>
+            {% endif %}
+        </div>
+        <hr>
+        {{ query.artista(result) }}
+        <hr>
+        {{ query.composicion(result) }}
+    </div>
+{% endblock %}

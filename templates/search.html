@@ -1,55 +1,13 @@
 {% extends 'searchlayout.html' %}
-{% block body %}
+{% import 'queryMacros.html' as query %}
+{% block resultbody %}
 
    <div class="center-block" style="width: 80%;">
-       {% if result['artista'] != "" and result['artista'].rowcount > 1 %}
-           <div>
-             <h3>Autor</h3>
-             <table class="table table-striped">
-                <tr>
-                    <th>Nom</th>
-                    <th></th>
-                </tr>
-                {% for author in result['artista'] %}
-                <tr>
-                    <td>
-                        <a style="text-decoration: none;" href="/autor/{{ author.author_id }}">{{ author.nom_primero }}
-                        {% if author.nom_segundo is not none %}
-                            {{ author.nom_segundo }}
-                        {% endif %}
-                        </a>
-                    </td>
-                    <td>
-                        {% if author.coment_autor is not none %}
-                            {{ author.coment_autor }}
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-           </div>
-       {% endif %}
-      {% if result['colectivo'] != "" and result['colectivo'].rowcount > 1 %}
-       <div>
-        <h3>Composicion</h3>
-        <table class="table table-striped">
-            <tr>
-                <th>Nom</th>
-            </tr>
-            {% for comp in comps %}
-            <tr>
-                <td>
-                    <a style="text-decoration: none;" href="/composicion/{{ comp.composicion_id }}">{{ comp.nom_tit }}
-                    {% if comp.tit_alt is not none %}
-                        {{ comp.tit_alt }}
-                    {% endif %}
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-       </div>
-   {% endif %}
+       {{ query.artista(result) }}
+       {{ query.colectivo(result) }}
+       {{ query.composicion(result) }}
+       {{ query.serie(result) }}
+       {{ query.pista(result) }}
    </div>
 
 {% endblock %}

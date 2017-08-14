@@ -1,0 +1,223 @@
+{% macro artista(result) -%}
+    {% if 'artista' in result and result['artista'] is not none and result['artista'].rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="autor-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#autor-collapse" aria-expanded="true" aria-controls="autor-collapse">
+                        Autor
+                    </a>
+                </h3>
+            </div>
+            <div id="autor-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Nom</th>
+                            <th>País</th>
+                            <th></th>
+                        </tr>
+                    {% for artista in result['artista'] %}
+                        <tr>
+                            <td>
+                                <a style="text-decoration: none;" href="/autor/{{ artista.autor_id }}/">
+                                {% if artista.nom_primero != "Desconocido" %}
+                                    {{ artista.nom_primero }}
+                                     {% if artista.nom_segundo is not none %}
+                                        {{ artista.nom_segundo }}
+                                     {% endif %}
+                                {% else %}
+                                    {{ artista.seudonimo }}
+                                {% endif %}
+                                </a>
+                            </td>
+                            <td>
+                                {{ artista.pais }}
+                            </td>
+                            <td>
+                                {% if artista.coment_autor is not none %}
+                                    {{ artista.coment_autor }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro colectivo(result) -%}
+   {% if 'colectivo' in result and result['colectivo'] is not none and result['colectivo'].rowcount > 0 %}
+       <div class="card">
+            <div class="card-header" role="tab" id="colectivo-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#colectivo-collapse" aria-expanded="true" aria-controls="colectivo-collapse">
+                        Colectivo
+                    </a>
+                </h3>
+            </div>
+            <div id="colectivo-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Nom</th>
+                            <th>País</th>
+                            <th></th>
+                        </tr>
+                    {% for col in result['colectivo'] %}
+                        <tr>
+                            <td>
+                                <a style="text-decoration: none;"
+                                   href="/colectivo/{{ col.autor_id }}">{{ col.colectivo_nom }}
+                                </a>
+                            </td>
+                            <td>
+                                {{ col.pais }}
+                            </td>
+                            <td>
+                                {% if col.coment_autor is not none %}
+                                    {{ col.coment_autor }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+     {% endif %}
+{% endmacro %}
+
+
+{% macro composicion(result) -%}
+    {% if 'composicion' in result and result['composicion'] is not none and result['composicion'].rowcount > 0 %}
+       <div class="card">
+            <div class="card-header" role="tab" id="composicion-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#composicion-collapse" aria-expanded="true" aria-controls="composicion-collapse">
+                        Composicion
+                    </a>
+                </h3>
+            </div>
+            <div id="composicion-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Título</th>
+                            <th>Título Alterno</th>
+                            <th>País</th>
+                            <th>Año</th>
+                        </tr>
+                            {% for comp in result['composicion'] %}
+                            <tr>
+                                <td>
+                                    <a style="text-decoration: none;" href="/composicion/{{ comp.comp_id }}">{{ comp.nom_tit }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if comp.tit_alt is not none %}
+                                        {{ comp.tit_alt }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ comp.pais }}
+                                </td>
+                                <td>
+                                    {% if comp.fecha_pub is not none %}
+                                        {{ comp.fecha_pub }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro serie(result) -%}
+    {% if 'serie' in result and result['serie'] is not none and result['serie'].rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="serie-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#serie-collapse" aria-expanded="true" aria-controls="serie-collapse">
+                        Serie
+                    </a>
+                </h3>
+            </div>
+            <div id="serie-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Título</th>
+                            <th>País</th>
+                            <th>Giro</th>
+                        </tr>
+                            {% for serie in result['serie'] %}
+                            <tr>
+                                <td>
+                                    <a style="text-decoration: none;" href="/serie/{{ serie.serie_id }}">{{ serie.nom_serie }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if serie.pais is not none %}
+                                        {{ serie.pas }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ serie.giro }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro pista(result) -%}
+    {% if 'pista' in result and result['pista'] is not none and result['pista'].rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="pista-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#pista-collapse" aria-expanded="true" aria-controls="pista-collapse">
+                        Pista Son
+                    </a>
+                </h3>
+            </div>
+            <div id="pista-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Título</th>
+                            <th>País</th>
+                            <th>Giro</th>
+                        </tr>
+                            {% for pista in result['pista'] %}
+                            <tr>
+                                <td>
+                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}">{{ pista.nom_pista }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if pista.pais is not none %}
+                                        {{ pista.pas }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ pista.giro }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
