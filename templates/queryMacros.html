@@ -1,3 +1,43 @@
+{% macro nom(result) -%}
+    {% set name %}
+            {% if result.nom_primero is not none and result.nom_primero != 'Desconocido' %}
+                {{ result.nom_primero }} &nbsp;
+            {% endif %}
+            {% if result.seudonimo is not none %}
+               '{{ result.seudonimo }}' &nbsp;
+            {% endif %}
+            {% if result.nom_segundo is not none %}
+               {{ result.nom_segundo }}
+            {% endif %}
+    {% endset %}
+    {% if name|trim == "" %}
+        <div>Desconocido</div>
+    {% else %}
+        <div>{{ name }}</div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro lugar(result) -%}
+    {% set lugar %}
+        {% if result.ciudad is not none and result.ciudad != 'Desconocida' %}
+            {{ result.ciudad }} &nbsp;
+        {% endif %}
+        {% if result.nom_subdivision is not none and result.nom_subdivision != 'Desconocida'%}
+           {{ result.nom_subdivision }} &nbsp;
+        {% endif %}
+        {% if result.pais is not none %}
+           {{ result.pais }}
+        {% endif %}
+    {% endset %}
+    {% if lugar|trim == "" %}
+        <div>Desconocido</div>
+    {% else %}
+        <div>{{ lugar }}</div>
+    {% endif %}
+{% endmacro %}
+
+
 {% macro artista(result) -%}
     {% if 'artista' in result and result['artista'] is not none and result['artista'].rowcount > 0 %}
         <div class="card">
@@ -20,18 +60,11 @@
                         <tr>
                             <td>
                                 <a style="text-decoration: none;" href="/autor/{{ artista.autor_id }}/">
-                                {% if artista.nom_primero != "Desconocido" %}
-                                    {{ artista.nom_primero }}
-                                     {% if artista.nom_segundo is not none %}
-                                        {{ artista.nom_segundo }}
-                                     {% endif %}
-                                {% else %}
-                                    {{ artista.seudonimo }}
-                                {% endif %}
+                                    {{ nom(artista) }}
                                 </a>
                             </td>
                             <td>
-                                {{ artista.pais }}
+                                {{ lugar(artista) }}
                             </td>
                             <td>
                                 {% if artista.coment_autor is not none %}
@@ -196,8 +229,9 @@
                     <table class="table table-striped">
                         <tr>
                             <th>Título</th>
-                            <th>País</th>
+                            <th>Origin</th>
                             <th>Giro</th>
+                            <th>Serie</th>
                         </tr>
                             {% for pista in result['pista'] %}
                             <tr>
@@ -206,12 +240,15 @@
                                     </a>
                                 </td>
                                 <td>
-                                    {% if pista.pais is not none %}
-                                        {{ pista.pas }}
-                                    {% endif %}
+                                    {{ lugar(pista) }}
                                 </td>
                                 <td>
                                     {{ pista.giro }}
+                                </td>
+                                <td>
+                                    {% if pista.serie_id is not none %}
+                                        <a href="/serie/{{ pista.serie_id }}/">{{ pista.nom_serie }}</a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -221,3 +258,5 @@
         </div>
    {% endif %}
 {% endmacro %}
+
+

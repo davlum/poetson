@@ -1,3 +1,5 @@
+import os
+
 POSTGRES = {
     'user': 'postgres',
     'pw': 'postgres',
@@ -10,7 +12,7 @@ POSTGRES = {
 DEBUG = True
 TESTING = False
 CSRF_ENABLED = True
-SECRET_KEY = 'this-really-needs-to-be-changed'
+SECRET_KEY = os.environ.get("POETSON_SECRET_KEY", "")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ECHO = True
 SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\

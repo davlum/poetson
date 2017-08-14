@@ -1,0 +1,38 @@
+{% extends 'searchlayout.html' %}
+{% import 'queryMacros.html' as query %}
+
+{% block resultbody %}
+    <div class="center-block" style="width: 80%;">
+        <h2>Composicion</h2>
+        <hr>
+        <div>
+            <h4>Título<</h4>
+            <h3 class="indented">
+                {{ comp.nom_tit }}
+                {% if comp.nom_alt is not none %}
+                        {{ comp.nom_alt }}
+                {% endif %}
+            </h3> 
+        </div>
+        <br>
+        <div>
+            <h4>Origen</h4>
+            {% if comp.fecha_pub is not none%}
+                <h3 class="indented">{{ comp.fecha_pub }}</h3>
+            {% endif %}
+            <h3 class="indented">
+                {{ query.lugar(comp) }}
+            </h3>
+        </div>
+        <br>
+        <div>
+            {% if comp.texto is not none %}
+                <h4>Texto</h4>
+                <p class="indented"> {{ comp.texto }}</p>
+                <br>
+            {% endif %}
+        </div>
+        <hr>
+        {{ query.pista(result) }}
+    </div>
+{% endblock %}

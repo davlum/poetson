@@ -6,4 +6,4 @@ CREATE SCHEMA poetica_sonora;
 
 --CREATE ROLE aurelio WITH NOSUPERUSER NOCREATEDB NOCREATEROLE LOGIN;
 
-ALTER ROLE postgres SET search_path TO audit, poetica_sonora;
+ALTER ROLE postgres SET search_path TO audit, public, poetica_sonora;

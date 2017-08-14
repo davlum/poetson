@@ -63,11 +63,16 @@ def serieQuery(param, yearFrom, yearTo, containas):
 
 
 def pistaQuery(param, yearFrom, yearTo, containas):
-    query = text("""SELECT * FROM public.pista_son ps
-                          JOIN public.composicion c ON ps.composicion_id = c.composicion_id
-                          JOIN public.lugar l ON ps.lugar_interp = l.lugar_id
-                          WHERE c.nom_tit ~* :nom OR 
-                          c.tit_alt ~* :nom;""")
+    query = text("""SELECT * 
+                          FROM public.pista_son ps
+                          JOIN public.composicion c 
+                            ON ps.composicion_id = c.composicion_id
+                          JOIN public.lugar l 
+                            ON ps.lugar_interp = l.lugar_id
+                          JOIN public.serie s
+                            ON s.serie_id = ps.serie_id
+                            WHERE c.nom_tit ~* :nom OR 
+                            c.tit_alt ~* :nom;""")
     return db.engine.execute(query, nom=param)
 
 
@@ -80,23 +85,26 @@ def temaQuery(param, yearFrom, yearTo, containas):
 
 
 def generoQuery(param, yearFrom, yearTo, containas):
-    query = text("""SELECT l.pais, c.nom_tit, c.nom_alt FROM public.pista_son ps 
-                        JOIN public.tema_comp tc ON tc.composicion_id = c.composicion_id
-                        JOIN public.tema t ON tc.tema_id = t.tema_id
-                        WHERE t.tema_nom ~* :nom;""")
+    query = text("""SELECT l.pais
+                         , l.nom_subdivision
+                         , l.ciudad
+                         , c.nom_tit
+                         , c.nom_alt 
+                         FROM public.pista_son ps 
+                         JOIN public.genero_pista gp 
+                           ON ps.pista_id = gp.pista_id
+                         JOIN public.genero_musical gm
+                           ON gm.gen_mus_id = gp.gen_mus_id
+                         JOIN public.composicion c
+                           ON c.composicion_id = ps.composicion_id
+                         JOIN public.serie s
+                           ON ps.serie_id = s.serie_id  
+                           WHERE gm.nom_genero ~* :nom;""")
     return db.engine.execute(query, nom=param)
 
 
 
 def instrumentoQuery(param, yearFrom, yearTo, containas):
-    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
-                          nom_segundo ~* :name;""")
-    return db.engine.execute(artista_query, name=param)
-
-
-
-
-def lugarQuery(param, yearFrom, yearTo, containas):
     artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
                           nom_segundo ~* :name;""")
     return db.engine.execute(artista_query, name=param)
@@ -114,7 +122,8 @@ def interpQuery(param, yearFrom, yearTo, containas):
     return db.engine.execute(artista_query, name=param)
 
 
-# Tries to parse an Int, returns An empty string on failure
+# Tries to parse an Int,
+# returns an empty string on failure
 def parseInt(s):
     try:
         return abs(int(s))
@@ -154,8 +163,18 @@ def search(param=None):
         # Search through composicion by Tema
         if filt == 5:
             result['composicion'] = temaQuery(param, yearFrom, yearTo, contains)
+        # Search through pista by Genre
         if filt == 6:
             result['pista'] = generoQuery(param, yearFrom, yearTo, contains)
+        # Search through pista by instrument
+        if filt == 7:
+            result['pista'] = instrumentoQuery(param, yearFrom, yearTo, contains)
+        # Search through composicion by language
+        if filt == 8:
+            result['composicion'] = idiomaQuery(param, yearFrom, yearTo, contains)
+        # Search through pista by performer
+        if filt == 9:
+            result['pista'] = interpQuery(param, yearFrom, yearTo, contains)
         return render_template('search.html', result=result)
 
 
@@ -238,8 +257,10 @@ def pistason(pistaid):
                               public.pista_son ps
                               JOIN public.composicion c
                                 ON ps.composicion_id = c.composicion_id
-                              JOIN public.lugar l 
+                              JOIN public.lugar l
                                 ON ps.lugar_interp = l.lugar_id
+                              JOIN serie s 
+                                ON s.serie_id = ps.serie_id
                                 WHERE pista_son_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=pistaid).first()
 
@@ -268,35 +289,69 @@ def pistason(pistaid):
                                 WHERE pista_son_id=:id""")
     archivo_result = db.engine.execute(archivo_query, id=pistaid)
 
-    return render_template('pistason.html', pista=pista_query, inst=inst_result, arch=archivo_result)
+    return render_template('pistason.html', pista=pista_query, insts=inst_result, archs=archivo_result)
 
 
 @app.route('/composicion/<int:compoid>/')
 def composicion(compoid):
     result = {}
 
-    # Query author
-    composicion_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
+    # Query Composicion
+    composicion_query = text("""SELECT c.nom_tit
+                                     , c.tit_alt
+                                     , c.fecha_pub
+                                     , l.pais
+                                     , l.nom_subdivision
+                                     , l.ciudad 
+                                     FROM public.composicion c
+                                     JOIN public.lugar l ON c.lugar_id = c.lugar_id
+                                     WHERE c.composicion_id=:id """)
     composicion_result = db.engine.execute(composicion_query, id=compoid).first()
 
 
-    # Query all compositions including those made by this artist when in a colectivo
-    pista_query = text("""SELECT c.composicion_id
-                                     , c.nom_tit
-                                     , c.tit_alt
-                                     , c.fecha_pub
-                                     , c.lugar_comp 
-                                  FROM public.artista_colectivo ac
-                                  JOIN public.composicion_autor ca 
-                                  ON ca.autor_id = ac.colectivo_id
-                                  OR ca.autor_id = ac.artista_id
-                                  JOIN public.composicion c 
-                                  ON c.composicion_id = ca.composicion_id
-                                  WHERE ac.artista_id=:id""")
+    # Query all pista son associated with that composicion
+    pista_query = text("""SELECT * 
+                          FROM public.pista_son ps
+                          JOIN public.composicion c 
+                            ON ps.composicion_id = c.composicion_id
+                          JOIN public.lugar l 
+                            ON ps.lugar_interp = l.lugar_id
+                          JOIN public.serie s
+                            ON s.serie_id = ps.serie_id
+                            WHERE c.composicion_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=compoid)
 
-    return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
-                           muer=lugar_muer_result, result=composicion_result)
+    return render_template('composicion.html', comp=composicion_result, result=result)
+
+@app.route('/serie/<int:serieid>/')
+def serie(serieid):
+    result = {}
+
+    # Query serie
+    serie_query = text("""SELECT s.nom_serie
+                             , s.giro
+                             , l.pais
+                             , l.nom_subdivision
+                             , l.ciudad 
+                             FROM public.serie s
+                             JOIN public.lugar l ON c.lugar_id = s.lugar_id
+                             WHERE s.serie_id=:id """)
+    serie_result = db.engine.execute(serie_query, id=serieid).first()
+
+
+    # Query all pista son associated with that serie
+    pista_query = text("""SELECT * 
+                          FROM public.pista_son ps
+                          JOIN public.composicion c 
+                            ON ps.serie_id = c.serie_id
+                          JOIN public.lugar l 
+                            ON ps.lugar_interp = l.lugar_id
+                          JOIN public.serie s
+                            ON s.serie_id = ps.serie_id
+                            WHERE s.serie_id=:id""")
+    result['pista'] = db.engine.execute(pista_query, id=serieid)
+
+    return render_template('serie.html', serie=serie_result, result=result)
 
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])

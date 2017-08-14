@@ -1,0 +1,32 @@
+{% extends 'searchlayout.html' %}
+{% import 'queryMacros.html' as query %}
+
+{% block resultbody %}
+    <div class="center-block" style="width: 80%;">
+        <h2>Serie</h2>
+        <hr>
+        <div>
+            <h4>Título<</h4>
+            <h3 class="indented">
+                {{ serie.nom_serie }}
+            </h3> 
+        </div>
+        <br>
+        <div>
+            <h4>Origen</h4>
+            <h3 class="indented">
+                {{ query.lugar(serie) }}
+            </h3>
+        </div>
+        <br>
+        <div>
+            {% if serie.giro is not none %}
+                <h4>Giro</h4>
+                <h3 class="indented"> {{ serie.giro }}</h3>
+                <br>
+            {% endif %}
+        </div>
+        <hr>
+        {{ query.pista(result) }}
+    </div>
+{% endblock %}
