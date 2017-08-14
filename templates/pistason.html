@@ -6,66 +6,71 @@
         <h2>Pista Son</h2>
         <hr>
         <div>
-        <h4>Nom</h4>
+            <h4>Título</h4>
             <h3 class="indented">
                 {{ pista.nom_tit }}
                 {% if pista.nom_alt is not none %}
                         {{ pista.nom_alt }}
                 {% endif %}
             </h3>
-                {% if autor.pista_son is not none %}
-                    <h3 class="indented">'{{ autor.seudonimo }}'</h3>
-                {% endif %}
         </div>
          <br>
         <div>
-        {% if autor.lugar_nac is not none%}
-            <h4>Nac</h4>
+        {% if pista.serie_id is not none %}
+            <h4>Serie</h4>
             <h3 class="indented">
-                {% if autor.fecha_nac != "desconocido" %}
-                    {{ autor.fecha_nac }}
-                {% endif %}
-            </h3>
-            <h3 class="indented">
-                {% if nac.ciudad != "Desconocida" %}
-                    {{ nac.ciudad }},
-                {% endif %}
-                {% if nac.nom_subdivision != "Desconocida" %}
-                    {{ nac.nom_subdivision }},
-                {% endif %}
-                {{ nac.pais }}
+                <a href="/serie/{{ pista.serie_id }}/">{{ pista.nom_serie }}</a>
             </h3>
             <br>
         {% endif %}
         </div>
         <div>
-        {% if autor.lugar_muer is not none %}
-            <h4>Muer</h4>
-            <h3 class="indented">
-                {% if autor.fecha_muer != "desconocido" %}
-                    {{ autor.fecha_muer }}
-                {% endif %}
-            </h3>
-            <h3 class="indented">
-                {% if muer.ciudad != "Desconocida" %}
-                    {{ muer.ciudad }},
-                {% endif %}
-                {% if muer.nom_subdivision != "Desconocida" %}
-                    {{ muer.nom_subdivision }},
-                {% endif %}
-                {{ muer.pais }}
-            </h3>
-            <br>
-        {% endif %}
+            <h4>Origen</h4>
+            {% if pista.fecha_grab is not none %}
+                <h3 class="indented">
+                    {{ pista.fecha_grab }}
+                </h3>
+            {% endif %}
+            {% if pista.lugar_interp is not none %}
+                <h3 class="indented">
+                    {% if pista.ciudad != "Desconocida" %}
+                        {{ pista.ciudad }},
+                    {% endif %}
+                    {% if pista.nom_subdivision != "Desconocida" %}
+                        {{ pista.nom_subdivision }},
+                    {% endif %}
+                    {{ muer.pais }}
+                </h3>
+                <br>
+            {% endif %}
+            {% if pista.medio is not none %}
+                <h3 class="indented"> {{ pista.medio }}</h3>
+                <br>
+            {% endif %}
         </div>
         <div>
-        {% if autor.coment_autor is not none %}
-            <h4>Sobre el Autor</h4>
-            <h3 class="indented"> {{ autor.coment_autor }}</h3>
+        {% if pista.comentario_pista_son is not none %}
+            <h4>Sobre el Pista</h4>
+            <h3 class="indented"> {{ pista.comentario_pista_son }}</h3>
             <br>
         {% endif %}
         </div>
         <hr>
-        {{ querycomp(result) }}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    {% if insts is not none and insts[0].nom_inst != 'Ninguno' and insts.rowcount > 0 %}
+                        {% for inst in insts %}
+                            <h3>{{ qeury.nom(inst) }} - {{ inst.nom_inst }}</h3>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    {% for arch in archs %}
+                        <h3>{{ arch.codec }}</h3>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

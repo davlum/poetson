@@ -6,7 +6,7 @@
         <h2>Autor</h2>
         <hr>
         <div>
-        <h4>Nom</h4>
+            <h4>Nom</h4>
             <h3 class="indented">{{ autor.nom_primero }}
                 {% if autor.nom_segundo is not none %}
                         {{ autor.nom_segundo }}
@@ -16,7 +16,7 @@
                     <h3 class="indented">'{{ autor.seudonimo }}'</h3>
                 {% endif %}
         </div>
-         <br>
+        <br>
         <div>
         {% if autor.lugar_nac is not none%}
             <h4>Nac</h4>
@@ -26,13 +26,7 @@
                 {% endif %}
             </h3>
             <h3 class="indented">
-                {% if nac.ciudad != "Desconocida" %}
-                    {{ nac.ciudad }},
-                {% endif %}
-                {% if nac.nom_subdivision != "Desconocida" %}
-                    {{ nac.nom_subdivision }},
-                {% endif %}
-                {{ nac.pais }}
+                {{ query.lugar(nac) }}
             </h3>
             <br>
         {% endif %}
@@ -46,23 +40,17 @@
                 {% endif %}
             </h3>
             <h3 class="indented">
-                {% if muer.ciudad != "Desconocida" %}
-                    {{ muer.ciudad }},
-                {% endif %}
-                {% if muer.nom_subdivision != "Desconocida" %}
-                    {{ muer.nom_subdivision }},
-                {% endif %}
-                {{ muer.pais }}
+                {{ query.lugar(muer) }}
             </h3>
             <br>
         {% endif %}
         </div>
         <div>
-        {% if autor.coment_autor is not none %}
-            <h4>Sobre el Autor</h4>
-            <h3 class="indented"> {{ autor.coment_autor }}</h3>
-            <br>
-        {% endif %}
+            {% if autor.coment_autor is not none %}
+                <h4>Sobre el Autor</h4>
+                <h3 class="indented"> {{ autor.coment_autor }}</h3>
+                <br>
+            {% endif %}
         </div>
         <hr>
         {{ query.composicion(result) }}

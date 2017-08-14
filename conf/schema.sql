@@ -111,7 +111,7 @@ COMMENT ON TABLE editor IS 'Individual who uploaded the data.';
 
 
 CREATE TABLE IF NOT EXISTS genero_musical (
-    genero_musical serial PRIMARY KEY
+    gen_mus_id serial PRIMARY KEY
    ,nom_genero text UNIQUE NOT NULL
    ,genero_descrip text
 );
@@ -302,8 +302,8 @@ COMMENT ON TABLE idioma_composicion IS 'M:M relationship of languages and the co
 
 CREATE TABLE IF NOT EXISTS genero_pista (
     pista_son_id int REFERENCES pista_son
-   ,gen_mus int REFERENCES genero_musical
-   ,PRIMARY KEY (pista_son_id, gen_mus)
+   ,gen_mus_id int REFERENCES genero_musical
+   ,PRIMARY KEY (pista_son_id, gen_mus_id)
 );
 
 COMMENT ON TABLE genero_pista IS 'M:M relationship of genres and recorded audio.';
