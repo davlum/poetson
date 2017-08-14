@@ -1,4 +1,3 @@
-wheel
 alembic==0.9.3
 click==6.7
 Flask==0.12.2
@@ -11,7 +10,6 @@ Jinja2==2.9.6
 Mako==1.0.7
 MarkupSafe==1.0
 passlib==1.7.1
-pkg-resources==0.0.0
 psycopg2==2.7.3
 python-dateutil==2.6.1
 python-editor==1.0.3
