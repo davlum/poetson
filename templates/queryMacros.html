@@ -1,10 +1,10 @@
 {% macro nom(result) -%}
     {% set name %}
             {% if result.nom_primero is not none and result.nom_primero != 'Desconocido' %}
-                {{ result.nom_primero + " "}}
+                {{ result.nom_primero }} &nbsp;
             {% endif %}
             {% if result.seudonimo is not none %}
-               {{ "'" + result.seudonimo + "' " }}
+               '{{ result.seudonimo }}' &nbsp;
             {% endif %}
             {% if result.nom_segundo is not none %}
                {{ result.nom_segundo }}
@@ -21,10 +21,10 @@
 {% macro lugar(result) -%}
     {% set lugar %}
         {% if result.ciudad is not none and result.ciudad != 'Desconocida' %}
-            {{ result.ciudad + " "}}
+            {{ result.ciudad }} &nbsp;
         {% endif %}
         {% if result.nom_subdivision is not none and result.nom_subdivision != 'Desconocida'%}
-           {{ result.nom_subdivision + " "}}
+           {{ result.nom_subdivision }} &nbsp;
         {% endif %}
         {% if result.pais is not none %}
            {{ result.pais }}
