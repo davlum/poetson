@@ -13,7 +13,7 @@
     {% if name|trim == "" %}
         <div>Desconocido</div>
     {% else %}
-        <div>{{ name }}</div>
+        <div>{{ name|safe }}</div>
     {% endif %}
 {% endmacro %}
 
@@ -33,7 +33,7 @@
     {% if lugar|trim == "" %}
         <div>Desconocido</div>
     {% else %}
-        <div>{{ lugar }}</div>
+        <div>{{ lugar|safe }}</div>
     {% endif %}
 {% endmacro %}
 
