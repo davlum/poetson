@@ -268,9 +268,10 @@ def pistason(pistaid):
 
     # get the list of Instruments and playters associated with that pista son
     inst_query = text("""SELECT a.nom_primero
-                                , a.nom_segundo
-                                , a.seudonimo
-                                , inst.nom_inst 
+                              , a.nom_segundo
+                              , a.seudonimo
+                              , inst.nom_inst
+                              , i.artista_id 
                                 FROM public.intepretacion i
                                 JOIN public.artista a 
                                   ON a.autor_id = i.artista_id 
@@ -336,7 +337,7 @@ def serie(serieid):
                              , l.nom_subdivision
                              , l.ciudad 
                              FROM public.serie s
-                             JOIN public.lugar l ON c.lugar_id = s.lugar_id
+                             JOIN public.lugar l ON l.lugar_id = s.lugar_id
                              WHERE s.serie_id=:id """)
     serie_result = db.engine.execute(serie_query, id=serieid).first()
 
@@ -344,12 +345,10 @@ def serie(serieid):
     # Query all pista son associated with that serie
     pista_query = text("""SELECT * 
                           FROM public.pista_son ps
-                          JOIN public.composicion c 
-                            ON ps.serie_id = c.serie_id
+                          JOIN public.serie s 
+                            ON ps.serie_id = s.serie_id
                           JOIN public.lugar l 
                             ON ps.lugar_interp = l.lugar_id
-                          JOIN public.serie s
-                            ON s.serie_id = ps.serie_id
                             WHERE s.serie_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=serieid)
 

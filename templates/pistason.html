@@ -61,7 +61,7 @@
                 <div class="col-md-6">
                     {% if insts is not none and insts[0].nom_inst != 'Ninguno' and insts.rowcount > 0 %}
                         {% for inst in insts %}
-                            <h3>{{ qeury.nom(inst) }} - {{ inst.nom_inst }}</h3>
+                            <h3><a href="/artista/{{ inst.artista_id }}">{{ qeury.nom(inst) }} - {{ inst.nom_inst }}</a></h3>
                         {% endfor %}
                     {% endif %}
                 </div>
