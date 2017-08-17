@@ -158,7 +158,7 @@ COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for in
 -- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
     instrumento_id serial PRIMARY KEY
-   ,nom_inst text DEFAULT 'Ninguno'
+   ,nom_inst text DEFAULT 'voz'
    ,familia_instr_id int REFERENCES familia_instrumento
    ,electronico boolean
    ,instrumento_comentario text
@@ -189,7 +189,7 @@ COMMENT ON TABLE composicion IS 'The physical representation of the performed wo
 
 CREATE TABLE IF NOT EXISTS pista_son (
     pista_son_id serial PRIMARY KEY
-   ,numero_de_pista int CHECK (numero_de_pista > 1)
+   ,numero_de_pista int CHECK (numero_de_pista > 0)
    ,composicion_id int REFERENCES composicion
    ,editor_id int REFERENCES editor NOT NULL DEFAULT 1
    ,medio text -- add Check
@@ -240,8 +240,6 @@ CREATE TABLE IF NOT EXISTS cobertura_tipo (
    ,cobertura_tipo text UNIQUE NOT NULL
    ,cobertura_comentario text
 );
-
-
 
 CREATE TABLE IF NOT EXISTS cobertura (
     cobertura_id serial PRIMARY KEY
@@ -309,14 +307,14 @@ CREATE TABLE IF NOT EXISTS genero_pista (
 COMMENT ON TABLE genero_pista IS 'M:M relationship of genres and recorded audio.';
 
 
-CREATE TABLE IF NOT EXISTS intepretacion (
+CREATE TABLE IF NOT EXISTS interpretacion (
     pista_son_id int REFERENCES pista_son
    ,artista_id int REFERENCES artista
    ,instrumento_id int REFERENCES instrumento DEFAULT 1
    ,PRIMARY KEY (artista_id, pista_son_id, instrumento_id)
 );
 
-COMMENT ON TABLE intepretacion IS 'The interpretacion of a piece. M:M:M of autor, audio track and instrument. 
+COMMENT ON TABLE interpretacion IS 'The interpretacion of a piece. M:M:M of autor, audio track and instrument. 
                                   The default instrument is ninguno which is id 1.';
 
 
