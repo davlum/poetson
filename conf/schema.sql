@@ -15,7 +15,6 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 
 CREATE TABLE IF NOT EXISTS autor (
     autor_id serial PRIMARY KEY
-   ,coment_autor text
 );
 
 COMMENT ON TABLE autor IS 'The author superclass which artista, institucion, and colectivo inherit from.';
@@ -31,7 +30,8 @@ COMMENT ON TABLE genero_artista IS 'Comprehensive list of genders. Works as a lo
 
 -- CREATE INDEXES ON NAMES AND STUFF
 CREATE TABLE IF NOT EXISTS artista (
-    nom_primero text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY
+   ,nom_primero text NOT NULL
    ,nom_segundo text
    ,ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
    ,materno_nom text
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS artista (
    ,fecha_nac fecha
    ,fecha_muer fecha
    ,genero_id int REFERENCES genero_artista
-   ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
- ) INHERITS (autor);
+   ,coment_autor text
+);
 
 COMMENT ON TABLE artista IS 'A singular artist, child class of author';
 
@@ -58,23 +58,25 @@ COMMENT ON TABLE tipo_institucion IS 'Look up table of abstract institucion type
 
 
 CREATE TABLE IF NOT EXISTS institucion (
-    institucion_nom text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY
+   ,institucion_nom text NOT NULL
+   ,coment_autor text
    ,lugar_id int REFERENCES lugar
    ,tipo_inst int REFERENCES tipo_institucion
    ,fecha_final fecha
-   ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
-) INHERITS (autor);
+);
 
 COMMENT ON TABLE institucion IS 'An actual institucion';
 
 
 CREATE TABLE IF NOT EXISTS colectivo (
-    colectivo_nom text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY
+   ,colectivo_nom text NOT NULL
+   ,coment_autor text
    ,lugar_id int REFERENCES lugar
    ,fecha_comienzo fecha
    ,fecha_final fecha
-   ,CONSTRAINT colectivo_id_constr PRIMARY KEY (autor_id)
-) INHERITS (autor);
+);
 
 COMMENT ON TABLE colectivo IS 'A collective of authors';
 
@@ -333,3 +335,28 @@ CREATE TABLE IF NOT EXISTS pista_son_publicador (
   ,PRIMARY KEY (pista_son_id, publicador_id)
 );
 
+
+-- FK for autor
+CREATE OR REPLACE FUNCTION autor_insert() RETURNS TRIGGER AS $$    
+  DECLARE child_id int;
+  BEGIN
+    INSERT INTO autor DEFAULT VALUES RETURNING autor_id INTO child_id;
+    NEW.autor_id := child_id;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER artista_insert
+  BEFORE INSERT ON artista
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER colectivo_insert
+  BEFORE INSERT ON colectivo
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER institucion_insert
+  BEFORE INSERT ON institucion
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
