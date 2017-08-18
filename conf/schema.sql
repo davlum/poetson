@@ -1,10 +1,32 @@
+-- LOOK UP TABLES FOR THE DATABASE
+CREATE TABLE tipo_autor (
+  nom_tipo text PRIMARY KEY
+);
+
+CREATE TABLE tipo_publicador (
+  nom_tipo text PRIMARY KEY
+);
+
+CREATE TABLE medio (
+  nom_tipo text PRIMARY KEY
+);
+
+CREATE TABLE profundidad_de_bits (
+  profundidad int PRIMARY KEY
+);
+
+CREATE TABLE frecuencia (
+  frecuencia int PRIMARY KEY
+);
+
+
 -- Talk about specifics
 CREATE TABLE IF NOT EXISTS lugar ( 
     lugar_id serial PRIMARY KEY
-   ,ciudad text NOT NULL
+   ,ciudad text
    ,nom_subdivision text
    ,tipo_subdivision text
-   ,pais text NOT NULL
+   ,pais text
 );
 
 COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
@@ -15,7 +37,6 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 
 CREATE TABLE IF NOT EXISTS autor (
     autor_id serial PRIMARY KEY
-   ,coment_autor text
 );
 
 COMMENT ON TABLE autor IS 'The author superclass which artista, institucion, and colectivo inherit from.';
@@ -31,7 +52,8 @@ COMMENT ON TABLE genero_artista IS 'Comprehensive list of genders. Works as a lo
 
 -- CREATE INDEXES ON NAMES AND STUFF
 CREATE TABLE IF NOT EXISTS artista (
-    nom_primero text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY
+   ,nom_primero text
    ,nom_segundo text
    ,ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
    ,materno_nom text
@@ -42,9 +64,9 @@ CREATE TABLE IF NOT EXISTS artista (
    ,lugar_muer int REFERENCES lugar
    ,fecha_nac fecha
    ,fecha_muer fecha
+   ,coment_autor text
    ,genero_id int REFERENCES genero_artista
-   ,CONSTRAINT artista_id_constr PRIMARY KEY (autor_id)
- ) INHERITS (autor);
+ );
 
 COMMENT ON TABLE artista IS 'A singular artist, child class of author';
 
@@ -52,29 +74,31 @@ COMMENT ON TABLE artista IS 'A singular artist, child class of author';
 CREATE TABLE IF NOT EXISTS tipo_institucion (
     tipo_inst_id serial PRIMARY KEY
    ,tipo_inst text UNIQUE NOT NULL
+   ,coment_autor text
 );
 
 COMMENT ON TABLE tipo_institucion IS 'Look up table of abstract institucion type, e.g. streaming service, festival, university.';
 
 
 CREATE TABLE IF NOT EXISTS institucion (
-    institucion_nom text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY
+   ,institucion_nom text NOT NULL
    ,lugar_id int REFERENCES lugar
    ,tipo_inst int REFERENCES tipo_institucion
    ,fecha_final fecha
-   ,CONSTRAINT institucion_id_constr PRIMARY KEY (autor_id)
-) INHERITS (autor);
+   ,coment_autor text
+);
 
 COMMENT ON TABLE institucion IS 'An actual institucion';
 
 
 CREATE TABLE IF NOT EXISTS colectivo (
-    colectivo_nom text NOT NULL
+    autor_id int REFERENCES autor PRIMARY KEY  
+   ,colectivo_nom text NOT NULL
    ,lugar_id int REFERENCES lugar
    ,fecha_comienzo fecha
    ,fecha_final fecha
-   ,CONSTRAINT colectivo_id_constr PRIMARY KEY (autor_id)
-) INHERITS (autor);
+);
 
 COMMENT ON TABLE colectivo IS 'A collective of authors';
 
@@ -83,7 +107,7 @@ CREATE TABLE IF NOT EXISTS publicador (
     publicador_id serial PRIMARY KEY
    ,autor_id int REFERENCES autor
    ,lugar_id int REFERENCES lugar
-   ,tipo tipo_publicador
+   ,tipo_pub text REFERENCES tipo_publicador
    ,web_publicador text -- website of publisher
    ,dir_publicador text -- address
    ,email proper_email
@@ -192,7 +216,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
    ,numero_de_pista int CHECK (numero_de_pista > 0)
    ,composicion_id int REFERENCES composicion
    ,editor_id int REFERENCES editor NOT NULL DEFAULT 1
-   ,medio text -- add Check
+   ,medio text REFERENCES medio
    ,lugar_interp int REFERENCES lugar
    ,serie_id int REFERENCES serie
    ,comentario_pista_son text
@@ -213,10 +237,10 @@ CREATE TABLE IF NOT EXISTS archivo (
    ,ruta text NOT NULL -- path of the file /<first letter of artist name>/<artist name>/audio/
    ,duracion TIME NOT NULL
    ,abr int NOT NULL DEFAULT 128000 CHECK (abr > 700)
-   ,profundidad_de_bits profundidad_valido
+   ,profundidad_de_bits int REFERENCES profundidad_de_bits
    ,canales int CHECK (canales > 0 AND canales < 12) NOT NULL DEFAULT 2
    ,codec text
-   ,frecuencia frecuencia_valido NOT NULL
+   ,frecuencia int REFERENCES frecuencia
 );
 
 COMMENT ON TABLE archivo IS 'M:1 with pista_son. The different audio codecs that the recorded track is available in.';
@@ -267,7 +291,7 @@ COMMENT ON TABLE cobertura_autor IS 'M:M The copyrights an abstract author may h
 CREATE TABLE IF NOT EXISTS composicion_autor (
     composicion_id int REFERENCES composicion
    ,autor_id int REFERENCES autor
-   ,tipo_autor tipo_autor
+   ,tipo_autor text REFERENCES tipo_autor
    ,comentario_autor text
    ,PRIMARY KEY (composicion_id, autor_id)
 );

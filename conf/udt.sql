@@ -1,3 +1,27 @@
+CREATE OR REPLACE FUNCTION autor_insert() RETURNS TRIGGER AS $$    
+  DECLARE child_id int;
+  BEGIN
+    INSERT INTO autor DEFAULT VALUES RETURNING autor_id INTO child_id;
+    NEW.autor_id := child_id;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER artista_insert
+  BEFORE INSERT ON artista
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER colectivo_insert
+  BEFORE INSERT ON colectivo
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER institucion_insert
+  BEFORE INSERT ON institucion
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
 
 -- Changes these to checks and relations
 
