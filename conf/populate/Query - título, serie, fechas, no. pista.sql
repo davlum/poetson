@@ -1,0 +1,3 @@
+﻿SELECT p.numero_de_pista AS "No. pista", c.nom_tit AS "Título", s.nom_serie AS "Serie", CONCAT(e.nom, ' ', e.apellido) AS "Editor", p.fecha_grab AS "Fecha grabación", p.fecha_inc "Agregado el" FROM composicion AS "c", serie AS "s", editor AS "e", pista_son AS "p"
+WHERE (c.composicion_id=p.composicion_id) AND (s.serie_id=p.serie_id) AND (p.editor_id=e.editor_id)
+ORDER BY s.nom_serie, p.numero_de_pista;

@@ -1,0 +1,2 @@
+﻿SELECT CONCAT(a.nom_primero, ' ', a.paterno_nom, ' ', a.seudonimo) AS "Nombre", c.colectivo_nom AS "Banda/colectivo", l.ciudad AS "Lugar" FROM artista AS "a", artista_colectivo AS "b", colectivo AS "c", lugar AS "l"
+WHERE (a.autor_id=b.artista_id) AND (c.autor_id=b.colectivo_id) AND c.lugar_id=l.lugar_id;

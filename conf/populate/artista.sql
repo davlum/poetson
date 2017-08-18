@@ -1,7 +1,7 @@
 ﻿INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, materno_nom, seudonimo, fecha_nac, lugar_nac, fecha_muer, lugar_muer, genero_id) VALUES
 ('Manuel', NULL, 'Maples', 'Arce', NULL, '1898-05-01', 137, '1981-06-16', 58, 64),
 ('Diego', NULL, 'Rivera', NULL, NULL, '1886-12-08', 61, '1957-11-24', 58, 64),
-('Luis', NULL, 'Quintanilla', NULL, 'Kin Taniya', '1900-11-22', 62, '1980-03-16', 1, 64),
+('Luis', NULL, 'Quintanilla', 'Del Valle', 'Kyn Taniya', '1900-11-22', 62, '1980-03-16', 1, 64),
 ('Jorge', NULL, 'Reyes', NULL, NULL, '1952-01-01', 63, '2009-01-01', 1, 64),
 ('Jaime', NULL, 'Torres', 'Bodet', NULL, '1902-04-17', 58, '1974-05-13', 58, 64),
 ('Xavier', NULL, 'Villaurrutia', NULL, NULL, '1903-03-27', 58, '1950-12-25', 58, 64),
@@ -129,7 +129,7 @@ INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, materno_nom, seudoni
 ('Johnny', NULL, NULL, NULL, NULL, 'desconocido', 2, 64),
 ('Julieta', NULL, NULL, NULL, NULL, 'desconocido', 2, 71),
 ('Karla', NULL, 'Páez', NULL, NULL, 'desconocido', 2, 71),
-('Kashian', NULL, 'Sagredo', NULL, NULL, 'desconocido', 2, 71),
+('Marlene', NULL, 'Sagredo', 'Kemmer', 'Kashian', '1989-07-03', 2, 71),
 ('Kevin', NULL, 'Mara', NULL, 'Kev Mara', 'desconocido', 2, 64),
 ('Desconocido', NULL, NULL, NULL, 'Kilamastra', 'desconocido', 2, 64),
 ('Desconocido', NULL, NULL, NULL, 'Josuelfo', 'desconocido', 2, 64),
@@ -171,8 +171,12 @@ INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, materno_nom, seudoni
 ('Angélica', NULL, 'Cortés', NULL, NULL, 'desconocido', 2, 71),
 ('Guillermo', NULL, 'Lagarde', NULL, NULL, 'desconocido', 2, 64),
 ('Mario', NULL, 'Pulido', NULL, NULL, 'desconocido', 2, 64),
-('Gabriela', NULL, 'Sosa', NULL, NULL, 'desconocido', 2, 71),
-('Emilio', NULL, 'Eberjenyi', NULL, NULL, 'desconocido', 2, 64),
+('Gabriela', NULL, 'Sosa', NULL, NULL, 'desconocido', 2, 71);
+
+INSERT INTO artista (nom_primero, paterno_nom, fecha_nac, lugar_nac, fecha_muer, lugar_muer, genero_id) VALUES
+('Emilio', 'Ebergenyi', '1950-09-01', 58, '2005-11-10', 58, 64);
+
+INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, materno_nom, seudonimo, fecha_nac, lugar_nac, genero_id) VALUES
 ('Pepe', NULL, 'González', 'Márquez', NULL, 'desconocido', 2, 64),
 ('Hénri', NULL, 'Béhar', NULL, NULL, '1940-05-28', 62, 64),
 ('Michel', NULL, 'Carassou', NULL, NULL, 'desconocido', 128, 64),
@@ -181,3 +185,13 @@ INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, materno_nom, seudoni
 ('Nico', NULL, NULL, NULL, NULL, 'desconocido', 2, 64),
 ('Paulina', NULL, 'Fuentes', NULL, NULL, 'desconocido', 2, 71),
 ('Gordon', 'Matthew', 'Thomas', 'Sumner', 'Sting', '1951-10-02', 135, 64);
+
+INSERT INTO artista (nom_primero, paterno_nom, materno_nom, fecha_nac, lugar_nac, fecha_muer, lugar_muer, genero_id) VALUES
+('Jaime', 'Sabines', 'Gutiérrez', '1926-03-25', 82, '1999-03-19', 58, 64);
+
+INSERT INTO artista (nom_primero, nom_segundo, paterno_nom, lugar_nac, genero_id) VALUES
+('Sergio', 'Alberto', 'Bustos', 58, 64),
+('José', 'Ángel', 'Domínguez', 58, 64),
+('Antonio', NULL, 'Fernández', 58, 64),
+('Rodrigo', NULL, 'Martínez', 58, 64),
+('María', 'Eugenia', 'Pulido', 58, 71);
