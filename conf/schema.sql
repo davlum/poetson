@@ -160,7 +160,7 @@ COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for in
 -- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
     instrumento_id serial PRIMARY KEY
-   ,nom_inst text DEFAULT 'voz'
+   ,nom_inst text DEFAULT 'Voz'
    ,familia_instr_id int REFERENCES familia_instrumento
    ,electronico boolean
    ,instrumento_comentario text
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS instrumento (
 CREATE TABLE IF NOT EXISTS tema (
     tema_id serial PRIMARY KEY
    ,tema_nom text UNIQUE NOT NULL
-   ,CONSTRAINT proper_tema CHECK (tema_nom ~ '^[a-zà-ÿ0-9 ()-]+$')
+   ,CONSTRAINT proper_tema CHECK (tema_nom ~ '^[a-zà-ÿ0-9_()-]+$')
 );
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
