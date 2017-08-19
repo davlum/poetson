@@ -103,7 +103,7 @@
                         <tr>
                             <td>
                                 <a style="text-decoration: none;"
-                                   href="/colectivo/{{ col.autor_id }}">{{ col.colectivo_nom }}
+                                   href="/colectivo/{{ col.autor_id }}/">{{ col.colectivo_nom }}
                                 </a>
                             </td>
                             <td>
@@ -139,20 +139,18 @@
                     <table class="table table-striped">
                         <tr>
                             <th>Título</th>
-                            <th>Título Alterno</th>
                             <th>País</th>
                             <th>Año</th>
                         </tr>
                             {% for comp in result['composicion'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/composicion/{{ comp.comp_id }}">{{ comp.nom_tit }}
-                                    </a>
-                                </td>
-                                <td>
+                                    <a style="text-decoration: none;" href="/composicion/{{ comp.composicion_id }}/">{{ comp.nom_tit }}
                                     {% if comp.tit_alt is not none %}
-                                        {{ comp.tit_alt }}
+                                       | {{ comp.tit_alt }}
                                     {% endif %}
+
+                                    </a>
                                 </td>
                                 <td>
                                     {{ comp.pais }}
@@ -236,7 +234,10 @@
                             {% for pista in result['pista'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}">{{ pista.nom_pista }}
+                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}">{{ pista.nom_tit }}
+                                        {% if pista.tit_alt is not none %}
+                                            | {{ pista.tit_alt }}
+                                        {% endif %}
                                     </a>
                                 </td>
                                 <td>

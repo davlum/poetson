@@ -39,7 +39,7 @@
                     {% if pista.nom_subdivision != "Desconocida" %}
                         {{ pista.nom_subdivision }},
                     {% endif %}
-                    {{ muer.pais }}
+                    {{ pista.pais }}
                 </h3>
                 <br>
             {% endif %}
@@ -59,9 +59,9 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    {% if insts is not none and insts[0].nom_inst != 'Ninguno' and insts.rowcount > 0 %}
+                    {% if insts is not none and insts.rowcount > 0 %}
                         {% for inst in insts %}
-                            <h3><a href="/artista/{{ inst.artista_id }}">{{ qeury.nom(inst) }} - {{ inst.nom_inst }}</a></h3>
+                            <h3><a href="/autor/{{ inst.artista_id }}">{{ query.nom(inst) }} - {{ inst.nom_inst }}</a></h3>
                         {% endfor %}
                     {% endif %}
                 </div>

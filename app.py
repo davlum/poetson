@@ -182,6 +182,7 @@ def search(param=None):
 
 @app.route('/autor/<int:autorid>/')
 def autor(autorid):
+    result = {}
     # Query author
     author_query = text("""SELECT * FROM public.artista WHERE autor_id=:id """)
     author_result = db.engine.execute(author_query, id=autorid).first()
@@ -199,22 +200,28 @@ def autor(autorid):
                                      , c.nom_tit
                                      , c.tit_alt
                                      , c.fecha_pub
-                                     , c.lugar_comp 
-                                  FROM public.artista_colectivo ac
-                                  JOIN public.composicion_autor ca 
-                                  ON ca.autor_id = ac.colectivo_id
-                                  OR ca.autor_id = ac.artista_id
-                                  JOIN public.composicion c 
-                                  ON c.composicion_id = ca.composicion_id
-                                  WHERE ac.artista_id=:id""")
-    composicion_result = db.engine.execute(lugar_muer_query, id=autorid)
+                                     , l.pais
+                                     , l.nom_subdivision
+                                     , l.ciudad 
+                                  FROM public.artista a
+                                  LEFT JOIN public.artista_colectivo ac
+                                    ON a.autor_id = ac.artista_id
+                                  JOIN public.composicion_autor ca
+                                    ON ca.autor_id = ac.colectivo_id
+                                    OR ca.autor_id = a.autor_id
+                                  JOIN public.composicion c
+                                    ON c.composicion_id = ca.composicion_id
+                                  LEFT JOIN public.lugar l
+                                  ON l.lugar_id = c.lugar_comp
+                                  WHERE a.autor_id=:id""")
+    result['composicion'] = db.engine.execute(composicion_query, id=autorid)
 
     return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
-                           muer=lugar_muer_result, result=composicion_result)
+                           muer=lugar_muer_result, result=result)
 
 
-@app.route('/colectivo/<int:autorid>/')
-def colectivo(autorid):
+@app.route('/colectivo/<int:colid>/')
+def colectivo(colid):
     result = {}
     # Query colectivo
     colectivo_query = text("""SELECT c.colectivo_nom
@@ -223,7 +230,7 @@ def colectivo(autorid):
                                    FROM public.colectivo c 
                                    JOIN public.lugar l ON l.lugar_id = c.lugar_id
                                    WHERE autor_id=:id;""")
-    colectivo = db.engine.execute(colectivo_query, id=autorid).first()
+    colectivo = db.engine.execute(colectivo_query, id=colid).first()
 
     # get the list of artists in that colectivo
     author_query = text("""SELECT a.nom_primero
@@ -234,7 +241,7 @@ def colectivo(autorid):
                                 JOIN public.lugar l ON l.lugar_id = a.lugar_nac
                                 JOIN public.artista_colectivo ac ON ac.artista_id = a.autor_id
                                 WHERE ac.colectivo_id=:id""")
-    result['artista'] = db.engine.execute(author_query, id=autorid)
+    result['artista'] = db.engine.execute(author_query, id=colid)
 
     # Query all compositions including those made by this artist when in a colectivo
     composicion_query = text("""SELECT c.composicion_id
@@ -246,7 +253,7 @@ def colectivo(autorid):
                                   JOIN public.composicion_autor ca 
                                   ON ca.composicion_id = c.composicion_id
                                   WHERE ca.autor_id=:id""")
-    result['composicion'] = db.engine.execute(composicion_query, id=autorid)
+    result['composicion'] = db.engine.execute(composicion_query, id=colid)
 
     return render_template('colectivo.html', autor=colectivo, result=result)
 
@@ -264,7 +271,7 @@ def pistason(pistaid):
                               JOIN serie s 
                                 ON s.serie_id = ps.serie_id
                                 WHERE pista_son_id=:id""")
-    result['pista'] = db.engine.execute(pista_query, id=pistaid).first()
+    pista_result = db.engine.execute(pista_query, id=pistaid).first()
 
     # get the list of Instruments and playters associated with that pista son
     inst_query = text("""SELECT a.nom_primero
@@ -272,7 +279,7 @@ def pistason(pistaid):
                               , a.seudonimo
                               , inst.nom_inst
                               , i.artista_id 
-                                FROM public.intepretacion i
+                                FROM public.interpretacion i
                                 JOIN public.artista a 
                                   ON a.autor_id = i.artista_id 
                                 JOIN public.instrumento inst 
@@ -292,7 +299,7 @@ def pistason(pistaid):
                                 WHERE pista_son_id=:id""")
     archivo_result = db.engine.execute(archivo_query, id=pistaid)
 
-    return render_template('pistason.html', pista=pista_query, insts=inst_result, archs=archivo_result)
+    return render_template('pistason.html', pista=pista_result, insts=inst_result, archs=archivo_result)
 
 
 @app.route('/composicion/<int:compoid>/')
@@ -300,14 +307,16 @@ def composicion(compoid):
     result = {}
 
     # Query Composicion
-    composicion_query = text("""SELECT c.nom_tit
-                                     , c.tit_alt
-                                     , c.fecha_pub
-                                     , l.pais
-                                     , l.nom_subdivision
-                                     , l.ciudad 
+    composicion_query = text("""SELECT *
                                      FROM public.composicion c
-                                     JOIN public.lugar l ON c.lugar_id = c.lugar_id
+                                     JOIN public.composicion_autor ac
+                                       ON c.composicion_id = ac.composicion_id
+                                     LEFT JOIN public.artista a
+                                       ON a.autor_id = ac.autor_id
+                                     LEFT JOIN public.colectivo co
+                                       ON co.autor_id = ac.autor_id
+                                     LEFT JOIN public.lugar l 
+                                       ON l.lugar_id = c.lugar_comp
                                      WHERE c.composicion_id=:id """)
     composicion_result = db.engine.execute(composicion_query, id=compoid).first()
 
@@ -347,8 +356,10 @@ def serie(serieid):
                           FROM public.pista_son ps
                           JOIN public.serie s 
                             ON ps.serie_id = s.serie_id
-                          JOIN public.lugar l 
+                          LEFT JOIN public.lugar l 
                             ON ps.lugar_interp = l.lugar_id
+                          JOIN public.composicion c
+                            ON c.composicion_id = ps.composicion_id
                             WHERE s.serie_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=serieid)
 
