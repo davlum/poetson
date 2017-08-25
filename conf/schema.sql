@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS artista (
    ,fecha_muer fecha
    ,coment_autor text
    ,genero_id int REFERENCES genero_artista
- );
+   ,coment_autor text
+);
 
 COMMENT ON TABLE artista IS 'A singular artist, child class of author';
 
@@ -93,8 +94,9 @@ COMMENT ON TABLE institucion IS 'An actual institucion';
 
 
 CREATE TABLE IF NOT EXISTS colectivo (
-    autor_id int REFERENCES autor PRIMARY KEY  
+    autor_id int REFERENCES autor PRIMARY KEY
    ,colectivo_nom text NOT NULL
+   ,coment_autor text
    ,lugar_id int REFERENCES lugar
    ,fecha_comienzo fecha
    ,fecha_final fecha
@@ -182,7 +184,7 @@ COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for in
 -- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
     instrumento_id serial PRIMARY KEY
-   ,nom_inst text DEFAULT 'voz'
+   ,nom_inst text DEFAULT 'Voz'
    ,familia_instr_id int REFERENCES familia_instrumento
    ,electronico boolean
    ,instrumento_comentario text
@@ -192,7 +194,7 @@ CREATE TABLE IF NOT EXISTS instrumento (
 CREATE TABLE IF NOT EXISTS tema (
     tema_id serial PRIMARY KEY
    ,tema_nom text UNIQUE NOT NULL
-   ,CONSTRAINT proper_tema CHECK (tema_nom ~ '^[a-zà-ÿ0-9 ()-]+$')
+   ,CONSTRAINT proper_tema CHECK (tema_nom ~ '^[a-zà-ÿ0-9_()-]+$')
 );
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
@@ -357,3 +359,28 @@ CREATE TABLE IF NOT EXISTS pista_son_publicador (
   ,PRIMARY KEY (pista_son_id, publicador_id)
 );
 
+
+-- FK for autor
+CREATE OR REPLACE FUNCTION autor_insert() RETURNS TRIGGER AS $$    
+  DECLARE child_id int;
+  BEGIN
+    INSERT INTO autor DEFAULT VALUES RETURNING autor_id INTO child_id;
+    NEW.autor_id := child_id;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER artista_insert
+  BEFORE INSERT ON artista
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER colectivo_insert
+  BEFORE INSERT ON colectivo
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();
+
+CREATE TRIGGER institucion_insert
+  BEFORE INSERT ON institucion
+  FOR EACH ROW
+  EXECUTE PROCEDURE autor_insert();

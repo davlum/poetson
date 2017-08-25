@@ -11,4 +11,9 @@
 \i populate/tipo_artista.sql
 \i populate/artista.sql
 \i populate/album.sql
+\i populate/composicion.sql
+\i populate/pista_son.sql
+\i populate/composicion_autor.sql
+\i populate/interpretacion.sql
+\i populate/artista_colectivo.sql
 \i populate/tema.sql

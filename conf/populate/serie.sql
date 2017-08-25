@@ -12,11 +12,12 @@
 ('Eslam de poesía #29 Rojo Córdova CCD', 'Slam de poesía', 58),
 ('Eslam de poesía #31 Rojo Córdova CCD', 'Slam de poesía', 58),
 ('Eslam de poesía #33 Rojo Córdova CCD', 'Slam de poesía', 58),
-('Salvajes de Ciudad AKA', 'Álbum', 58),
+('Salvajes de Ciudad AKA', 'Concierto', 58),
 ('KFGC en Foro Hilvana', 'Concierto', 58),
 ('Presentación de "La Sentidora" en Foro Hilvana', 'Concierto', 58),
 ('Sesión ICBC Tecate', 'Concierto', 124),
 ('Tour Negativo (-T)', 'Concierto', 58),
 ('KFGC piezas sueltas', 'Colección sonora', 58),
 ('Voz viva de México', 'Colección sonora', 58),
-('Frágil', 'Álbum', 60);
+('Frágil', 'Álbum', 58),
+('La tierra prometida', 'Álbum', 58);

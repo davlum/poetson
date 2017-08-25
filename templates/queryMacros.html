@@ -191,7 +191,7 @@
                             {% for serie in result['serie'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/serie/{{ serie.serie_id }}">{{ serie.nom_serie }}
+                                    <a style="text-decoration: none;" href="/serie/{{ serie.serie_id }}/">{{ serie.nom_serie }}
                                     </a>
                                 </td>
                                 <td>
@@ -234,7 +234,7 @@
                             {% for pista in result['pista'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}">{{ pista.nom_tit }}
+                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}/">{{ pista.nom_tit }}
                                         {% if pista.tit_alt is not none %}
                                             | {{ pista.tit_alt }}
                                         {% endif %}

@@ -1,5 +1,5 @@
 ﻿INSERT INTO instrumento (nom_inst, familia_instr_id, electronico, instrumento_comentario) VALUES
-('Ninguno', 1, 'f', 'No se identificaron instrumentos'),
+('Voz', 1, 'f', 'Uso de la voz para declamar, recitar, cantar o realizar algún efecto melódico, armónico o tímbrico. Para funciones percusivas, utilizar los valores "palmas" y "piernas"'),
 ('Sintetizador digital', 12, 't', 'Genera señales eléctricas que a su vez son convertidas a sonidos a través de bocinas o audífonos'),
 ('Programa de computadora', 14, 't', 'Programa de computadora no identificado'),
 ('Radio', 13, 'f', 'Uso de tecnologías radiofónicas con fines creativos'),
@@ -12,9 +12,9 @@
 ('Line6 DL4', 15, 't', 'Pedal de efectos digital que emula los modelos de sinidos de unidades previas, como Maestro EP-1 Echoplex o el Roland RE-101, y que se ha vuelto un clásico por derecho propio'),
 ('Guitarra acústica', 7, 'f', 'Instrumento musical armónico de cuerda bien templada que cuenta con caja de resonancia para la amplificación del sonido producido por la vibración de las cuerdas, mástil, diapasón o trastero, clavijero y el puente donde se colocan las cuerdas'),
 ('Guitarra eléctrica', 7, 'f', 'Instrumento musical armónico y melódico de seis cuerdas que utiliza el principio de inducción electromagnética para convertir las vibraciones de sus cuerdas de metal en señales eléctricas'),
-('Guitarra electro-acústica', 1, 'f', 'Instrumento musical armónico equipado con pastillas, un micrófono o transductores'),
+('Guitarra electro-acústica', 7, 'f', 'Instrumento musical armónico equipado con pastillas, un micrófono o transductores'),
 ('Guitarra de juguete', 7, 'f', 'Juguete con forma de guitarra acústica utilizado con fines creativos'),
-('Guitarra', 1, 'f', 'Tipo de guitarra no identificado'),
+('Guitarra', 7, 'f', 'Tipo de guitarra no identificado'),
 ('Piano', 12, 'f', 'Instrumento musical acústico de cuerdas que son golpeadas por martillos a través de un teclado operado con los dedos de las manos'),
 ('Palmas', 10, 'f', 'Uso de las manos para generar diversos sonidos percusivos, como aplausos o chasquidos'),
 ('Xilófono', 9, 'f', 'Consiste de barras de madera con diversas tesituras, golpeadas con martillos que son operados manualmente'),
@@ -26,4 +26,8 @@
 ('Piernas', 10, 'f', 'Uso de las piernas y sus vestimentas para generar diversos sonidos percusivos, como pisadas, taconeos, zapateos, entre otros'),
 ('Percusiones', 11, 'f', 'Instrumento de percusión no identificado'),
 ('Sonaja', 9, 'f', 'Agrupaciones de chapas de metal atravesadas por uno o más alambres sujetos a un aro en forma de círculo o semicírculo, o bien otro tipo de bases, como rectángulos de madera o plástico, con manija o sin ella, etc. La emisión sonora se consigue mediante agitamiento o golpeo'),
-('Caja de ritmos', 15, 'f', 'Marca y modelo no identificados');
+('Caja de ritmos', 15, 'f', 'Marca y modelo no identificados'),
+('Campana', 9, 'f', 'La mayoría tiene forma de copa invertida que cuando es golpeada emite un sonido vibrante y constante'),
+('Flauta indígena', 5, 'f', 'Flauta de madera de origen desconocido'),
+('Tornamesa', 15, 't', 'Conjunto de mezcladoras de sonidos con tornamesas de manejo directo que son utilizadas principalmente para componer piezas de hip-hop, música electrónica, entre otros géneros musicales'),
+('Sampler de mesa', 15, 't', 'Instrumento similar al sintetizador que, en lugar de generar sonidos, utiliza grabaciones (o samples) cargadas o grabadas por el propio usuario para reproducirlas mediante un teclado o secuenciador');

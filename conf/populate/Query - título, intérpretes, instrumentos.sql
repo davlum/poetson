@@ -1,0 +1,3 @@
+﻿	SELECT c.nom_tit AS "Título", CONCAT(a.nom_primero, ' ', a.paterno_nom, ' ', a.seudonimo) AS "Intérprete", i.nom_inst AS "Instrumento", s.nom_serie AS "Serie", s.giro AS "Giro" FROM artista AS "a", pista_son AS "p", composicion AS "c", instrumento AS "i", interpretacion AS "o", serie AS "s"
+	WHERE (o.pista_son_id=p.pista_son_id) AND (o.artista_id=a.autor_id) AND (o.instrumento_id=i.instrumento_id) AND (c.composicion_id=p.composicion_id) AND (s.serie_id=p.serie_id)
+	ORDER BY s.nom_serie, p.pista_son_id;
