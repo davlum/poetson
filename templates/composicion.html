@@ -6,13 +6,20 @@
         <h2>Composicion</h2>
         <hr>
         <div>
-            <h4>Título<</h4>
+            <h4>Título</h4>
             <h3 class="indented">
                 {{ comp.nom_tit }}
                 {% if comp.nom_alt is not none %}
                         {{ comp.nom_alt }}
                 {% endif %}
-            </h3> 
+            </h3>
+        </div>
+        <br>
+        <div>
+            <h4>Autor</h4>
+            <h3 class="indented">
+                {{ query.nom(comp) }}
+            </h3>
         </div>
         <br>
         <div>
