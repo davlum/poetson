@@ -3,24 +3,60 @@ CREATE TABLE tipo_autor (
   nom_tipo text PRIMARY KEY
 );
 
+INSERT INTO tipo_autor VALUES ('primero'), ('segundo');
+
 CREATE TABLE tipo_publicador (
   nom_tipo text PRIMARY KEY
 );
+
+INSERT INTO tipo_publicador VALUES ('publicador'), ('contribuidor'), ('ambos');
 
 CREATE TABLE medio (
   nom_tipo text PRIMARY KEY
 );
 
+INSERT INTO medio VALUES ('digital'), ('CD'), ('cinta'),('vinilo');
+
 CREATE TABLE profundidad_de_bits (
   profundidad int PRIMARY KEY
 );
+
+INSERT INTO TABLE profundidad_de_bits VALUES (4),
+                                              (8),
+                                              (11),
+                                              (16),
+                                              (20),
+                                              (24),
+                                              (32),
+                                              (48),
+                                              (64); 
 
 CREATE TABLE frecuencia (
   frecuencia int PRIMARY KEY
 );
 
+INSERT INTO TABLE frecuencia_valido VALUES (8000),
+                                           (11025),
+                                           (16000),
+                                           (22050),
+                                           (32000),
+                                           (37800),
+                                           (44056),
+                                           (44100),
+                                           (47250),                               
+                                           (48000),
+                                           (50000),
+                                           (50400),
+                                           (88200),
+                                           (96000),
+                                           (176400),
+                                           (192000),
+                                           (176400),
+                                           (192000), 
+                                           (352800),
+                                           (2822400),
+                                           (5644800);
 
--- Talk about specifics
 CREATE TABLE IF NOT EXISTS lugar ( 
     lugar_id serial PRIMARY KEY
    ,ciudad text
@@ -108,7 +144,6 @@ COMMENT ON TABLE colectivo IS 'A collective of authors';
 CREATE TABLE IF NOT EXISTS publicador (
     publicador_id serial PRIMARY KEY
    ,autor_id int REFERENCES autor
-   ,lugar_id int REFERENCES lugar
    ,tipo_pub text REFERENCES tipo_publicador
    ,web_publicador text -- website of publisher
    ,dir_publicador text -- address
@@ -272,7 +307,7 @@ CREATE TABLE IF NOT EXISTS cobertura (
    ,cobertura_tipo_id int REFERENCES cobertura_tipo NOT NULL
    ,pista_son_id int REFERENCES pista_son
    ,composicion_id int REFERENCES composicion
-   ,pais_cobertura text NOT NULL
+   ,lugar_cobertura int REFERENCES lugar
    ,licencia_cobertura text
    ,fecha_comienzo fecha
    ,fecha_final fecha
