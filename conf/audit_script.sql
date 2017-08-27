@@ -44,7 +44,7 @@ CREATE TABLE audit.logged_actions (
     session_user_name text,
     action_tstamp_tx TIMESTAMP WITH TIME ZONE NOT NULL,
     action_tstamp_stm TIMESTAMP WITH TIME ZONE NOT NULL,
-    action_tstamp_clk TIMESTAMP WITH TIME ZONE NOT NULL,
+    action_tstamp_clk TIMESTAMP WITH TIME ZONE NOT NULL
     transaction_id bigint,
     application_name text,
     client_addr inet,

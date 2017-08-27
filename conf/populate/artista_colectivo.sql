@@ -1,4 +1,4 @@
-﻿INSERT INTO artista_colectivo (artista_id, colectivo_id) VALUES
+﻿INSERT INTO persona_agregar (persona_id, agregar_id) VALUES
 (49, 1),
 (50, 1),
 (44, 2),
