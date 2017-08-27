@@ -1,4 +1,19 @@
 
-CREATE TYPE fecha AS (f1 date, f2 boolean);
+CREATE TYPE fecha AS (
+  d date, 
+  b boolean
+);
 
-CREATE DOMAIN proper_email AS text CHECK (VALUE ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$');
+CREATE OR REPLACE FUNCTION get_fecha(fecha) 
+  RETURNS text AS $$
+  BEGIN
+    IF $1.b = false THEN
+      RETURN EXTRACT(YEAR FROM $1.d);
+    ELSE
+      RETURN $1.d;
+    END IF;
+  END $$  
+  LANGUAGE plpgsql
+  IMMUTABLE
+  RETURNS NULL ON NULL INPUT; 
+

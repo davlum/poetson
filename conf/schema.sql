@@ -11,9 +11,15 @@ CREATE TABLE medio (
 
 INSERT INTO medio VALUES ('digital'), ('CD'), ('cinta'),('vinilo');
 
-CREATE TABLE IF NOT EXISTS rol (
-  nom_rol text PRIMARY KEY
+CREATE TABLE IF NOT EXISTS rol_pista_son(
+  nom_rol_pista text PRIMARY KEY
 );
+
+CREATE TABLE IF NOT EXISTS rol_composicion (
+  nom_rol_comp text PRIMARY KEY
+);
+
+
 
 CREATE TABLE IF NOT EXISTS tipo_subdivision (
   tipo_subdiv text PRIMARY KEY
@@ -33,15 +39,17 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 ----- Author related entities ----
 
 CREATE TABLE IF NOT EXISTS participante (
-    participante_id serial PRIMARY KEY
-  , nom_participante text -- Ask aurelio about this. Do we need first and second name columns
+    part_id serial PRIMARY KEY
+  , nom_part text -- Ask aurelio about this. Do we need first and second name columns
   , sitio_web text
   , direccion text
   , telefono text
-  , email proper_email
+  , lugar_id int REFERENCES lugar
+  , email text
   , fecha_comienzo fecha
   , fecha_finale fecha
   , coment_participante text
+  , CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE participante IS 'The author superclass which persona, agregar, and agregar inherit from.';
@@ -56,12 +64,12 @@ COMMENT ON TABLE genero_persona IS 'Comprehensive list of genders. Works as a lo
 
 -- CREATE INDEXES ON NAMES AND STUFF
 CREATE TABLE IF NOT EXISTS persona (
-    participante_id int REFERENCES participante PRIMARY KEY
+    part_id int REFERENCES participante PRIMARY KEY
+  , nom_segundo text  
   , seudonimo text
   , ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
   , nom_paterno text
   , nom_materno text
-  , lugar_nac int REFERENCES lugar
   , lugar_muer int REFERENCES lugar
   , genero_id int REFERENCES genero_persona
 );
@@ -75,7 +83,7 @@ CREATE TABLE IF NOT EXISTS tipo_agregar (
 COMMENT ON TABLE tipo_agregar IS 'Look up table of abstract agregate type, e.g. streaming service, festival, university.';
 
 CREATE TABLE IF NOT EXISTS agregar (
-    participante_id int REFERENCES participante PRIMARY KEY
+    part_id int REFERENCES participante PRIMARY KEY
   , tipo_agregar text REFERENCES tipo_agregar
 );
 
@@ -84,7 +92,7 @@ COMMENT ON TABLE agregar IS 'An agregate of people.';
 -- This table will be mutable
 CREATE TABLE IF NOT EXISTS usario (
     usario_id serial PRIMARY KEY
-   ,participante_id int REFERENCES participante NOT NULL
+   ,part_id int REFERENCES participante NOT NULL
    ,nom_usario text NOT NULL UNIQUE
    ,contrasena text NOT NULL -- hashed and salted
    ,fecha_registro date DEFAULT now()
@@ -109,7 +117,7 @@ CREATE TABLE IF NOT EXISTS idioma (
 
 COMMENT ON TABLE idioma IS 'Possible Languages. Works as a lookup table.';
 
-
+-- search giro?
 CREATE TABLE IF NOT EXISTS serie (
     serie_id serial PRIMARY KEY
    ,nom_serie text NOT NULL
@@ -156,12 +164,17 @@ CREATE TABLE IF NOT EXISTS tema (
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
 
+/*
+-- A concept of abstract pista_son and composicion
+-- into a work
 CREATE TABLE IF NOT EXISTS obra (
     obra_id serial PRIMARY KEY  
 );
+*/
+
 
 CREATE TABLE IF NOT EXISTS composicion ( 
-    obra_id int REFERENCES obra PRIMARY KEY
+    composicion_id serial PRIMARY KEY
    ,nom_tit text NOT NULL
    ,nom_alt text
    ,fecha_pub fecha
@@ -174,7 +187,7 @@ COMMENT ON TABLE composicion IS 'The physical representation of the performed wo
 
 
 CREATE TABLE IF NOT EXISTS pista_son (
-    obra_id int REFERENCES obra PRIMARY KEY
+    pista_son_id serial PRIMARY KEY
    ,numero_de_pista int CHECK (numero_de_pista > 0)
    ,composicion_id int REFERENCES composicion
    ,usario_id int REFERENCES usario NOT NULL DEFAULT 1
@@ -241,40 +254,39 @@ CREATE TABLE IF NOT EXISTS cobertura (
 COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';
 
 
-CREATE TABLE IF NOT EXISTS cobertura_participante (
+CREATE TABLE IF NOT EXISTS participante_cobertura (
     cobertura_id int REFERENCES cobertura
-   ,participante_id int REFERENCES participante
-   ,PRIMARY KEY (cobertura_id, participante_id)
+   ,part_id int REFERENCES participante
+   ,PRIMARY KEY (cobertura_id, part_id)
 );
 
-COMMENT ON TABLE cobertura_participante IS 'M:M The copyrights a participante may hold.';
+COMMENT ON TABLE participante_cobertura IS 'M:M The copyrights a participante may hold.';
 
-CREATE TABLE IF NOT EXISTS obra_participante (
-    obra_id int REFERENCES obra
-  , participante_id int REFERENCES participante
-  , rol text REFERENCES rol
-  , comentario_obra_particip text
+CREATE TABLE IF NOT EXISTS participante_composicion (
+    composicion_id int REFERENCES composicion
+  , part_id int REFERENCES participante
+  , rol_composicion text REFERENCES rol_composicion
   , datos_personalizados json
-  , PRIMARY KEY (obra_id, participante_id)
+  , PRIMARY KEY (composicion_id, part_id)
 );
 
-COMMENT ON TABLE obra_participante IS 'M:M The many possible different types of relations
-                                        as specified by rol that might occur between a
-                                        participante and an obra.';
+COMMENT ON TABLE participante_composicion IS 'M:M The many possible different types of relations
+                                              as specified by rol_composicion that might occur between a
+                                              participante and a composicion.';
 
-CREATE TABLE IF NOT EXISTS interpretacion (
+CREATE TABLE IF NOT EXISTS participante_pista_son (
     pista_son_id int REFERENCES pista_son
-  , persona_id int REFERENCES persona
-  , instrumento_id int REFERENCES instrumento DEFAULT 1
-  , PRIMARY KEY (persona_id, pista_son_id, instrumento_id)
+  , part_id int REFERENCES participante
+  , rol_pista_son text REFERENCES rol_pista_son
+  , instrumento_id int REFERENCES instrumento CHECK ((instrumento_id IS NOT NULL AND rol_pista_son = 'interprete')
+                                                     OR instrumento_id IS NULL)
+  , datos_personalizados json
+  , PRIMARY KEY (pista_son_id, part_id)
 );
 
-COMMENT ON TABLE interpretacion IS 'The interpretacion of a piece. M:M:M of participante, 
-                                    audio track and instrument. A specialization of
-                                    the obra_participante relationship
-                                    The default instrument is voz which is id 1.';
-
-COMMENT ON TABLE obra_participante IS 'M:M The participants involved in a single work.';
+COMMENT ON TABLE participante_pista_son IS 'M:M The many possible different types of relations
+                                            as specified by rol_pista_son that might occur between a
+                                            participante and a pista_son.';
 
 CREATE TABLE IF NOT EXISTS idioma_composicion (
     composicion_id int REFERENCES composicion
@@ -309,8 +321,8 @@ COMMENT ON TABLE tema_composicion IS 'M:M Many tags a single audio track may hav
 CREATE OR REPLACE FUNCTION participante_insert() RETURNS TRIGGER AS $$    
   DECLARE child_id int;
   BEGIN
-    INSERT INTO participante DEFAULT VALUES RETURNING participante_id INTO child_id;
-    NEW.participante_id := child_id;
+    INSERT INTO participante DEFAULT VALUES RETURNING part_id INTO child_id;
+    NEW.part_id := child_id;
     RETURN NEW;
   END;
 $$ LANGUAGE plpgsql;
@@ -325,7 +337,7 @@ CREATE TRIGGER agregar_insert
   FOR EACH ROW
   EXECUTE PROCEDURE participante_insert();
 
-
+/*
 -- FK for obra
 CREATE OR REPLACE FUNCTION obra_insert() RETURNS TRIGGER AS $$    
   DECLARE child_id int;
@@ -345,3 +357,4 @@ CREATE TRIGGER pista_son_insert
   BEFORE INSERT ON pista_son
   FOR EACH ROW
   EXECUTE PROCEDURE obra_insert();
+*/

@@ -1,7 +1,7 @@
 {% macro nom(result) -%}
     {% set name %}
-            {% if result.nom_primero is not none and result.nom_primero != 'Desconocido' %}
-                {{ result.nom_primero }} &nbsp;
+            {% if result.nom_part is not none and result.nom_part != 'Desconocido' %}
+                {{ result.nom_part }} &nbsp;
             {% endif %}
             {% if result.seudonimo is not none %}
                '{{ result.seudonimo }}' &nbsp;
