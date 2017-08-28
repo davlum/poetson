@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, session, logging, request
+from flask import Flask, render_template, jsonify, request, flash, redirect, url_for, session, logging, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from flask_script import Manager, Server
 from flask_migrate import Migrate, MigrateCommand
 from data import Articles
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, TextAreaField, DateField, BooleanField, SelectField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -47,7 +47,7 @@ def artistaQuery(param, yearFrom, yearTo, contains):
                           , l.pais
                           FROM part_pers pp 
                           LEFT JOIN public.lugar l
-                            ON l.lugar_id = pp.lugar_id
+                            ON l.lugar_id = pp.lugar_nac
                           JOIN public.participante_composicion pc
                             ON pc.part_id = pp.part_id   
                           WHERE pp.nom_part ~* :nom
@@ -115,7 +115,7 @@ def generoQuery(param, yearFrom, yearTo, contains):
                          , c.nom_alt 
                          FROM public.pista_son ps
                          LEFT JOIN public.lugar l
-                          ON l.lugar_id = ps.lugar_id
+                          ON l.lugar_id = ps.lugar_interp
                          JOIN public.genero_pista gp 
                            ON ps.pista_son_id = gp.pista_son_id
                          JOIN public.genero_musical gm
@@ -308,7 +308,7 @@ def pistason(pistaid):
                                   ON pp.part_id = pps.part_id 
                                 JOIN public.instrumento i 
                                   ON i.instrumento_id = pps.instrumento_id 
-                                  WHERE i.pista_son_id=:id""")
+                                  WHERE pps.pista_son_id=:id""")
     inst_result = db.engine.execute(inst_query, id=pistaid)
 
     # Query all the associated files with this query
@@ -390,22 +390,52 @@ def serie(serieid):
     return render_template('serie.html', serie=serie_result, result=result)
 
 class RegisterForm(Form):
-    name = StringField('Name', [validators.Length(min=1, max=50)])
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email', [validators.Length(min=6, max=50)])
-    password = PasswordField('Password', [
-        validators.DataRequired(),
+
+
+
+    # The minimum required fields to make an account
+
+    username = StringField('Nomdre del usario', [
+        validators.InputRequired(),
+        validators.Length(min=4, max=25),
+    ])
+    email = StringField('Email', [
+        validators.InputRequired(),
+        validators.Length(min=6, max=100),
+        validators.Email()
+    ])
+    password = PasswordField('Contrasena', [
+        validators.InputRequired(),
         validators.EqualTo('confirm', message='Passwords do not match')
     ])
-    confirm = PasswordField('Confirm Password')
-    website = StringField('Website', )
+    confirm = PasswordField('Confirm Password', [validators.InputRequired()])
+
+    # The optional fields to add additional information to a user
+    firstName = StringField('Nom Primero', [validators.Optional()])
+    lastName = StringField('Nom Segundo', [validators.Optional()])
+    website = StringField('Sitio Web', [
+        validators.URL(),
+        validators.Optional()
+    ])
+
+    ag_query = ("""SELECT nom_part FROM part_ag;""")
+    ag_result = db.engine.execute(ag_query)
+
+    address = StringField('Dirrecion', [validators.Optional()])
+    telephone = StringField('Telefono', [validators.Optional()])
+    dob = DateField('Fecha Nac', format='%m/%d/%y')
+    city = StringField('Ciudad')
+    state = StringField('Estado')
+    country = StringField('Pais')
+    comment = TextAreaField('Comentario')
+    member = SelectField('Organizacion', choices=ag_result)
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
-        name = form.name.data
         email = form.email.data
         username = form.username.data
         password = sha256_crypt.encrypt(str(form.password.data))

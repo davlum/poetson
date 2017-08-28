@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS rol_composicion (
 );
 
 
-
 CREATE TABLE IF NOT EXISTS tipo_subdivision (
   tipo_subdiv text PRIMARY KEY
 );
