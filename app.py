@@ -4,7 +4,7 @@ from sqlalchemy import text
 from flask_script import Manager, Server
 from flask_migrate import Migrate, MigrateCommand
 from data import Articles
-from wtforms import Form, StringField, TextAreaField, DateField, BooleanField, SelectField, PasswordField, validators
+from wtforms import Form, StringField, RadioField, TextAreaField, DateField, BooleanField, SelectField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -391,45 +391,56 @@ def serie(serieid):
 
 class RegisterForm(Form):
 
-
-
     # The minimum required fields to make an account
 
+    userType = RadioField('Organizacion o individuo',
+                          [validators.InputRequired(message='Esto es requerido.')],
+                          choices=[(1, 'Individuo'), (0, 'Organizacion')])
     username = StringField('Nomdre del usario', [
-        validators.InputRequired(),
+        validators.InputRequired(message='Esto es requerido.'),
         validators.Length(min=4, max=25),
     ])
     email = StringField('Email', [
-        validators.InputRequired(),
+        validators.InputRequired(message='Esto es requerido.'),
         validators.Length(min=6, max=100),
         validators.Email()
     ])
     password = PasswordField('Contrasena', [
-        validators.InputRequired(),
+        validators.InputRequired(message='Esto es requerido.'),
         validators.EqualTo('confirm', message='Passwords do not match')
     ])
-    confirm = PasswordField('Confirm Password', [validators.InputRequired()])
+    confirm = PasswordField('Confirmar Contrasena', [validators.InputRequired(message='Esto es requerido.')])
 
     # The optional fields to add additional information to a user
     firstName = StringField('Nom Primero', [validators.Optional()])
     lastName = StringField('Nom Segundo', [validators.Optional()])
+    pseudonym = StringField('Seudonimo', [validators.Optional()])
     website = StringField('Sitio Web', [
         validators.URL(),
         validators.Optional()
     ])
+    # Get List of possible agregate types
+    agQuery = ("""SELECT nom_tipo_agregar nom FROM tipo_agregar;""")
+    agResult = db.engine.execute(agQuery)
+    agArr = [(res.nom, res.nom) for res in agResult]
 
-    ag_query = ("""SELECT nom_part FROM part_ag;""")
-    ag_result = db.engine.execute(ag_query)
+    # Get List of possible genders
+    genderQuery = ("""SELECT nom_genero nom FROM genero_persona;""")
+    genderResult = db.engine.execute(genderQuery)
+    genderArr = [(res.nom, res.nom) for res in genderResult]
 
     address = StringField('Dirrecion', [validators.Optional()])
     telephone = StringField('Telefono', [validators.Optional()])
-    dob = DateField('Fecha Nac', format='%m/%d/%y')
+    dob = DateField('Fecha Nac - dd/mm/aaaa', format='%d/%m/%y')
+    gender = SelectField('Genero', choices=genderArr)
     city = StringField('Ciudad')
     state = StringField('Estado')
     country = StringField('Pais')
     comment = TextAreaField('Comentario')
-    member = SelectField('Organizacion', choices=ag_result)
-
+    member = SelectField('Tipo del Organizacion', choices=agArr)
+    title = StringField('Titulo')
+    dadName = StringField('Nombre del Paterno', [validators.Optional()])
+    momName = StringField('Nombre del Materno', [validators.Optional()])
 
 
 @app.route('/register', methods=['GET', 'POST'])

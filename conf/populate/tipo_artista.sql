@@ -1,4 +1,4 @@
-﻿INSERT INTO genero_artista (genero_nom) VALUES
+﻿INSERT INTO genero_persona (nom_genero) VALUES
   ('Sin género'),
   ('Andrógino'),
   ('Andrógina'),
