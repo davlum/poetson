@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS usario (
    ,nom_usario text NOT NULL UNIQUE
    ,contrasena text NOT NULL -- hashed and salted
    ,fecha_registro date DEFAULT now()
-   ,admin boolean DEFAULT false NOT NULL
+   ,tipo text DEFAULT 'EDITOR' NOT NULL CHECK (tipo IN ('EDITOR', 'MOD', 'ADMIN'))
 );
 
 COMMENT ON TABLE usario IS 'Individual who uploaded the data.';
@@ -226,7 +226,7 @@ CREATE TABLE IF NOT EXISTS persona_agregar (
     persona_id int REFERENCES persona
    ,agregar_id int REFERENCES agregar
    ,fecha_comienzo fecha
-   ,fecha_final fecha
+   ,fecha_finale fecha
    ,titulo text
    ,PRIMARY KEY (persona_id, agregar_id)
 );
@@ -316,6 +316,7 @@ CREATE TABLE IF NOT EXISTS tema_composicion (
 
 COMMENT ON TABLE tema_composicion IS 'M:M Many tags a single audio track may have.';
 
+/*
 -- FK for participante
 CREATE OR REPLACE FUNCTION participante_insert() RETURNS TRIGGER AS $$    
   DECLARE child_id int;
@@ -335,6 +336,7 @@ CREATE TRIGGER agregar_insert
   BEFORE INSERT ON agregar
   FOR EACH ROW
   EXECUTE PROCEDURE participante_insert();
+*/
 
 /*
 -- FK for obra

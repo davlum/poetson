@@ -1,19 +1,22 @@
+CREATE TYPE tipo_fecha AS ENUM('FULL', 'MONTH', 'YEAR');
 
 CREATE TYPE fecha AS (
   d date, 
-  b boolean
+  t tipo_fecha 
 );
 
-CREATE OR REPLACE FUNCTION get_fecha(fecha) 
-  RETURNS text AS $$
-  BEGIN
-    IF $1.b = false THEN
+CREATE OR REPLACE FUNCTION get_fecha(fecha) RETURNS text AS $body$
+BEGIN
+    IF $1.t = 'YEAR' THEN
       RETURN EXTRACT(YEAR FROM $1.d);
+    ELSIF $1.t = 'MONTH' THEN
+      RETURN EXTRACT(MONTH FROM $1.d);
     ELSE
       RETURN $1.d;
     END IF;
-  END $$  
-  LANGUAGE plpgsql
-  IMMUTABLE
-  RETURNS NULL ON NULL INPUT; 
+END;
+$body$
+LANGUAGE plpgsql
+IMMUTABLE
+RETURNS NULL ON NULL INPUT; 
 
