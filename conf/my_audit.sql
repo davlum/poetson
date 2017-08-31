@@ -1,13 +1,17 @@
+
 CREATE OR REPLACE FUNCTION process_audit() RETURNS TRIGGER AS $body$
 DECLARE 
     audit_table text;
 BEGIN
-    audit_table := 'audit.' || TG_TABLE_NAME || '_audit';
+    audit_table := TG_TABLE_NAME || '_audit';
     IF (TG_OP = 'DELETE') THEN
-      EXECUTE format('INSERT INTO %I SELECT $1.*, now(), DEFAULT, ''D''', audit_table) USING OLD;
+      EXECUTE format('INSERT INTO audit.%I SELECT $1.*, now(), ''D''', audit_table) USING OLD;
       RETURN OLD;
-    ELSE (TG_OP = 'UPDATE') THEN
-      EXECUTE format('INSERT INTO %I SELECT $1.*, now(), DEFAULT, ''U''', audit_table) USING OLD;  
+    ELSIF (TG_OP = 'INSERT') THEN
+      EXECUTE format('INSERT INTO audit.%I SELECT $1.*, now(), ''I''', audit_table) USING NEW;
+      RETURN NEW;
+    ELSIF (TG_OP = 'UPDATE') THEN
+      EXECUTE format('INSERT INTO audit.%I SELECT $1.*, now(), ''U''', audit_table) USING NEW;
       RETURN NEW;
     END IF;
     RETURN NULL; -- result is ignored since this is an AFTER trigger
@@ -16,32 +20,89 @@ $body$
 LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION gen_table(target_table regclass) RETURNS void AS $body$
+DECLARE
+  pk_name text; -- primary key of the given table
 BEGIN
-    EXECUTE 'CREATE TABLE IF NOT EXISTS audit.' || quote_ident(target_table::TEXT) ||
-    '_audit AS TABLE ' || quote_ident(target_table::TEXT);
-    EXECUTE 'ALTER TABLE ' || quote_ident(target_table::TEXT) ||
-      ' ADD COLUMN IF NOT EXISTS usario_id int NOT NULL REFERENCES usario';
-    EXECUTE ' ALTER TABLE audit.' || quote_ident(target_table::TEXT) ||
-      '_audit 
-      ADD COLUMN IF NOT EXISTS usario_id int NOT NULL REFERENCES usario,
-      ADD COLUMN IF NOT EXISTS valida_desda TIMESTAMP NOT NULL DEFAULT now(),
-      ADD COLUMN IF NOT EXISTS valido_hasta TIMESTAMP,
-      ADD COLUMN IF NOT EXISTS accion text NOT NULL
-        CHECK (accion IN (''I'', ''D'', ''U'', ''T''))';
+  EXECUTE format('SELECT a.attname
+              FROM pg_index i
+              JOIN pg_attribute a 
+              ON a.attrelid = i.indrelid
+                AND a.attnum = ANY(i.indkey)
+                WHERE i.indrelid = ''%I''::regclass
+                AND i.indisprimary', target_table) INTO pk_name;
+
+  EXECUTE format('CREATE TABLE IF NOT EXISTS limbo.%I (like %I)', target_table || '_limbo',  target_table);
+  EXECUTE format('CREATE TABLE IF NOT EXISTS audit.%I (like %I)', target_table || '_audit', target_table);
+  EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS usario_id int 
+                  NOT NULL REFERENCES usario', target_table);
+  EXECUTE format('CREATE SEQUENCE limbo.%I', target_table || '_seq');
+  EXECUTE format('ALTER TABLE limbo.%I
+    ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL REFERENCES usario,
+    ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usario,
+    ADD COLUMN IF NOT EXISTS fecha_sumado TIMESTAMP NOT NULL DEFAULT now(),
+    ADD COLUMN IF NOT EXISTS estado text NOT NULL
+      CHECK (estado IN (''Depositar'', ''Rechazado'', ''Pendiente'', ''Publicado'')),
+    ADD PRIMARY KEY (%I),
+    ALTER COLUMN %I SET DEFAULT nextval(''limbo.%I'')'
+    , target_table || '_limbo', pk_name, pk_name, target_table || '_seq');
+  EXECUTE format('ALTER TABLE audit.%I
+    ADD COLUMN IF NOT EXISTS usario_id int NOT NULL REFERENCES usario,
+    ADD COLUMN IF NOT EXISTS fecha_accion TIMESTAMP NOT NULL DEFAULT now(),
+    ADD COLUMN IF NOT EXISTS accion text NOT NULL
+      CHECK (accion IN (''I'', ''D'', ''U'', ''T'')),
+    ADD PRIMARY KEY (%I, fecha_accion)', target_table || '_audit', pk_name);
 END;
 $body$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION audit_table(target_table regclass) RETURNS void AS $body$
+CREATE OR REPLACE FUNCTION audit_table(target_table regclass) RETURNS VOID AS $body$
 BEGIN
     CREATE SCHEMA IF NOT EXISTS audit;
+    CREATE SCHEMA IF NOT EXISTS limbo;
     EXECUTE gen_table(target_table);
     EXECUTE format('CREATE TRIGGER %I
-    AFTER UPDATE OR DELETE ON %I
-      FOR EACH ROW EXECUTE PROCEDURE process_audit()', target_table || '_trig', target_table);
+    AFTER UPDATE OR DELETE OR INSERT ON %I
+      FOR EACH ROW EXECUTE PROCEDURE process_audit()', target_table || '_audit_trig', target_table);
 END;
 $body$
-LANGUAGE plpgsql
-SET search_path=public,audit;
+LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION publish(pk_id int, usr_id int, target_table REGCLASS) RETURNS VOID AS $body$
+DECLARE
+  pk_name text; -- primary key of the given table
+BEGIN
+  EXECUTE format('SELECT a.attname
+              FROM pg_index i
+              JOIN pg_attribute a
+              ON a.attrelid = i.indrelid
+                AND a.attnum = ANY(i.indkey)
+                WHERE i.indrelid = ''%I''::regclass
+                AND i.indisprimary', target_table) INTO pk_name;
+
+  EXECUTE format('CREATE TEMP TABLE temp_table (like limbo.%I)', target_table || '_limbo');
+  EXECUTE format('UPDATE limbo.%I SET mod_id = $1 WHERE %I = $2'
+        , target_table || '_limbo', pk_name) USING usr_id, pk_id;
+  EXECUTE format('INSERT INTO temp_table SELECT * FROM limbo.%I WHERE %I = $1'
+            , target_table || '_limbo', pk_name) USING pk_id;
+  ALTER TABLE temp_table
+    DROP COLUMN fecha_sumado,
+    DROP COLUMN cargador_id,
+    DROP COLUMN estado;
+  EXECUTE format('INSERT INTO %I SELECT * FROM temp_table', target_table);
+  DROP TABLE temp_table;
+  EXECUTE format('UPDATE limbo.%I SET estado = ''Publicado'' WHERE %I = $1'
+        , target_table || '_limbo', pk_name) USING pk_id;
+END;
+$body$
+LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION audit_table(regclass) IS $body$
+This function creates two tables based off of the given table name.
+One table resides in the limbo schema. This data awaits approval to be
+inserted into the public schema. Once in the public schema the data is audited
+by a trigger which inserts into a table in the audit schema. 
+The standard search_path = public, and the data residing in the alternate schemas will
+not be viewable to the majority of users.
+This currently supports only relations with non-composite primary keys.
+$body$;
 
