@@ -39,12 +39,12 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 
 CREATE TABLE IF NOT EXISTS participante (
     part_id serial PRIMARY KEY
+  , email text
   , nom_part text -- Ask aurelio about this. Do we need first and second name columns
   , sitio_web text
   , direccion text
   , telefono text
   , lugar_id int REFERENCES lugar
-  , email text
   , fecha_comienzo fecha
   , fecha_finale fecha
   , coment_participante text
@@ -88,14 +88,23 @@ CREATE TABLE IF NOT EXISTS agregar (
 
 COMMENT ON TABLE agregar IS 'An agregate of people.';
 
+
+CREATE TABLE IF NOT EXISTS permiso (
+  nom_permiso text PRIMARY KEY
+);
+
+INSERT INTO permiso VALUES ('EDITOR'), ('MOD'), ('ADMIN');
+
 -- This table will be mutable
 CREATE TABLE IF NOT EXISTS usario (
-    usario_id serial PRIMARY KEY
-   ,part_id int REFERENCES participante NOT NULL
-   ,nom_usario text NOT NULL UNIQUE
-   ,contrasena text NOT NULL -- hashed and salted
-   ,fecha_registro date DEFAULT now()
-   ,tipo text DEFAULT 'EDITOR' NOT NULL CHECK (tipo IN ('EDITOR', 'MOD', 'ADMIN'))
+    part_id int REFERENCES participante PRIMARY KEY
+  , confirmado boolean NOT NULL DEFAULT false
+  , fecha_confirmado timestamp
+  , nom_usario text NOT NULL UNIQUE
+  , contrasena text NOT NULL -- hashed and salted
+  , fecha_registro timestamp DEFAULT now()
+  , permiso text NOT NULL DEFAULT 'EDITOR' REFERENCES permiso
+  , CONSTRAINT proper_nom CHECK (nom_usario ~* '^[a-zÀ-ÿ0-9_-]+$')
 );
 
 COMMENT ON TABLE usario IS 'Individual who uploaded the data.';

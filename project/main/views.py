@@ -1,41 +1,48 @@
-from flask import Flask, render_template, jsonify, request, flash, redirect, url_for, session, logging, request
-from flask_sqlalchemy import SQLAlchemy
+# project/main/views.py
+
+
+#################
+#### imports ####
+#################
+
+from flask import render_template, Blueprint, request
 from sqlalchemy import text
-from flask_script import Manager, Server
-from flask_migrate import Migrate, MigrateCommand
-from itsdangerous import URLSafeTimedSerializer
-from wtforms import Form, StringField, RadioField, TextAreaField, DateField, BooleanField, SelectField, PasswordField, validators
-from passlib.hash import sha256_crypt
-from functools import wraps
+from project import db
+import time
 
 
-app = Flask(__name__, static_url_path='/static')
+################
+#### config ####
+################
 
 
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
-manager.add_command('runvserver', Server())
+main_blueprint = Blueprint('main', __name__, template_folder='/main')
 
 
-@app.route('/')
+################
+#### routes ####
+################
+
+@main_blueprint.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('main/home.html')
 
 
-@app.route('/about')
+@main_blueprint.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('main/about.html')
 
 
-@app.route('/searchhome')
+@main_blueprint.route('/searchhome')
 def searchhome():
-    return render_template('searchhome.html')
+    return render_template('main/searchhome.html')
 
 
 def artistaQuery(param, yearFrom, yearTo, contains):
+    if not yearFrom:
+        yearFrom = '500'
+    if not yearTo:
+        yearTo = time.strftime('%Y')
     query = text("""SELECT pp.part_id
                           , pp.nom_part
                           , pp.nom_segundo
@@ -50,7 +57,7 @@ def artistaQuery(param, yearFrom, yearTo, contains):
                             ON pc.part_id = pp.part_id   
                           WHERE pp.nom_part ~* :nom
                             OR pp.seudonimo ~* :nom
-                          AND pp.fecha_comienzo 
+                          AND get_fecha(pp.pers_comienzo)
                           BETWEEN :yearFrom AND :yearTo
                           AND pp.coment_participante ~* :contains;""")
     return db.engine.execute(query, nom=param, yearFrom=yearFrom,
@@ -67,7 +74,7 @@ def colectivoQuery(param, yearFrom, yearTo, contains):
                           JOIN public.participante_composicion pc
                             ON pc.part_id = pa.part_id   
                           WHERE pa.nom_part ~* :nom
-                          AND pa.fecha_comienzo 
+                          AND get_fecha(pa.fecha_comienzo) 
                           BETWEEN :yearFrom AND :yearTo
                           AND pa.coment_participante ~* :contains;""")
     return db.engine.execute(query, nom=param, yearFrom=yearFrom,
@@ -81,7 +88,7 @@ def composicionQuery(param, yearFrom, yearTo, contains):
                       ON c.lugar_comp = l.lugar_id
                       WHERE c.nom_tit ~* :nom 
                       OR c.nom_alt ~* :nom
-                      AND c.fecha_pub 
+                      AND get_fecha(c.fecha_pub) 
                       BETWEEN :yearFrom AND :yearTo
                       AND c.texto ~* :contains;""")
     return db.engine.execute(query, nom=param, yearFrom=yearFrom,
@@ -155,7 +162,7 @@ def parseInt(s):
 
 # The main search page. The logic is designed to be
 # comprehensive enough to cover all filtering
-@app.route('/search')
+@main_blueprint.route('/search')
 def search(param=None):
     result = {}
     if request.args.get('filter-by', None):
@@ -197,10 +204,10 @@ def search(param=None):
         # Search through pista by performer
         if filt == 9:
             result['pista'] = interpQuery(param, yearFrom, yearTo, contains)
-        return render_template('search.html', result=result)
+        return render_template('main/search.html', result=result)
 
 
-@app.route('/autor/<int:autorid>/')
+@main_blueprint.route('/autor/<int:autorid>/')
 def autor(autorid):
     result = {}
     # Query author
@@ -236,11 +243,11 @@ def autor(autorid):
                                   WHERE pers.part_id=:id""")
     result['composicion'] = db.engine.execute(composicion_query, id=autorid)
 
-    return render_template('autor.html', autor=author_result, nac=lugar_nac_result,
+    return render_template('main/autor.html', autor=author_result, nac=lugar_nac_result,
                            muer=lugar_muer_result, result=result)
 
 
-@app.route('/colectivo/<int:colid>/')
+@main_blueprint.route('/colectivo/<int:colid>/')
 def colectivo(colid):
     result = {}
     # Query colectivo
@@ -277,10 +284,10 @@ def colectivo(colid):
                                   WHERE pc.part_id=:id""")
     result['composicion'] = db.engine.execute(composicion_query, id=colid)
 
-    return render_template('colectivo.html', autor=colectivo, result=result)
+    return render_template('main/colectivo.html', autor=colectivo, result=result)
 
 
-@app.route('/pistason/<int:pistaid>/')
+@main_blueprint.route('/pistason/<int:pistaid>/')
 def pistason(pistaid):
     result = {}
     # Query pista_son
@@ -321,10 +328,10 @@ def pistason(pistaid):
                                 WHERE pista_son_id=:id""")
     archivo_result = db.engine.execute(archivo_query, id=pistaid)
 
-    return render_template('pistason.html', pista=pista_result, insts=inst_result, archs=archivo_result)
+    return render_template('main/pistason.html', pista=pista_result, insts=inst_result, archs=archivo_result)
 
 
-@app.route('/composicion/<int:compoid>/')
+@main_blueprint.route('/composicion/<int:compoid>/')
 def composicion(compoid):
     result = {}
 
@@ -355,9 +362,9 @@ def composicion(compoid):
                             WHERE c.composicion_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=compoid)
 
-    return render_template('composicion.html', comp=composicion_result, result=result)
+    return render_template('main/composicion.html', comp=composicion_result, result=result)
 
-@app.route('/serie/<int:serieid>/')
+@main_blueprint.route('/serie/<int:serieid>/')
 def serie(serieid):
     result = {}
 
@@ -385,123 +392,5 @@ def serie(serieid):
                             WHERE s.serie_id=:id""")
     result['pista'] = db.engine.execute(pista_query, id=serieid)
 
-    return render_template('serie.html', serie=serie_result, result=result)
+    return render_template('main/serie.html', serie=serie_result, result=result)
 
-class RegisterForm(Form):
-
-    # The minimum required fields to make an account
-
-    userType = RadioField('Organizacion o individuo',
-                          [validators.InputRequired(message='Esto es requerido.')],
-                          choices=[(1, 'Individuo'), (0, 'Organizacion')])
-    username = StringField('Nomdre del usario', [
-        validators.InputRequired(message='Esto es requerido.'),
-        validators.Length(min=4, max=25),
-    ])
-    email = StringField('Email', [
-        validators.InputRequired(message='Esto es requerido.'),
-        validators.Length(min=6, max=100),
-        validators.Email()
-    ])
-    password = PasswordField('Contrasena', [
-        validators.InputRequired(message='Esto es requerido.'),
-        validators.EqualTo('confirm', message='Passwords do not match')
-    ])
-    confirm = PasswordField('Confirmar Contrasena', [validators.InputRequired(message='Esto es requerido.')])
-
-    # The optional fields to add additional information to a user
-    firstName = StringField('Nom Primero', [validators.Optional()])
-    lastName = StringField('Nom Segundo', [validators.Optional()])
-    pseudonym = StringField('Seudonimo', [validators.Optional()])
-    website = StringField('Sitio Web', [
-        validators.URL(),
-        validators.Optional()
-    ])
-    # Get List of possible agregate types
-    agQuery = ("""SELECT nom_tipo_agregar nom FROM tipo_agregar;""")
-    agResult = db.engine.execute(agQuery)
-    agArr = [(res.nom, res.nom) for res in agResult]
-
-    # Get List of possible genders
-    genderQuery = ("""SELECT nom_genero nom FROM genero_persona;""")
-    genderResult = db.engine.execute(genderQuery)
-    genderArr = [(res.nom, res.nom) for res in genderResult]
-
-    address = StringField('Dirrecion', [validators.Optional()])
-    telephone = StringField('Telefono', [validators.Optional()])
-    dob = DateField('Fecha Nac - dd/mm/aaaa', format='%d/%m/%y')
-    gender = SelectField('Genero', choices=genderArr)
-    city = StringField('Ciudad')
-    state = StringField('Estado')
-    country = StringField('Pais')
-    comment = TextAreaField('Comentario')
-    member = SelectField('Tipo del Organizacion', choices=agArr)
-    title = StringField('Titulo')
-    dadName = StringField('Nombre del Paterno', [validators.Optional()])
-    momName = StringField('Nombre del Materno', [validators.Optional()])
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = RegisterForm(request.form)
-    if request.method == 'POST' and form.validate():
-        email = form.email.data
-        username = form.username.data
-        password = sha256_crypt.encrypt(str(form.password.data))
-
-        stmt = text("""INSERT INTO public.usario (email, nom, clave) VALUES 
-                        (:email, :name, :password);""")
-        db.engine.execute(stmt, email=email, name=name, password=password)
-
-        flash('You are now registered and can login', 'success')
-
-        return redirect(url_for('login'))
-    return render_template('register_git.html', form=form)
-
-
-def is_logged_in(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-        else:
-            flash('Unauthorized, Please login', 'danger')
-            return redirect(url_for('login'))
-    return wrap
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('You are now logged out', 'success')
-    return redirect(url_for('login'))
-
-@app.route('/dashboard')
-@is_logged_in
-def dashboard():
-    return render_template('dashboard.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password_candidate = request.form['password']
-
-        stmt = text("SELECT * FROM public.editor WHERE email=:email ")
-        result = db.engine.execute(stmt, email=email).first()
-        if result is not None:
-            if sha256_crypt.verify(password_candidate, result.clave):
-                session['logged_in'] = True
-                session['email'] = email
-                flash('You are now logged in', 'success')
-                return redirect(url_for('dashboard'))
-            else:
-                error = 'Invalid login'
-                app.logger.info('PASSWORD NOT MATCHED', error=error)
-        else:
-            error = 'Email not found'
-            return render_template('login.html', error=error)
-
-    return render_template('login.html')
-
-if __name__ == '__main__':
-    manager.run()

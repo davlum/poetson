@@ -1,3 +1,69 @@
+CREATE OR REPLACE VIEW part_us AS
+  SELECT part.part_id
+       , part.nom_part
+       , part.lugar_id
+       , part.fecha_comienzo
+       , part.fecha_finale
+       , part.sitio_web
+       , part.direccion
+       , part.telefono
+       , part.email
+       , part.coment_participante
+       , u.part_id part_us_id
+       , u.nom_usario
+       , u.contrasena
+       , u.permiso
+       , u.confirmado
+       , u.fecha_confirmado
+      FROM public.participante part
+      JOIN public.usario u
+        ON u.part_id = part.part_id;
+
+CREATE OR REPLACE FUNCTION us_insert() RETURNS TRIGGER AS $body$
+DECLARE
+  id int;
+BEGIN
+  INSERT INTO participante (nom_part
+                          , sitio_web
+                          , direccion
+                          , lugar_id
+                          , telefono
+                          , email
+                          , fecha_comienzo
+                          , fecha_finale
+                          , coment_participante)
+                          VALUES (NEW.nom_part
+                                , NEW.sitio_web
+                                , NEW.direccion
+                                , NEW.lugar_id
+                                , NEW.telefono
+                                , NEW.email
+                                , NEW.fecha_comienzo
+                                , NEW.fecha_finale
+                                , NEW.coment_participante) 
+                                RETURNING part_id INTO id;
+ INSERT INTO usario ( part_id
+                    , nom_usario
+                    , contrasena
+                    , permiso
+                    , confirmado
+                    , fecha_confirmado)
+                  VALUES (id
+                        , NEW.nom_usario
+                        , NEW.contrasena
+                        , DEFAULT
+                        , DEFAULT
+                        , NEW.fecha_confirmado);
+  RETURN NULL;
+END;
+$body$
+LANGUAGE plpgsql;
+ 
+CREATE TRIGGER us_trigger
+  INSTEAD OF INSERT ON part_us
+  FOR EACH ROW
+  EXECUTE PROCEDURE us_insert();
+
 CREATE OR REPLACE VIEW part_pers AS
   SELECT part.part_id
        , part.nom_part
@@ -12,7 +78,7 @@ CREATE OR REPLACE VIEW part_pers AS
        , part.sitio_web
        , part.direccion
        , part.telefono
-       , part.email
+       , part.email p_email
        , gp.genero_id
        , gp.nom_genero
        , part.coment_participante
@@ -24,7 +90,7 @@ CREATE OR REPLACE VIEW part_pers AS
        , u.part_id us_id
        , u.nom_usario
        , u.contrasena
-       , u.tipo
+       , u.permiso
       FROM public.participante part
       JOIN public.persona pers
         ON pers.part_id = part.part_id
@@ -53,7 +119,7 @@ BEGIN
                                 , NEW.direccion
                                 , NEW.lugar_nac
                                 , NEW.telefono
-                                , NEW.email
+                                , NEW.p_email
                                 , NEW.pers_comienzo
                                 , NEW.pers_finale
                                 , NEW.coment_participante) 
@@ -77,15 +143,20 @@ BEGIN
                                     , NEW.tit_comienzo
                                     , NEW.tit_finale
                                     , NEW.titulo);
+
   INSERT INTO usario (part_id
                     , nom_usario
                     , contrasena
-                    , tipo)
+                    , permiso
+                    , confirmado
+                    , fecha_confirmado)
                   VALUES (id
                         , NEW.nom_usario
                         , NEW.contrasena
-                        , NEW.tipo);
-  RETURN NULL;
+                        , DEFAULT
+                        , DEFAULT
+                        , NEW.fecha_confirmado);
+ RETURN NULL;
 END;
 $body$
 LANGUAGE plpgsql;
