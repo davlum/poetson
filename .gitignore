@@ -21,7 +21,7 @@ pyvenv.cfg
 .DS_Store
 .coverage
 env
-migrations
+migrations/
 tmp
 __pycache__
 env.sh
