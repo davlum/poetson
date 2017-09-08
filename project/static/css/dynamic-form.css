@@ -1,0 +1,22 @@
+[data-role="dynamic-fields"] > .form-custom + .form-custom {
+}
+
+[data-role="dynamic-fields"] > .form-custom:not(:last-child) [data-role="add"] {
+    display: none;
+}
+
+[data-role="dynamic-fields"] > .form-custom:last-child [data-role="add"] {
+    display: inline-block;
+}
+
+[data-role="dynamic-fields"] > .form-custom:last-child [data-role="remove"] {
+    display: none;
+}
+
+
+.pull-down{
+    bottom: 0;
+    display: table-cell;
+    vertical-align: bottom;
+    float: none;
+}

@@ -52,7 +52,8 @@ html {
 body {
 	background: #fff;
 	color: #000;
-	transform: scale(1.0)
+	transform: scale(1.0);
+	line-height: 1.25em;
 }
 
 a:active {

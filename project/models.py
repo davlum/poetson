@@ -3,7 +3,7 @@
 
 import datetime
 
-from project import db, bcrypt
+from project import db
 
 
 class User(db.Model):
@@ -20,7 +20,7 @@ class User(db.Model):
 
     def __init__(self, email, password, confirmed, paid=False, admin=False, confirmed_on=None):
         self.email = email
-        self.password = bcrypt.generate_password_hash(password)
+        self.password = password
         self.registered_on = datetime.datetime.now()
         self.admin = admin
         self.confirmed = confirmed

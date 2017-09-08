@@ -1,4 +1,4 @@
-﻿INSERT INTO colectivo (colectivo_nom, lugar_id) VALUES
+﻿INSERT INTO part_ag (nom_part, lugar_id) VALUES
 ('Los vehículos que atropellan al mar', 58),
 ('Frágil', 58),
 ('Los Kikín Fonsecas y el Gringo Castro', 58),

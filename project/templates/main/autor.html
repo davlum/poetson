@@ -1,8 +1,8 @@
-{% extends 'main/searchlayout.html' %}
+{% extends 'searchlayout.html' %}
 {% import 'queryMacros.html' as query %}
 
 {% block resultbody %}
-    <div class="center-block" style="width: 80%;">
+    <div class="center-block skinny">
         <h2>Autor</h2>
         <hr>
         <div>
@@ -21,8 +21,8 @@
         {% if autor.lugar_nac is not none%}
             <h4>Nac</h4>
             <h3 class="indented">
-                {% if autor.fecha_nac != "desconocido" %}
-                    {{ autor.fecha_nac }}
+                {% if autor.fecha_comienzo != "desconocido" %}
+                    {{ autor.fecha_comienzo }}
                 {% endif %}
             </h3>
             <h3 class="indented">

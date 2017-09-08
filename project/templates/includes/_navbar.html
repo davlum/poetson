@@ -15,15 +15,15 @@
             <li><a href="http://poeticasonora.mx/Proyecto">Sobre el proyecto</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            {% if current_user.confirmed and current_user.is_authenticated %}
-                <li><a href="{{ url_for('user.profile') }}">Profile</a></li>
-                <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
-            {% elif current_user.is_authenticated %}
-                <li><a href="{{ url_for('user.unconfirmed') }}">Confirm</a></li>
-                <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
+            {% if session['logged_in'] and session['confirmed'] %}
+                <li><a href="{{ url_for('user.profile') }}">Perfil</a></li>
+                <li><a href="{{ url_for('user.logout') }}">Cerrar Sesión</a></li>
+            {% elif session['logged_in'] %}
+                <li><a href="{{ url_for('user.unconfirmed') }}">Confirmado</a></li>
+                <li><a href="{{ url_for('user.logout') }}">Cerrar Sesión</a></li>
             {% else %}
                 <li><a href="{{ url_for('user.register') }}">Registro</a></li>
-                <li><a href="{{ url_for('user.login') }}">Iniciar</a></li>
+                <li><a href="{{ url_for('user.login') }}">Iniciar Sesión</a></li>
             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->

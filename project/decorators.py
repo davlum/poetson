@@ -10,7 +10,6 @@ def check_confirmed(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if not session['confirmed']:
-            flash('Please confirm your account!', 'warning')
             return redirect(url_for('user.unconfirmed'))
         return func(*args, **kwargs)
 
@@ -23,8 +22,8 @@ def is_logged_in(f):
         if 'logged_in' in session:
             return f(*args, **kwargs)
         else:
-            flash('Unauthorized, Please login', 'danger')
-            return redirect(url_for('login'))
+            flash('No autorizado, Inicia sesión', 'danger')
+            return redirect(url_for('user.login'))
     return wrap
 
 
@@ -34,8 +33,8 @@ def is_mod(f):
         if 'permission' in session and session['permission'] == 'MOD':
             return f(*args, **kwargs)
         else:
-            flash('Unauthorized, You do not have permission to access this page', 'danger')
-            return redirect(url_for('login'))
+            flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
+            return redirect(url_for('user.profile'))
     return wrap
 
 
@@ -45,6 +44,6 @@ def is_admin(f):
         if 'permission' in session and session['permission'] == 'ADMIN':
             return f(*args, **kwargs)
         else:
-            flash('Unauthorized, You do not have permission to access this page', 'danger')
-            return redirect(url_for('login'))
+            flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
+            return redirect(url_for('user.profile'))
     return wrap

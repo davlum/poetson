@@ -5,8 +5,22 @@
     <br>
     <br>
   {% from "includes/_formhelpers.html" import render_field %}
-      <form method='POST' action="">
+      <form method='POST' action={{ url_for('user.register') }}>
+        {{ form.csrf_token }}
         <div class="center-block" style="width: 70%">
+            <div class="form-group" id="user-type">
+                {% for opt in form.user_type %}
+                    <div style="display: inline-block;">{{ opt }} &nbsp;</div>
+                    <div style="display: inline-block;">{{ opt.label }} &nbsp;</div>
+                {% endfor %}
+                {% if form.user_type.errors %}
+                    <ul class="errors">
+                    {% for error in form.user_type.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
             <div class="form-group">
               {{render_field(form.email, class ="form-control")}}
             </div>
@@ -20,79 +34,14 @@
               {{render_field(form.confirm, class ="form-control")}}
             </div>
             <br>
-            <hr>
-        </div>
-        <br>
-        <h2>Informacion Opcional</h2>
-        <br>
-        <div class="center-block" style="width: 70%">
-            <div class="form-group">
-                {% for opt in form.userType %}
-                    <div style="display: inline-block;">{{ opt }} &nbsp;</div>
-                    <div style="display: inline-block;">{{ opt.label }} &nbsp;</div>
-                {% endfor %}
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-4">
-                  {{render_field(form.firstName, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.lastName, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.pseudonym, class ="form-control")}}
-                </div>
-            </div>
-            <div class="form-group">
-              {{render_field(form.website, class ="form-control")}}
-            </div>
-            <div class="form-group">
-              {{render_field(form.address, class ="form-control")}}
-            </div>
-            <div class="form-group">
-              {{render_field(form.telephone, class ="form-control")}}
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-6">
-                {{render_field(form.dob, class ="form-control")}}
-                </div>
-                 <div class="form-group col-sm-6">
-                {{render_field(form.gender, class ="form-control")}}
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-4">
-                  {{render_field(form.city, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.state, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.country, class ="form-control")}}
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-6">
-                  {{render_field(form.member, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-6">
-                  {{render_field(form.title, class ="form-control")}}
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-6">
-                  {{render_field(form.dadName, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-6">
-                  {{render_field(form.momName, class ="form-control")}}
-                </div>
-            </div>
-            <div class="form-group">
-              {{render_field(form.comment, class ="form-control")}}
-            </div>
             <p>
-            <input type="submit" class="btn btn-primary" value="submit"></p>
+            <input type="submit" class="btn btn-primary" value="Enviar"></p>
+            <hr>
         </div>
       </form>
   </div>
+    <br>
+    <br>
+    <br>
+    {% include 'includes/_footer.html' %}
 {% endblock %}

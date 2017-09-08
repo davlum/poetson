@@ -1,5 +1,28 @@
+.html, body {
+}
 
 
+
+.organization {
+	display: none;
+}
+
+.right {
+    text-align: right;
+    float: right;
+}
+
+a.underline{
+    text-decoration: underline;
+}
+
+.no-underline{
+    text-decoration: none;
+}
+
+.skinny{
+    width: 80%;
+}
 
 
 .footer {

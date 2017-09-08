@@ -7,12 +7,11 @@
 
 import os
 
-from flask import Flask, render_template
-from flask_bcrypt import Bcrypt
+from flask import Flask, render_template, session, app, url_for, redirect, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text, create_engine
 from flask_mail import Mail
+from datetime import timedelta
 
 ################
 #### config ####
@@ -26,12 +25,10 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 #### extensions ####
 ####################
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-bcrypt = Bcrypt(app)
 mail = Mail(app)
 toolbar = DebugToolbarExtension(app)
-db = SQLAlchemy(app)
+#db = SQLAlchemy(app)
+engine = create_engine('postgresql:///postgres')
 
 
 ####################
@@ -43,25 +40,32 @@ from project.user.views import user_blueprint
 app.register_blueprint(main_blueprint)
 app.register_blueprint(user_blueprint)
 
+def current_user(con, email):
+    query = text("""SELECT * FROM part_us WHERE LOWER(email)=LOWER(:email)""")
+    result = con.execute(query, email=email).first()
+    return result
+
+@app.before_request
+def refresh_session():
+    con = engine.connect()
+    if 'logged_in' in session and current_user(con, session['email']) is None and request.endpoint != 'user.logout':
+        flash('Su sesión ha caducado', 'danger')
+        con.close()
+        return redirect(url_for('user.logout'))
+    session.permanent = True
+    session.modified = True
+    app.permanent_session_lifetime = timedelta(minutes=30)
 
 ####################
 #### flask-login ####
 ####################
 
-from project.models import User
-
-login_manager.login_view = "user.login"
-login_manager.login_message_category = "danger"
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.filter(User.id == int(user_id)).first()
 
 
 ########################
 #### error handlers ####
 ########################
+
 
 @app.errorhandler(403)
 def forbidden_page(error):

@@ -1,4 +1,6 @@
-﻿INSERT INTO tipo_institucion (tipo_inst) VALUES
+﻿INSERT INTO tipo_agregar VALUES
+('Universidad'),
+('Colectivo'),
 ('Estación radiofónica'), 
 ('Educación e investigación'),
 ('Archivo sonoro'),

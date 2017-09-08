@@ -1,0 +1,124 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Información Opcional</h1>
+    <br>
+    <br>
+  {% from "includes/_formhelpers.html" import render_field %}
+    <div id="toggle-div" style="display: none;" name="{{ session['is_person']|safe }}"></div>
+    <form id="info-form" method='POST' action="">
+        {{ form.csrf_token }}
+        <br>
+        <div class="center-block" style="width: 70%">
+            <div class="row individual">
+                <div class="form-group col-sm-4">
+                  {{render_field(form.first_name, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-4">
+                  {{render_field(form.last_name, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-4">
+                  {{render_field(form.pseudonym, class ="form-control")}}
+                </div>
+            </div>
+            <div class="organization">
+                <div class="form-group">
+                  {{render_field(form.org_name, class ="form-control")}}
+                </div>
+            </div>
+            <div class="form-group">
+              {{render_field(form.website, class ="form-control"
+                                         , placeholder="https://www.example.com")}}
+            </div>
+            <div class="form-group">
+              {{render_field(form.address, class ="form-control")}}
+            </div>
+            <div class="form-group">
+              {{render_field(form.telephone, class ="form-control")}}
+            </div>
+            <div class="row individual">
+                <div class="form-group col-sm-6">
+                {{render_field(form.dob, class ="form-control"
+                                       , placeholder="dd/mm/aaaa")}}
+                </div>
+                 <div class="form-group col-sm-6">
+                {{render_field(form.gender, class ="form-control")}}
+                </div>
+            </div>
+            <div class="organization">
+                <div class="form-group">
+                {{render_field(form.date_formed, class ="form-control"
+                                               , placeholder="dd/mm/aaaa")}}
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-sm-3">
+                  {{render_field(form.city, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-3">
+                  {{render_field(form.subdiv, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-3">
+                  {{render_field(form.subdiv_type, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-3">
+                  {{render_field(form.country, class ="form-control")}}
+                </div>
+            </div>
+
+            {% for org_form in form.org_form %}
+            <div class="row individual">
+                <div data-role="dynamic-fields">
+                    <div class="form-custom">
+                        <div class="form-group col-md-3">
+                          {{render_field(org_form.nom_ag, class ="form-control" )}}
+                        </div>
+                        <div class="form-group col-md-3">
+                          {{render_field(org_form.title, class ="form-control")}}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{render_field(org_form.date_joined, class ="form-control"
+                                                             , placeholder="dd/mm/aaaa")}}
+                        </div>
+                        <div class="form-group col-md-2">
+                          {{render_field(org_form.date_left, class ="form-control"
+                                                            , placeholder="dd/mm/aaaa")}}
+                        </div>
+                        <div class="dyn-buttons col-md-2 text-center">
+                            <button class="pull-down btn btn-default" data-role="remove">
+                                <div class="glyphicon glyphicon-remove"></div>
+                            </button>
+                            <button class="pull-down btn btn-basic" data-role="add">
+                                <div class="glyphicon glyphicon-plus"></div>
+                            </button>
+                        </div>
+                    </div>  <!-- /div.form-inline -->
+                </div>  <!-- /div[data-role="dynamic-fields"] -->
+            </div>  <!-- /div.row -->
+            {% endfor %}
+
+            <div class="organization">
+                <div class="form-group">
+                  {{render_field(form.tipo_ag, class ="form-control")}}
+                </div>
+            </div>
+            <div class="row individual">
+                <div class="form-group col-sm-6">
+                  {{render_field(form.dad_name, class ="form-control")}}
+                </div>
+                <div class="form-group col-sm-6">
+                  {{render_field(form.mom_name, class ="form-control")}}
+                </div>
+            </div>
+            <div class="form-group">
+              {{render_field(form.comment, class ="form-control")}}
+            </div>
+             <div class="row">
+                <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
+                <a data-inline="true" role="button" class="btn btn-info" href="{{ url_for('user.profile') }}">Continuar</a>
+            </div>
+        </div>
+      </form>
+  </div>
+    {% include 'includes/_footer.html' %}
+{% endblock %}

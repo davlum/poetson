@@ -1,39 +1,45 @@
 {% macro nom(result) -%}
     {% set name %}
             {% if result.nom_part is not none and result.nom_part != 'Desconocido' %}
-                {{ result.nom_part }} &nbsp;
+                {{ result.nom_part }}
             {% endif %}
-            {% if result.seudonimo is not none %}
-               '{{ result.seudonimo }}' &nbsp;
+            {% if result.seudonimo is not none and result is defined %}
+               '{{ result.seudonimo }}'
             {% endif %}
             {% if result.nom_segundo is not none %}
                {{ result.nom_segundo }}
             {% endif %}
     {% endset %}
     {% if name|trim == "" %}
-        <div>Desconocido</div>
+        <div style="display: inline;">Desconocido</div>
     {% else %}
-        <div>{{ name|safe }}</div>
+        <div style="display: inline;">{{ name|safe }}</div>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_profile(label, result) -%}
+    {% if result is not none and result is defined %}
+        <tr><th scope="row">{{ label|safe }} </th><td>{{ result|safe }}</td></tr>
     {% endif %}
 {% endmacro %}
 
 
 {% macro lugar(result) -%}
     {% set lugar %}
-        {% if result.ciudad is not none and result.ciudad != 'Desconocida' %}
-            {{ result.ciudad }} &nbsp;
+        {% if result.ciudad is not none and result.ciudad is defined %}
+            {{ result.ciudad }},
         {% endif %}
-        {% if result.nom_subdivision is not none and result.nom_subdivision != 'Desconocida'%}
-           {{ result.nom_subdivision }} &nbsp;
+        {% if result.nom_subdivision is not none and result.nom_subdivision is defined %}
+           {{ result.nom_subdivision }},
         {% endif %}
         {% if result.pais is not none %}
            {{ result.pais }}
         {% endif %}
     {% endset %}
     {% if lugar|trim == "" %}
-        <div>Desconocido</div>
+        <div style="display: inline;">Desconocido</div>
     {% else %}
-        <div>{{ lugar|safe }}</div>
+        <div style="display: inline;">{{ lugar|safe }}</div>
     {% endif %}
 {% endmacro %}
 
@@ -59,7 +65,7 @@
                     {% for artista in result['artista'] %}
                         <tr>
                             <td>
-                                <a style="text-decoration: none;" href="/autor/{{ artista.autor_id }}/">
+                                <a class="no-underline" href="/autor/{{ artista.autor_id }}/">
                                     {{ nom(artista) }}
                                 </a>
                             </td>
@@ -102,7 +108,7 @@
                     {% for col in result['colectivo'] %}
                         <tr>
                             <td>
-                                <a style="text-decoration: none;"
+                                <a class="no-underline"
                                    href="/colectivo/{{ col.autor_id }}/">{{ col.colectivo_nom }}
                                 </a>
                             </td>
@@ -145,7 +151,7 @@
                             {% for comp in result['composicion'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/composicion/{{ comp.composicion_id }}/">{{ comp.nom_tit }}
+                                    <a class="no-underline" href="/composicion/{{ comp.composicion_id }}/">{{ comp.nom_tit }}
                                     {% if comp.tit_alt is not none %}
                                        | {{ comp.tit_alt }}
                                     {% endif %}
@@ -191,7 +197,7 @@
                             {% for serie in result['serie'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/serie/{{ serie.serie_id }}/">{{ serie.nom_serie }}
+                                    <a class="no-underline" href="/serie/{{ serie.serie_id }}/">{{ serie.nom_serie }}
                                     </a>
                                 </td>
                                 <td>
@@ -234,7 +240,7 @@
                             {% for pista in result['pista'] %}
                             <tr>
                                 <td>
-                                    <a style="text-decoration: none;" href="/pistason/{{ pista.pista_son_id }}/">{{ pista.nom_tit }}
+                                    <a class="no-underline" href="/pistason/{{ pista.pista_son_id }}/">{{ pista.nom_tit }}
                                         {% if pista.tit_alt is not none %}
                                             | {{ pista.tit_alt }}
                                         {% endif %}

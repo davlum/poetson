@@ -1,34 +1,29 @@
 {% extends "layout.html" %}
 
-{% block content %}
-
-<h1>Please login</h1>
-<br>
-<form class="form-login" role="form" method="post" action="">
-  {{ form.csrf_token }}
-  <p>
-    {{ form.email(placeholder="email") }}
-    <span class="error">
-      {% if form.email.errors %}
-        {% for error in form.email.errors %}
-          {{ error }}
-        {% endfor %}
-      {% endif %}
-    </span>
-  </p>
-  <p>
-  {{ form.password(placeholder="password") }}
-    <span class="error">
-      {% if form.password.errors %}
-        {% for error in form.password.errors %}
-          {{ error }}
-        {% endfor %}
-      {% endif %}
-    </span>
-  </p>
-  <button class="btn btn-success" type="submit">Sign in!</button>
-  <br><br>
-  <p>Need to <a href="/register">Register</a>?</p>
-</form>
-
+{% block body %}
+    <br>
+    <br>
+    <br>
+<div class="center-block jumbotron" style="width:70%;">
+    <h2>Iniciar Sesión </h2>
+    <br>
+    <br>
+    {% from "includes/_formhelpers.html" import render_field %}
+    <form class="form-login" role="form" method="post" action="">
+      {{ form.csrf_token }}
+        <div class="row">
+            <div class="form-group col-md-6">
+                  {{render_field(form.email, class ="form-control")}}
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                  {{render_field(form.password, class ="form-control")}}
+            </div>
+        </div>
+      <button class="btn btn-success" type="submit">Iniciar sesión</button>
+      <br><br>
+      <p>Necesidad de  <a class="underline" href="{{ url_for('user.register') }}">Registrarse</a>?</p>
+    </form>
+</div>
 {% endblock %}

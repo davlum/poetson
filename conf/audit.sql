@@ -37,7 +37,7 @@ BEGIN
   EXECUTE format('CREATE TABLE IF NOT EXISTS audit.%I (LIKE %I INCLUDING DEFAULTS)'
                   , target_table || '_audit', target_table);
   EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS actualizador_id int
-                  NOT NULL REFERENCES usario', target_table);
+                  REFERENCES usario', target_table);
   EXECUTE format('ALTER TABLE limbo.%I ' ||
                  'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL REFERENCES usario, ' ||
                  'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usario, ' ||
@@ -48,7 +48,7 @@ BEGIN
                  'ADD PRIMARY KEY (%s)'
     , target_table || '_limbo', pk_name, pk_name, target_table || '_seq');
   EXECUTE format('ALTER TABLE audit.%I ' ||
-                 'ADD COLUMN IF NOT EXISTS actualizador_id int NOT NULL REFERENCES usario, ' ||
+                 'ADD COLUMN IF NOT EXISTS actualizador_id int REFERENCES usario, ' ||
                  'ADD COLUMN IF NOT EXISTS fecha_accion TIMESTAMP NOT NULL DEFAULT now(), ' ||
                  'ADD COLUMN IF NOT EXISTS accion text NOT NULL ' ||
                  'CHECK (accion IN (''I'', ''D'', ''U'', ''T'')), ' ||

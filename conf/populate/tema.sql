@@ -1,4 +1,4 @@
-﻿INSERT INTO tema (tema_nom) VALUES
+﻿INSERT INTO tema (nom_tema) VALUES
   ('a-capella'),
   ('aborto'),
   ('abucheo'),
