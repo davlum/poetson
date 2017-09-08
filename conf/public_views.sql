@@ -9,7 +9,7 @@ CREATE OR REPLACE VIEW part_us AS
        , part.direccion
        , part.telefono
        , part.email
-       , part.coment_participante
+       , part.coment_part
        , u.nom_usario
        , u.contrasena
        , u.permiso
@@ -30,7 +30,7 @@ BEGIN
                           , email
                           , fecha_comienzo
                           , fecha_finale
-                          , coment_participante)
+                          , coment_part)
                           VALUES (NEW.nom_part
                                 , NEW.sitio_web
                                 , NEW.direccion
@@ -39,7 +39,7 @@ BEGIN
                                 , NEW.email
                                 , NEW.fecha_comienzo
                                 , NEW.fecha_finale
-                                , NEW.coment_participante)
+                                , NEW.coment_part)
                                 RETURNING part_id INTO id;
  INSERT INTO usario ( part_id
                     , nom_usario
@@ -74,12 +74,16 @@ CREATE OR REPLACE VIEW part_pers AS
        , pers.seudonimo
        , pers.nom_paterno
        , pers.nom_materno
-       , part.lugar_id lugar_nac
-       , l.ciudad
-       , l.nom_subdivision
-       , l.tipo_subdivision
-       , l.pais
+       , part.lugar_id
+       , l1.ciudad
+       , l1.nom_subdivision
+       , l1.tipo_subdivision
+       , l1.pais
        , pers.lugar_muer
+       , l2.ciudad ciudad_muer
+       , l2.nom_subdivision nom_subdivision_muer
+       , l2.tipo_subdivision tipo_subdivision_muer
+       , l2.pais pais_muer
        , get_fecha(part.fecha_comienzo) fecha_comienzo
        , get_fecha(part.fecha_finale) fecha_finale
        , part.fecha_comienzo fecha_comienzo_insert
@@ -89,25 +93,20 @@ CREATE OR REPLACE VIEW part_pers AS
        , part.telefono
        , part.email
        , pers.genero
-       , part.coment_participante
-       , pa.persona_id
-       , pa.agregar_id
-       , get_fecha(pa.fecha_comienzo) tit_comienzo
-       , get_fecha(pa.fecha_finale) tit_finale
-       , pa.fecha_comienzo tit_comienzo_insert
-       , pa.fecha_finale tit_finale_insert
-       , pa.titulo
-      FROM public.participante part
+       , part.coment_part
+       , part.actualizador_id
+     FROM public.participante part
       JOIN public.persona pers
         ON pers.part_id = part.part_id
-      LEFT JOIN public.lugar l
-        ON l.lugar_id = part.lugar_id
-      LEFT JOIN public.persona_agregar pa
-        ON pa.persona_id=pers.part_id;
+      LEFT JOIN public.lugar l1
+        ON l1.lugar_id = part.lugar_id
+      LEFT JOIN public.lugar l2
+        ON l2.lugar_id = pers.lugar_muer;
 
 CREATE OR REPLACE FUNCTION pers_insert() RETURNS TRIGGER AS $body$
 DECLARE
   id int;
+  id_muer int;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     INSERT INTO lugar(ciudad
@@ -120,6 +119,16 @@ BEGIN
                         , NEW.pais)
                       RETURNING lugar_id INTO id;
 
+    INSERT INTO lugar(ciudad
+                    , nom_subdivision
+                    , tipo_subdivision
+                    , pais)
+                  VALUES (NEW.ciudad_muer
+                        , NEW.nom_subdivision_muer
+                        , NEW.tipo_subdivision_muer
+                        , NEW.pais_muer)
+                      RETURNING lugar_id INTO id_muer;
+
     INSERT INTO participante (nom_part
                             , sitio_web
                             , direccion
@@ -128,7 +137,7 @@ BEGIN
                             , email
                             , fecha_comienzo
                             , fecha_finale
-                            , coment_participante)
+                            , coment_part)
                             VALUES (NEW.nom_part
                                   , NEW.sitio_web
                                   , NEW.direccion
@@ -137,7 +146,7 @@ BEGIN
                                   , NEW.email
                                   , NEW.fecha_comienzo_insert
                                   , NEW.fecha_finale_insert
-                                  , NEW.coment_participante) 
+                                  , NEW.coment_part) 
                                   RETURNING part_id INTO id;
     INSERT INTO persona(part_id
                       , nom_segundo
@@ -145,48 +154,54 @@ BEGIN
                       , nom_materno
                       , seudonimo
                       , lugar_muer
-                      , genero) 
+                      , genero
+                      , actualizador_id) 
                     VALUES (id
                           , NEW.nom_segundo
                           , NEW.nom_paterno
                           , NEW.nom_materno
                           , NEW.seudonimo
-                          , NEW.lugar_muer
-                          , NEW.genero);
+                          , muer_id
+                          , NEW.genero
+                          , id);
 
-    IF NEW.agregar_id < 0 THEN
-        INSERT INTO persona_agregar VALUES (id
-                                          , NEW.agregar_id
-                                          , NEW.tit_comienzo_insert
-                                          , NEW.tit_finale_insert
-                                          , NEW.titulo);
-    END IF;
   ELSIF (TG_OP = 'UPDATE') THEN
 
-    UPDATE participante SET nom_part=NEW.nom_part
+    UPDATE public.participante SET nom_part=NEW.nom_part
                             , sitio_web=NEW.sitio_web
                             , direccion=NEW.direccion
                             , telefono=NEW.telefono
                             , email=NEW.email
                             , fecha_comienzo=NEW.fecha_comienzo_insert
                             , fecha_finale=NEW.fecha_finale_insert
-                            , coment_participante=NEW.coment_participante
+                            , coment_part=NEW.coment_part
+                            , actualizador_id=NEW.actualizador_id
                             WHERE part_id=OLD.pp_id
                             RETURNING old.pp_id INTO id;
 
-    UPDATE persona SET  nom_segundo=NEW.nom_segundo
+    UPDATE public.persona SET nom_segundo=NEW.nom_segundo
                       , nom_paterno=NEW.nom_paterno
                       , nom_materno=NEW.nom_materno
                       , seudonimo=NEW.seudonimo
                       , lugar_muer=NEW.lugar_muer
                       , genero=NEW.genero
+                      , actualizador_id=NEW.actualizador_id
                       WHERE part_id=OLD.pp_id;
 
-    UPDATE lugar SET  ciudad=NEW.ciudad
+    UPDATE public.lugar SET ciudad=NEW.ciudad
                     , nom_subdivision=NEW.nom_subdivision
                     , tipo_subdivision=NEW.tipo_subdivision
                     , pais=NEW.pais
-                    WHERE lugar_id=OLD.lugar_nac;
+                    WHERE lugar_id=OLD.lugar_id;
+
+    UPDATE public.lugar SET ciudad=NEW.ciudad_muer
+                    , nom_subdivision=NEW.nom_subdivision_muer
+                    , tipo_subdivision=NEW.tipo_subdivision_muer
+                    , pais=NEW.pais_muer
+                    WHERE lugar_id=OLD.lugar_muer;
+
+
+
 
   END IF;
   RETURN NULL;
@@ -220,7 +235,7 @@ CREATE OR REPLACE VIEW part_ag AS
        , part.telefono
        , part.email
        , ag.tipo_agregar
-       , part.coment_participante
+       , part.coment_part
       FROM public.participante part
       LEFT JOIN public.lugar l
         ON l.lugar_id = part.lugar_id
@@ -251,7 +266,7 @@ BEGIN
                             , email
                             , fecha_comienzo
                             , fecha_finale
-                            , coment_participante)
+                            , coment_part)
                           VALUES (NEW.nom_part
                                 , NEW.sitio_web
                                 , NEW.direccion
@@ -260,7 +275,7 @@ BEGIN
                                 , NEW.email
                                 , NEW.fecha_comienzo_insert
                                 , NEW.fecha_finale_insert
-                                , NEW.coment_participante)
+                                , NEW.coment_part)
                               RETURNING part_id INTO id;
     INSERT INTO agregar(part_id
                       , tipo_agregar)
@@ -275,7 +290,7 @@ BEGIN
                             , email=NEW.email
                             , fecha_comienzo=NEW.fecha_comienzo_insert
                             , fecha_finale=NEW.fecha_finale_insert
-                            , coment_participante=NEW.coment_participante
+                            , coment_part=NEW.coment_part
                             WHERE part_id=OLD.pa_id;
     
     UPDATE lugar SET ciudad=NEW.ciudad
@@ -331,7 +346,7 @@ BEGIN
                           , email
                           , fecha_comienzo
                           , fecha_finale
-                          , coment_participante)
+                          , coment_part)
                           VALUES (NEW.nom_part
                                 , NEW.sitio_web
                                 , NEW.direccion
@@ -340,7 +355,7 @@ BEGIN
                                 , NEW.email
                                 , NEW.fecha_comienzo_insert
                                 , NEW.fecha_finale_insert
-                                , NEW.coment_participante) 
+                                , NEW.coment_part) 
                                 RETURNING part_id INTO id;
   INSERT INTO persona(part_id
                     , nom_segundo
@@ -410,7 +425,7 @@ BEGIN
                           , email
                           , fecha_comienzo
                           , fecha_finale
-                          , coment_participante)
+                          , coment_part)
                         VALUES (NEW.nom_part
                               , NEW.sitio_web
                               , NEW.direccion
@@ -419,7 +434,7 @@ BEGIN
                               , NEW.email
                               , NEW.fecha_comienzo_insert
                               , NEW.fecha_finale_insert
-                              , NEW.coment_participante) 
+                              , NEW.coment_part) 
                             RETURNING part_id INTO id;
  
   INSERT INTO agregar(part_id

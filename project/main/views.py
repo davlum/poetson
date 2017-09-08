@@ -59,7 +59,7 @@ def artista_query(con, param, year_from, year_to, contains):
                             OR pp.seudonimo ~* :nom
                           AND pp.fecha_comienzo
                           BETWEEN :year_from AND :year_to
-                          AND pp.coment_participante ~* :contains;""")
+                          AND pp.coment_part ~* :contains;""")
     return con.execute(query, nom=param, year_from=year_from, year_to=year_to, contains=contains)
 
 
@@ -75,7 +75,7 @@ def colectivo_query(con, param, year_from, year_to, contains):
                           WHERE pa.nom_part ~* :nom
                           AND pa.fecha_comienzo
                           BETWEEN :year_from AND :year_to
-                          AND pa.coment_participante ~* :contains;""")
+                          AND pa.coment_part ~* :contains;""")
     return con.execute(query, nom=param, year_from=year_from, year_to=year_to, contains=contains)
 
 

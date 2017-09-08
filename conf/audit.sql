@@ -44,7 +44,7 @@ BEGIN
                  'ADD COLUMN IF NOT EXISTS fecha_sumado TIMESTAMP NOT NULL DEFAULT now(), ' ||
                  'ADD COLUMN IF NOT EXISTS estado text NOT NULL ' ||
                  'CHECK (estado IN ' ||
-                 '(''Depositar'', ''Rechazado'', ''Pendiente'', ''Publicado'')), ' ||
+                 '(''DEPOSITAR'', ''RECHAZADO'', ''PENDIENTE'', ''PUBLICADO'')), ' ||
                  'ADD PRIMARY KEY (%s)'
     , target_table || '_limbo', pk_name, pk_name, target_table || '_seq');
   EXECUTE format('ALTER TABLE audit.%I ' ||

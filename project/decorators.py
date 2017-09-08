@@ -30,7 +30,8 @@ def is_logged_in(f):
 def is_mod(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if 'permission' in session and session['permission'] == 'MOD':
+        if 'permission' in session and (session['permission'] == 'MOD' or
+                                        session['permission'] == 'ADMIN'):
             return f(*args, **kwargs)
         else:
             flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')

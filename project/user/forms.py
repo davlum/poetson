@@ -14,7 +14,6 @@ from dateutil.parser import parse
 
 
 # Custom validators
-
 class Date(object):
     def __init__(self,  message=None, pat=None):
         if not pat:
@@ -31,8 +30,8 @@ class Date(object):
             except ValueError:
                 raise ValidationError(self.message)
         else:
-            print('regex failed')
             raise ValidationError(self.message)
+
 
 class RequiredIf(DataRequired):
     """Validator which makes a field required if another field is set and has a truthy value.
@@ -56,9 +55,7 @@ class RequiredIf(DataRequired):
             super(RequiredIf, self).__call__(form, field)
 
 
-
-
-
+# Forms
 class EmailForm(Form):
     email = StringField('Email', validators=[InputRequired(), Email()])
 
@@ -80,7 +77,9 @@ class LoginForm(Form):
         initial_validation = super(LoginForm, self).validate()
         if not initial_validation:
             return False
-        user = current_user(self.email.data)
+        con = engine.connect()
+        user = current_user(con, self.email.data)
+        con.close()
         if user is None:
             self.email.errors.append("Este correo electrónico no está registrado")
             return False
@@ -98,14 +97,14 @@ class OrgForm(Form):
     ag_arr.insert(0, ('0', 'Ninguno'))
     con.close()
     # Member of organization and title at that organization
-    nom_ag = SelectField('Nom del Organización', choices=ag_arr, validators=[Optional()])
-    title = StringField('Título', validators=[Optional()])
-    date_joined = StringField('Comienzo', validators=[
+    agregar_id = SelectField('Nom del Organización', choices=ag_arr, validators=[Optional()])
+    titulo = StringField('Título', validators=[Optional()])
+    fecha_comienzo = StringField('Comienzo', validators=[
         Optional(),
         Date(),
-        RequiredIf('date_left')
+        RequiredIf('fecha_finale')
     ])
-    date_left = StringField('Finale', validators=[
+    fecha_finale = StringField('Finale', validators=[
         Optional(),
         Date(),
     ])
@@ -120,7 +119,7 @@ class RegisterForm(Form):
 
 
     # The minimum required fields to make an account
-    username = StringField('Nomdre del usario', validators=[
+    nom_usario = StringField('Nomdre del usario', validators=[
         InputRequired(message='Esto es requerido.'),
         Length(min=4, max=25),
         Regexp('^[a-zÀ-ÿ0-9_-]+$', message='nombre de usuario debe ser números, letras, guiones o subrayados')
@@ -130,7 +129,7 @@ class RegisterForm(Form):
         Length(min=6, max=100),
         Email(message='No un correo electrónico adecuado.')
     ])
-    password = PasswordField('Contraseña', validators=[
+    contrasena = PasswordField('Contraseña', validators=[
         InputRequired(message='Esto es requerido.'),
         EqualTo('confirm', message='los paswords no coinciden')
     ])
@@ -144,14 +143,14 @@ class RegisterForm(Form):
         user_email_query = text("""SELECT email FROM part_us WHERE email ILIKE :email""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
         username_query = text("""SELECT nom_usario FROM part_us WHERE nom_usario ILIKE :username""")
-        username = con.execute(username_query, username=self.username.data).first()
+        username = con.execute(username_query, username=self.nom_usario.data).first()
         con.close()
         is_valid = True
         if user_email:
             self.email.errors.append("Este correo electrónico ya está registradod")
             is_valid = False
         if username:
-            self.username.errors.append("Este nombre de usuario ya está registrado")
+            self.nom_usario.errors.append("Este nombre de usuario ya está registrado")
             is_valid = False
         return is_valid
 
@@ -180,42 +179,45 @@ class InfoForm(Form):
     con.close()
 
     # The optional fields to add additional information to a user
-    first_name = StringField('Nombre de Pila', validators=[Optional()])
-    last_name = StringField('Apellido', validators=[Optional()])
-    pseudonym = StringField('Seudónimo', validators=[Optional()])
-    org_name = StringField('Nom del Organización', validators=[Optional()])
-    website = StringField('Sitio Web', validators=[
+    nom_part = StringField('Nombre de Pila', validators=[Optional()])
+    nom_segundo = StringField('Apellido', validators=[Optional()])
+    seudonimo = StringField('Seudónimo', validators=[Optional()])
+    nom_part_ag = StringField('Nom del Organización', validators=[Optional()])
+    sitio_web = StringField('Sitio Web', validators=[
         URL(),
         Optional()
     ])
 
-    address = StringField('Dirreción', validators=[Optional()])
-    telephone = StringField('Teléfono', validators=[Optional()])
-    dob = StringField('Fecha de Nacimiento', validators=[
+    direccion = StringField('Dirreción', validators=[Optional()])
+    telefono = StringField('Teléfono', validators=[Optional()])
+    fecha_comienzo = StringField('Fecha de Nacimiento', validators=[
         Optional(),
         Date()
     ])
-    date_formed = StringField('Fecha Formado', validators=[
+    fecha_comienzo_ag = StringField('Fecha Formado', validators=[
         Optional(),
         Date()
     ])
-    gender = SelectField('Género', choices=gender_arr, validators=[Optional()])
+
+    genero = SelectField('Género', choices=gender_arr, validators=[Optional()])
 
     # Dynamic form for institutions.
-    org_form = FieldList(FormField(OrgForm))
+    org_form = FieldList(FormField(OrgForm), min_entries=1)
 
     # If a sublocation is entered, its parent location is required
-    city = StringField('Ciudad', validators=[Optional()])
-    subdiv = StringField('Subdivision', validators=[RequiredIf('city')])
-    subdiv_type = SelectField('Tipo del Subdivision', choices=subdiv_arr, validators=[RequiredIf(other_field_name='subdiv')])
-    country = SelectField('País', choices=country_arr, validators=[RequiredIf(other_field_name='subdiv_type')])
+    ciudad = StringField('Ciudad', validators=[Optional()])
+    nom_subdivision = StringField('Subdivision', validators=[RequiredIf('ciudad')])
+    tipo_subdivision = SelectField('Tipo del Subdivision', choices=subdiv_arr
+                                   , validators=[RequiredIf(other_field_name='nom_subdivision')])
+    pais = SelectField('País', choices=country_arr
+                       , validators=[RequiredIf(other_field_name='tipo_subdivision')])
 
     # if organization just specify type
-    tipo_ag = SelectField('Tipo del Organización', choices=tipo_ag_arr, validators=[Optional()])
+    tipo_agregar = SelectField('Tipo del Organización', choices=tipo_ag_arr, validators=[Optional()])
 
-    comment = TextAreaField('Comentarios', validators=[Optional()])
-    dad_name = StringField('Nombre del Padre', validators=[Optional()])
-    mom_name = StringField('Nombre del Madre', validators=[Optional()])
+    coment_part = TextAreaField('Comentarios', validators=[Optional()])
+    nom_paterno = StringField('Nombre del Padre', validators=[Optional()])
+    nom_materno = StringField('Nombre del Madre', validators=[Optional()])
 
     def validate(self):
         initial_validation = super(InfoForm, self).validate()
@@ -223,11 +225,34 @@ class InfoForm(Form):
             return False
         return True
 
+
 class AddEntityForm(InfoForm):
+    con = engine.connect()
+    # Get List of subdivisions
+    subdiv_query = text("""SELECT tipo_subdiv nom FROM public.tipo_subdivision;""")
+    subdiv_result = con.execute(subdiv_query)
+    subdiv_arr = [(res.nom, res.nom) for res in subdiv_result]
+    # Get List of countries
+    country_query = text("""SELECT nom_pais FROM public.pais;""")
+    country_result = con.execute(country_query)
+    country_arr = [(res.nom_pais, res.nom_pais) for res in country_result]
+    con.close()
+
     # Whether the user is an individual or a Organization affects which fields appear
     user_type = RadioField('Organización o Individuo',
                           validators=[InputRequired(message='Esto es requerido.')],
                           choices=[('0', 'Individuo'), ('1', 'Organización')])
+    ciudad_muer = StringField('Ciudad', validators=[Optional()])
+    nom_subdivision_muer = StringField('Subdivision', validators=[RequiredIf('ciudad_muer')])
+    tipo_subdivision_muer = SelectField('Tipo del Subdivision', choices=subdiv_arr
+                                   , validators=[RequiredIf(other_field_name='nom_subdivision_muer')])
+    pais_muer = SelectField('País', choices=country_arr
+                       , validators=[RequiredIf(other_field_name='tipo_subdivision_muer')])
+    fecha_finale = StringField('Fecha de Muerte', validators=[
+        Optional(),
+        Date()
+    ])
+
 
 
 class AddTrackForm(Form):
@@ -249,39 +274,38 @@ class AddTrackForm(Form):
     # Does this track reference a composition already in the database
     references = BooleanField("""¿Esta pista de audio hace referencia a 
                                 una composición ya en nuestra base de datos?""")
-    title = StringField("Título", validators=[InputRequired(message='Esto es requerido.')])
-    alt_title = StringField("Título Alternativo", validators=[Optional()])
-    text = TextAreaField("Texto", validators=[Optional()])
-    date_published = DateField("Fecha de publicación", format='d%/%m/%Y', validators=[Optional()])
+    nom_tit = StringField("Título", validators=[InputRequired(message='Esto es requerido.')])
+    nom_alt = StringField("Título Alternativo", validators=[Optional()])
+    text0 = TextAreaField("Texto", validators=[Optional()])
+    fecha_pub = DateField("Fecha de publicación", format='d%/%m/%Y', validators=[Optional()])
 
-    comp_city = StringField('Ciudad', validators=[Optional()])
-    comp_subdiv = StringField('Subdivision', validators=[RequiredIf('comp_city')])
-    comp_subdiv_type = SelectField('Tipo del Subdivision', choices=subdiv_arr,
-                              validators=[RequiredIf(other_field_name='comp_subdiv')])
-    comp_country = SelectField('País', choices=country_arr, 
-                               validators=[RequiredIf(other_field_name='comp_subdiv_type')])
+    ciudad = StringField('Ciudad', validators=[Optional()])
+    nom_subdivision = StringField('Subdivision', validators=[RequiredIf('comp_city')])
+    tipo_subdivision = SelectField('Tipo del Subdivision', choices=subdiv_arr
+                                   , validators=[RequiredIf(other_field_name='comp_subdiv')])
+    pais = SelectField('País', choices=country_arr, validators=[RequiredIf(other_field_name='comp_subdiv_type')])
 
     track_no_arr = [(str(i), str(i)) for i in range(1, 100)]
-    track_no = SelectField('Número de pista', choices=track_no_arr, validators=[Optional()])
+    numero_de_pista = SelectField('Número de pista', choices=track_no_arr, validators=[Optional()])
     medio = SelectField('Medios originales', choices=medio_arr, validators=[Optional()])
-    date_recorded = StringField("Fecha registrada", validators=[
+    fecha_grab = StringField("Fecha registrada", validators=[
         Optional(),
         Date()
     ])
 
-    date_digitized = StringField("Fecha digitalizada", validators=[
+    fecha_dig = StringField("Fecha digitalizada", validators=[
         Optional(),
         Date()
     ])
 
-    interp_city = StringField('Ciudad', validators=[Optional()])
-    interp_subdiv = StringField('Subdivision', validators=[RequiredIf('interp_city')])
-    interp_subdiv_type = SelectField('Tipo del Subdivision', choices=subdiv_arr,
+    interp_ciudad = StringField('Ciudad', validators=[Optional()])
+    interp_nom_subdivision = StringField('Subdivision', validators=[RequiredIf('interp_city')])
+    interp_tipo_subdivision = SelectField('Tipo del Subdivision', choices=subdiv_arr,
                                    validators=[RequiredIf(other_field_name='interp_subdiv')])
-    interp_country = SelectField('País', choices=country_arr,
+    interp_pais = SelectField('País', choices=country_arr,
                                validators=[RequiredIf(other_field_name='interp_subdiv_type')])
 
-    audio_file = FileField("Archivo de audio", validators=[InputRequired(message='Esto es requerido.')])
+    archivo = FileField("Archivo de audio", validators=[InputRequired(message='Esto es requerido.')])
 
     comments = TextAreaField("Commentario", validators=[Optional()])
 

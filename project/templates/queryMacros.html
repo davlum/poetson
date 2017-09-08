@@ -23,6 +23,26 @@
     {% endif %}
 {% endmacro %}
 
+{% macro part_of(result) -%}
+    {% set lugar %}
+        {% if result.ciudad is not none and result.ciudad is defined %}
+            {{ result.ciudad }},
+        {% endif %}
+        {% if result.nom_subdivision is not none and result.nom_subdivision is defined %}
+           {{ result.nom_subdivision }},
+        {% endif %}
+        {% if result.pais is not none %}
+           {{ result.pais }}
+        {% endif %}
+    {% endset %}
+    {% if lugar|trim == "" %}
+        <div style="display: inline;">Desconocido</div>
+    {% else %}
+        <div style="display: inline;">{{ lugar|safe }}</div>
+    {% endif %}
+{% endmacro %}
+
+
 
 {% macro lugar(result) -%}
     {% set lugar %}

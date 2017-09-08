@@ -14,15 +14,15 @@
     <br>
 
     <ul class="nav nav-tabs nav-justified">
-        <li class="active"><a data-toggle="tab" href="#home">Inicio</a></li>
-        <li><a data-toggle="tab" href="#add-entity">Añadir una persona u organización</a></li>
-        <li><a data-toggle="tab" href="#add-track">Añadir una pista de audio</a></li>
-        <li><a data-toggle="tab" href="#change-pass">Cambia la contraseña</a></li>
+        <li class="active"><a data-toggle="tab" href="#inicio">Inicio</a></li>
+        <li><a data-toggle="tab" href="#part">Añadir una persona u organización</a></li>
+        <li><a data-toggle="tab" href="#pista">Añadir una pista de audio</a></li>
+        <li><a data-toggle="tab" href="#contrasena">Cambia la contraseña</a></li>
     </ul>
 
     <div class="tab-content">
 
-        <div id="home" class="tab-pane fade in active">
+        <div id="inicio" class="tab-pane fade in active">
             <br>
             <h2>Inicio</h2>
             <br>
@@ -50,108 +50,49 @@
                             {{ render_profile('Comentario Adicional: ', user.coment_participante) }}
                     </tbody>
                 </table>
-
+                {% if pers_ag is not none and pers_ag is defined %}
+                <table class="table">
+                    <h3>Parte de</h3>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Título</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in pers_ag %}
+                            <tr>
+                                <td>{{ entry.nom_part }}</td>
+                                <td>{{ entry.titulo }}</td>
+                                <td>{{ entry.fecha_comienzo }}</td>
+                                <td>{{ entry.fecha_finale }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% endif %}
+                </table>
             </div>
         </div>
 
-        <div id="add-track" class="tab-pane fade">
+        <div id="pista" class="tab-pane fade">
             <br>
             <h2>Añadir una pista de audio</h2>
             <br>
             <p>Por favor, agregue información adicional sobre este trabajo.</p>
-            <form id="add-entity-form" method='POST' action="">
-                {{ track_form.csrf_token }}
-                <br>
-                <div class="center-block skinny">
-                    <h3>Sobre la composicion</h3>
-                    <div class="form-group" id="references">
-                        <div style="display: inline-block;">{{ track_form.references }} &nbsp;</div>
-                        <div style="display: inline-block;">{{ track_form.references.label }} &nbsp;</div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-md-4">
-                          {{render_field(track_form.title, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-4">
-                          {{render_field(track_form.alt_title, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-4">
-                          {{render_field(track_form.date_published, class ="form-control")}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.comp_city, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.comp_subdiv, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.comp_subdiv_type, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.comp_country, class ="form-control")}}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                      {{render_field(track_form.text, class ="form-control")}}
-                    </div>
-                    <br>
-                    <hr>
-                    <br>
-                    <h3>Sobre la interpretación</h3>
-                    <div class="row">
-                        <div class="form-group col-sm-3">
-                            {{render_field(track_form.track_no, class ="form-control")}}
-                        </div>
-                         <div class="form-group col-sm-3">
-                            {{render_field(track_form.medio, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-sm-3">
-                            {{render_field(track_form.date_recorded, class ="form-control")}}
-                        </div>
-                         <div class="form-group col-sm-3">
-                            {{render_field(track_form.date_digitized, class ="form-control")}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.interp_city, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.interp_subdiv, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.interp_subdiv_type, class ="form-control")}}
-                        </div>
-                        <div class="form-group col-md-3">
-                          {{render_field(track_form.interp_country, class ="form-control")}}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                      {{render_field(track_form.audio_file, class ="form-control")}}
-                    </div>
-                    <div class="form-group">
-                      {{render_field(track_form.comments, class ="form-control")}}
-                    </div>
-                    <br>
-                     <div class="row">
-                         <input type="hidden" style="display: none;" name="track_form">
-                        <button class="btn btn-success" type="submit">Actualizar</button>
-                    </div>
-                </div>
-            </form>
         </div>
 
-        <div id="add-entity" class="tab-pane fade">
+        <div id="part" class="tab-pane fade">
             <br>
-            <h2>Añadir una persona u organización</h2>
+            <h2>Añadido por usted</h2>
             <br>
-            <p>Por favor, rellene el siguiente formulario.</p>
-
+            <span>Estos son los que ha agregado;
+            </span>
+            <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
         </div>
 
-        <div id="change-pass" class="tab-pane fade">
+        <div id="contrasena" class="tab-pane fade">
             <br>
             <h2>Cambia la contraseña</h2>
             <br>

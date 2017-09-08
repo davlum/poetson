@@ -1,15 +1,32 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 
 {% block body %}
-  <h1>Información Opcional</h1>
+
+{% from "includes/_formhelpers.html" import render_field %}
+{% from "queryMacros.html" import nom, lugar, fecha, render_profile %}
+
+<div>
     <br>
+    <h2>Añadir una persona u organización</h2>
     <br>
-  {% from "includes/_formhelpers.html" import render_field %}
-    <div id="toggle-div" style="display: none;" name="{{ session['is_person']|safe }}"></div>
-    <form id="info-form" method='POST' action="">
+    <p>Por favor, rellene el siguiente formulario.</p>
+    <form id="add-entity-form" method='POST' action="">
         {{ form.csrf_token }}
         <br>
         <div class="center-block skinny">
+            <div class="form-group" id="user-type">
+                {% for opt in form.user_type %}
+                    <div style="display: inline-block;">{{ opt }} &nbsp;</div>
+                    <div style="display: inline-block;">{{ opt.label }} &nbsp;</div>
+                {% endfor %}
+                {% if form.user_type.errors %}
+                    <ul class="errors">
+                    {% for error in form.user_type.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
             <div class="row individual">
                 <div class="form-group col-sm-4">
                   {{render_field(form.nom_part, class ="form-control")}}
@@ -42,7 +59,11 @@
                                        , placeholder="dd/mm/aaaa")}}
                 </div>
                  <div class="form-group col-sm-6">
-                {{render_field(form.genero, class ="form-control")}}
+                {{render_field(form.fecha_comienzo, class ="form-control"
+                                       , placeholder="dd/mm/aaaa")}}
+                </div>
+                 <div class="form-group col-sm-6">
+                {{render_field(form.fecha_finale, class ="form-control")}}
                 </div>
             </div>
             <div class="organization">
@@ -71,17 +92,17 @@
                 <div data-role="dynamic-fields">
                     <div class="form-custom">
                         <div class="form-group col-md-3">
-                          {{render_field(org_form.agregar_id, class ="form-control" )}}
+                          {{render_field(org_form.nom_ag, class ="form-control" )}}
                         </div>
                         <div class="form-group col-md-3">
-                          {{render_field(org_form.titulo, class ="form-control")}}
+                          {{render_field(org_form.title, class ="form-control")}}
                         </div>
                         <div class="form-group col-md-2">
-                          {{render_field(org_form.fecha_comienzo, class ="form-control"
+                          {{render_field(org_form.date_joined, class ="form-control"
                                                              , placeholder="dd/mm/aaaa")}}
                         </div>
                         <div class="form-group col-md-2">
-                          {{render_field(org_form.fecha_finale, class ="form-control"
+                          {{render_field(org_form.date_left, class ="form-control"
                                                             , placeholder="dd/mm/aaaa")}}
                         </div>
                         <div class="dyn-buttons col-md-2 text-center">
@@ -99,26 +120,26 @@
 
             <div class="organization">
                 <div class="form-group">
-                  {{render_field(form.tipo_agregar, class ="form-control")}}
+                  {{render_field(form.tipo_ag, class ="form-control")}}
                 </div>
             </div>
             <div class="row individual">
                 <div class="form-group col-sm-6">
-                  {{render_field(form.nom_paterno, class ="form-control")}}
+                  {{render_field(form.dad_name, class ="form-control")}}
                 </div>
                 <div class="form-group col-sm-6">
-                  {{render_field(form.nom_materno, class ="form-control")}}
+                  {{render_field(form.mom_name, class ="form-control")}}
                 </div>
             </div>
             <div class="form-group">
-              {{render_field(form.coment_part, class ="form-control")}}
+              {{render_field(form.comment, class ="form-control")}}
             </div>
              <div class="row">
                 <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
-                <a data-inline="true" role="button" class="btn btn-info" href="{{ url_for('user.profile') }}">Continuar</a>
             </div>
         </div>
-      </form>
-  </div>
+    </form>
+</div>
+
     {% include 'includes/_footer.html' %}
 {% endblock %}

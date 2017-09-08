@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS participante (
   , lugar_id int REFERENCES lugar
   , fecha_comienzo fecha
   , fecha_finale fecha
-  , coment_participante text
+  , coment_part text
   , CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
