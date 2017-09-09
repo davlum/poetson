@@ -1,5 +1,5 @@
 # project/user/views.py
-
+# coding=utf-8
 
 #################
 #### imports ####

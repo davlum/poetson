@@ -1,5 +1,5 @@
 # project/user/forms.py
-
+# coding=utf-8
 
 from wtforms import Form, StringField, PasswordField, RadioField, \
     TextAreaField, DateField, SelectField, BooleanField, FileField, FieldList, FormField
