@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS rol_composicion (
   nom_rol_comp text PRIMARY KEY
 );
 
+INSERT INTO rol_composicion VALUES ('Primero'), ('Segundo');
 
 CREATE TABLE IF NOT EXISTS tipo_subdivision (
   tipo_subdiv text PRIMARY KEY
@@ -41,16 +42,6 @@ COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
 
 CREATE TABLE IF NOT EXISTS participante (
     part_id serial PRIMARY KEY
-  , email text UNIQUE
-  , nom_part text
-  , sitio_web text
-  , direccion text
-  , telefono text
-  , lugar_id int REFERENCES lugar
-  , fecha_comienzo fecha
-  , fecha_finale fecha
-  , coment_part text
-  , CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE participante IS 'The author superclass which persona, agregar, and agregar inherit from.';
@@ -72,6 +63,18 @@ CREATE TABLE IF NOT EXISTS persona (
   , nom_materno text
   , lugar_muer int REFERENCES lugar
   , genero text REFERENCES genero_persona
+
+    -- Common attributes between persona and agregar
+  , email text UNIQUE
+  , nom_part text
+  , sitio_web text
+  , direccion text
+  , telefono text
+  , lugar_id int REFERENCES lugar
+  , fecha_comienzo fecha
+  , fecha_finale fecha
+  , coment_part text
+  , CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE persona IS 'A singular person.';
@@ -85,6 +88,18 @@ COMMENT ON TABLE tipo_agregar IS 'Look up table of abstract agregate type, e.g. 
 CREATE TABLE IF NOT EXISTS agregar (
     part_id int REFERENCES participante ON DELETE CASCADE PRIMARY KEY
   , tipo_agregar text REFERENCES tipo_agregar
+
+    -- Common attributes between persona and agregar
+  , email text UNIQUE
+  , nom_part text
+  , sitio_web text
+  , direccion text
+  , telefono text
+  , lugar_id int REFERENCES lugar
+  , fecha_comienzo fecha
+  , fecha_finale fecha
+  , coment_part text
+  , CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
 COMMENT ON TABLE agregar IS 'An agregate of people.';
@@ -98,22 +113,26 @@ INSERT INTO permiso VALUES ('EDITOR'), ('MOD'), ('ADMIN');
 
 -- This table will be mutable
 CREATE TABLE IF NOT EXISTS usario (
-    part_id int REFERENCES participante ON DELETE CASCADE PRIMARY KEY
+    usario_id int REFERENCES participante ON DELETE RESTRICT PRIMARY KEY
   , confirmado boolean NOT NULL DEFAULT false
-  , fecha_confirmado timestamp
   , nom_usario text NOT NULL UNIQUE
   , contrasena text NOT NULL -- hashed and salted
+  , ag_email text UNIQUE REFERENCES agregar(email) ON UPDATE CASCADE
+  , pers_email text UNIQUE REFERENCES persona(email) ON UPDATE CASCADE
   , fecha_registro timestamp DEFAULT now()
+  , fecha_confirmado timestamp
   , permiso text NOT NULL DEFAULT 'EDITOR' REFERENCES permiso
   , CONSTRAINT proper_nom CHECK (nom_usario ~* '^[a-zÀ-ÿ0-9_-]+$')
+  , CONSTRAINT tipo_email CHECK ((ag_email IS NULL AND pers_email IS NOT NULL) OR
+                                 (ag_email IS NOT NULL AND pers_email IS NULL))
 );
 
 COMMENT ON TABLE usario IS 'Individual who uploaded the data.';
 
 CREATE TABLE IF NOT EXISTS genero_musical (
     gen_mus_id serial PRIMARY KEY
-   ,nom_genero text UNIQUE NOT NULL
-   ,genero_descrip text
+   ,nom_gen_mus text UNIQUE NOT NULL
+   ,coment_gen_mus text
 );
 
 COMMENT ON TABLE genero_musical IS 'Genres of music. Works as a lookup table.';
@@ -158,8 +177,8 @@ COMMENT ON TABLE familia_instrumento IS 'Instrument family. Look up table for in
 -- None must be a type of instrument
 CREATE TABLE IF NOT EXISTS instrumento (
     instrumento_id serial PRIMARY KEY
-   ,nom_inst text DEFAULT 'Voz'
-   ,familia_instr_id int REFERENCES familia_instrumento
+   ,nom_inst text NOT NULL
+   ,familia_instr_id int REFERENCES familia_instrumento ON DELETE SET NULL
    ,electronico boolean
    ,instrumento_comentario text
 );
@@ -187,9 +206,8 @@ CREATE TABLE IF NOT EXISTS composicion (
    ,nom_tit text NOT NULL
    ,nom_alt text
    ,fecha_pub fecha
-   ,composicion_orig int REFERENCES composicion
+   ,composicion_orig int REFERENCES composicion ON DELETE SET NULL
    ,texto text -- The text itself
-   ,lugar_comp int REFERENCES lugar
 );
 
 COMMENT ON TABLE composicion IS 'The physical representation of the performed work.';
@@ -199,16 +217,13 @@ CREATE TABLE IF NOT EXISTS pista_son (
     pista_son_id serial PRIMARY KEY
    ,numero_de_pista int CHECK (numero_de_pista > 0)
    ,composicion_id int REFERENCES composicion
-   ,usario_id int REFERENCES usario NOT NULL DEFAULT 1
    ,medio text REFERENCES medio
    ,lugar_interp int REFERENCES lugar
    ,serie_id int REFERENCES serie
-   ,comentario_pista_son text
+   ,coment_pista_son text
    ,fecha_grab fecha -- fecha recorded
    ,fecha_dig fecha -- fecha digitized
    ,fecha_cont fecha -- fecha donated
-   ,fecha_acep fecha -- fecha accepted
-   ,fecha_inc timestamp DEFAULT now() -- fecha added
 );
 
 COMMENT ON TABLE pista_son IS 'The audio track. Domain Constraint will be put on the front end. Add not null to composicion';
@@ -251,9 +266,9 @@ CREATE TABLE IF NOT EXISTS cobertura_tipo (
 
 CREATE TABLE IF NOT EXISTS cobertura (
     cobertura_id serial PRIMARY KEY
-   ,cobertura_tipo_id int REFERENCES cobertura_tipo NOT NULL
-   ,pista_son_id int REFERENCES pista_son
-   ,composicion_id int REFERENCES composicion
+   ,cobertura_tipo_id int NOT NULL REFERENCES cobertura_tipo
+   ,pista_son_id int REFERENCES pista_son ON DELETE SET NULL
+   ,composicion_id int REFERENCES composicion ON DELETE SET NULL
    ,lugar_cobertura int REFERENCES lugar
    ,licencia_cobertura text
    ,fecha_comienzo fecha
@@ -276,26 +291,27 @@ CREATE TABLE IF NOT EXISTS participante_composicion (
   , part_id int REFERENCES participante ON DELETE CASCADE
   , rol_composicion text REFERENCES rol_composicion
   , datos_personalizados json
-  , PRIMARY KEY (composicion_id, part_id)
+  , PRIMARY KEY (composicion_id, part_id, rol_composicion)
 );
 
-COMMENT ON TABLE participante_composicion IS 'M:M The many possible different types of relations
-                                              as specified by rol_composicion that might occur between a
-                                              participante and a composicion.';
+COMMENT ON TABLE participante_composicion IS $body$ 
+M:M The many possible different types of relations
+as specified by rol_composicion that might occur between a
+participante and a composicion. $body$;
 
 CREATE TABLE IF NOT EXISTS participante_pista_son (
     pista_son_id int REFERENCES pista_son ON DELETE CASCADE
   , part_id int REFERENCES participante ON DELETE CASCADE
   , rol_pista_son text REFERENCES rol_pista_son
-  , instrumento_id int REFERENCES instrumento CHECK ((instrumento_id IS NOT NULL AND rol_pista_son = 'interprete')
-                                                     OR instrumento_id IS NULL)
+  , instrumento_id int DEFAULT 1 REFERENCES instrumento ON DELETE SET DEFAULT
   , datos_personalizados json
-  , PRIMARY KEY (pista_son_id, part_id)
+  , PRIMARY KEY (pista_son_id, part_id, rol_pista_son, instrumento_id)
 );
 
-COMMENT ON TABLE participante_pista_son IS 'M:M The many possible different types of relations
-                                            as specified by rol_pista_son that might occur between a
-                                            participante and a pista_son.';
+COMMENT ON TABLE participante_pista_son IS $body$
+M:M The many possible different types of relations
+as specified by rol_pista_son that might occur between a
+participante and a pista_son. $body$;
 
 CREATE TABLE IF NOT EXISTS idioma_composicion (
     composicion_id int REFERENCES composicion ON DELETE CASCADE
@@ -326,25 +342,7 @@ CREATE TABLE IF NOT EXISTS tema_composicion (
 
 COMMENT ON TABLE tema_composicion IS 'M:M Many tags a single audio track may have.';
 
-/*
--- FK for participante
-CREATE OR REPLACE FUNCTION participante_insert() RETURNS TRIGGER AS $$    
-  DECLARE child_id int;
-  BEGIN
-    INSERT INTO participante DEFAULT VALUES RETURNING part_id INTO child_id;
-    NEW.part_id := child_id;
-    RETURN NEW;
-  END;
-$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER persona_insert
-  BEFORE INSERT ON persona
-  FOR EACH ROW
-  EXECUTE PROCEDURE participante_insert();
 
-CREATE TRIGGER agregar_insert
-  BEFORE INSERT ON agregar
-  FOR EACH ROW
-  EXECUTE PROCEDURE participante_insert();
-*/
+
 

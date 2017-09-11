@@ -7,10 +7,9 @@ ALTER DATABASE postgres SET datestyle TO "ISO, DMY";
 \i schema.sql
 \i audit.sql
 \i audit_tables.sql
-\i public_views.sql
---\i limbo_views.sql
+\i views.sql
 \i insert.sql 
-INSERT INTO part_ag (nom_part, ciudad, nom_subdivision, tipo_subdivision, pais, tipo_agregar) VALUES
+INSERT INTO public.ag_view (nom_part, ciudad, nom_subdivision, tipo_subdivision, pais, tipo_agregar) VALUES
   ('Concordia', 'Montréal', 'Québec', 'Provincia', 'Canadá', 'Universidad');
-INSERT INTO part_us (email, nom_usario, contrasena) VALUES 
-  ('meza.aurelio@gmail.com', 'AureM', 'Password');
+
+

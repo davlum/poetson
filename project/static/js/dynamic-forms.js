@@ -40,24 +40,30 @@ $(function() {
         }
     );
     // make all but last button into remove button
-    $(".dyn-buttons").not(':last').each(
+    $(".dyn-form-container").each(
         function() {
-            console.log('just wondering');
-            $(this).find('button').each(
-                function () {
-                   if ($(this).data('role') === 'remove') {
-                        $(this).show();
-                   }
-                   else {
-                       $(this).hide();
-                   }
+            $(this).find(".dyn-buttons").not(':last').each(
+                function() {
+                    $(this).find('button').each(
+                        function () {
+                            if ($(this).data('role') === 'remove') {
+                                $(this).show();
+                            }
+                            else {
+                                $(this).hide();
+                            }
+                        }
+                    );
                 }
             );
         }
     );
+    $('.pull-down').each(function() {
+        var $this = $(this);
+        $this.css('margin-top', $this.parent().height() - $this.height())
+    });
+    $('#references').attr('data-toggle', 'collapse');
+    $('#references').attr('data-target', '#references-collapsible');
 });
 
-$('.pull-down').each(function() {
-  var $this = $(this);
-  $this.css('margin-top', $this.parent().height() - $this.height())
-});
+

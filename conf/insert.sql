@@ -1,3 +1,5 @@
+INSERT INTO rol_pista_son VALUES ('Ejecutante');
+
 --\i populate/tipo_subdivision.sql
 \i populate/pais.sql
 \i populate/lugar.sql
@@ -8,10 +10,10 @@
 \i populate/instrumento.sql
 \i populate/tema.sql
 \i populate/genero_persona.sql
+\i populate/serie.sql
 --\i populate/colectivo.sql
 --\i populate/institucion.sql
 --\i populate/editor.sql
---\i populate/serie.sql
 --\i populate/artista.sql
 --\i populate/album.sql
 --\i populate/composicion.sql

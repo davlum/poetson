@@ -43,39 +43,38 @@ def artista_query(con, param, year_from, year_to, contains):
         year_from = '500'
     if not year_to:
         year_to = time.strftime('%Y')
-    query = text("""SELECT pp.pp_id
-                          , pp.nom_part
-                          , pp.nom_segundo
-                          , pp.seudonimo
-                          , l.ciudad
-                          , l.nom_subdivision
-                          , l.pais
-                          FROM public.part_pers pp 
-                          LEFT JOIN public.lugar l
-                            ON l.lugar_id = pp.lugar_nac
+    query = text("""SELECT p.part_id
+                          , p.nom_part
+                          , p.nom_segundo
+                          , p.seudonimo
+                          , p.ciudad
+                          , p.nom_subdivision
+                          , p.pais
+                          FROM public.pers_view p 
                           JOIN public.participante_composicion pc
-                            ON pc.part_id = pp.pp_id   
-                          WHERE pp.nom_part ~* :nom
-                            OR pp.seudonimo ~* :nom
-                          AND pp.fecha_comienzo
+                            ON pc.part_id = p.part_id   
+                          WHERE p.nom_part ~* :nom
+                            OR p.seudonimo ~* :nom
+                            OR p.nom_segundo ~* :nom
+                          AND p.fecha_comienzo
                           BETWEEN :year_from AND :year_to
-                          AND pp.coment_part ~* :contains;""")
+                          AND p.coment_part ~* :contains;""")
     return con.execute(query, nom=param, year_from=year_from, year_to=year_to, contains=contains)
 
 
 def colectivo_query(con, param, year_from, year_to, contains):
-    query = text("""SELECT pa.pa_id
-                          , pa.nom_part
-                          , pa.ciudad
-                          , pa.nom_subdivision
-                          , pa.pais
-                          FROM public.part_ag pa 
+    query = text("""SELECT  a.pa_id
+                          , a.nom_part
+                          , a.ciudad
+                          , a.nom_subdivision
+                          , a.pais
+                          FROM public.ag_view a 
                           JOIN public.participante_composicion pc
-                            ON pc.part_id = pa.pa_id   
-                          WHERE pa.nom_part ~* :nom
-                          AND pa.fecha_comienzo
+                            ON pc.part_id = a.part_id   
+                          WHERE a.nom_part ~* :nom
+                          AND a.fecha_comienzo
                           BETWEEN :year_from AND :year_to
-                          AND pa.coment_part ~* :contains;""")
+                          AND a.coment_part ~* :contains;""")
     return con.execute(query, nom=param, year_from=year_from, year_to=year_to, contains=contains)
 
 
@@ -256,19 +255,16 @@ def colectivo(colid):
     colectivo = con.execute(colectivo_query, id=colid).first()
 
     # get the list of artists in that colectivo
-    author_query = text("""SELECT a.nom_primero
-                                , a.nom_segundo
-                                , a.seudonimo
-                                , l.pais 
-                                FROM part_ag paa
-                                JOIN persona_agregar pea
-                                  ON paa.part_id = pea.agregar_id
-                                JOIN part_pers pp
-                                  ON pp.part_id = pea.persona_id 
-                                JOIN public.lugar l 
-                                  ON l.lugar_id = pp.lugar_nac
-                                WHERE paa.tipo_agregar = 'colectivo' 
-                                AND paa.part_id=:id""")
+    author_query = text("""SELECT p.nom_part
+                                , p.nom_segundo
+                                , p.seudonimo
+                                , p.pais 
+                                FROM public.agregar a
+                                JOIN public.persona_agregar pa
+                                  ON a.part_id = pa.agregar_id
+                                JOIN public.pers_view p
+                                  ON p.part_id = pa.persona_id 
+                                AND a.part_id=:id""")
     result['artista'] = con.execute(author_query, id=colid)
 
     # _query all compositions including those made by this artist when in a colectivo

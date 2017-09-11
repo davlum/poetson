@@ -1,4 +1,4 @@
-﻿INSERT INTO genero_musical (nom_genero, genero_descrip) VALUES
+﻿INSERT INTO genero_musical (nom_gen_mus, coment_gen_mus) VALUES
 ('Poesía', 'Género literario que difiere de la narrativa y de la dramaturgia en el hecho de que no necesariamente requiere de una secuencialidad u orden lógico para crear nuevos mundos'),
 ('Poesía sonora', 'Poesía en cuya creación los aspectos de la sonoridad y la plasticidad del lenguaje son más preponderantes que las del sentido o la significación'),
 ('Spoken Word', 'Nombre que se le da en países anglófonos a ciertas manifestaciones poéticas en voz alta. También se refiere a los fragmentos vocales no cantados en una canción'),

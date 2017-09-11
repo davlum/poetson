@@ -1,4 +1,24 @@
 
+-- FK for participante
+CREATE OR REPLACE FUNCTION participante_insert() RETURNS TRIGGER AS $$
+  DECLARE child_id int;
+  BEGIN
+    INSERT INTO public.participante DEFAULT VALUES RETURNING part_id INTO child_id;
+    NEW.part_id := child_id;
+    RETURN NEW;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER persona_insert
+  BEFORE INSERT ON public.persona
+  FOR EACH ROW
+  EXECUTE PROCEDURE participante_insert();
+
+CREATE TRIGGER agregar_insert
+  BEFORE INSERT ON public.agregar
+  FOR EACH ROW
+  EXECUTE PROCEDURE participante_insert();
+
 CREATE OR REPLACE FUNCTION process_audit() RETURNS TRIGGER AS $body$
 DECLARE 
     audit_table text;
@@ -21,9 +41,9 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION gen_table(target_table regclass) RETURNS void AS $body$
 DECLARE
-  pk_query text; -- query the primary key of the given table
   pk_name text; -- key of the
 BEGIN
+  /*
   EXECUTE format('SELECT string_agg(quote_ident(a.attname), '', '')
               FROM pg_index i
               JOIN pg_attribute a 
@@ -31,28 +51,21 @@ BEGIN
                 AND a.attnum = ANY(i.indkey)
                 WHERE i.indrelid = ''%I''::regclass
                 AND i.indisprimary', target_table) INTO pk_name;
+  */
 
-  EXECUTE format('CREATE TABLE IF NOT EXISTS limbo.%I (LIKE %I INCLUDING DEFAULTS)'
-                  , target_table || '_limbo',  target_table);
+  EXECUTE format('ALTER TABLE %I ' ||
+                 'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL ' ||
+                 'REFERENCES public.participante ON DELETE CASCADE, '
+                 'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usario, ' ||
+                 'ADD COLUMN IF NOT EXISTS estado text NOT NULL DEFAULT ''PENDIENTE''' ||
+                 'CHECK (estado IN (''DEPOSITAR'', ''RECHAZADO'', ''PENDIENTE'', ''PUBLICADO''))'
+                  , target_table);
   EXECUTE format('CREATE TABLE IF NOT EXISTS audit.%I (LIKE %I INCLUDING DEFAULTS)'
                   , target_table || '_audit', target_table);
-  EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS actualizador_id int
-                  REFERENCES usario', target_table);
-  EXECUTE format('ALTER TABLE limbo.%I ' ||
-                 'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL REFERENCES usario, ' ||
-                 'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usario, ' ||
-                 'ADD COLUMN IF NOT EXISTS fecha_sumado TIMESTAMP NOT NULL DEFAULT now(), ' ||
-                 'ADD COLUMN IF NOT EXISTS estado text NOT NULL ' ||
-                 'CHECK (estado IN ' ||
-                 '(''DEPOSITAR'', ''RECHAZADO'', ''PENDIENTE'', ''PUBLICADO'')), ' ||
-                 'ADD PRIMARY KEY (%s)'
-    , target_table || '_limbo', pk_name, pk_name, target_table || '_seq');
   EXECUTE format('ALTER TABLE audit.%I ' ||
-                 'ADD COLUMN IF NOT EXISTS actualizador_id int REFERENCES usario, ' ||
                  'ADD COLUMN IF NOT EXISTS fecha_accion TIMESTAMP NOT NULL DEFAULT now(), ' ||
                  'ADD COLUMN IF NOT EXISTS accion text NOT NULL ' ||
-                 'CHECK (accion IN (''I'', ''D'', ''U'', ''T'')), ' ||
-                 'ADD PRIMARY KEY (%s, fecha_accion)', target_table || '_audit', pk_name);
+                 'CHECK (accion IN (''I'', ''D'', ''U'', ''T''))', target_table || '_audit');
 END;
 $body$
 LANGUAGE plpgsql;
@@ -68,7 +81,6 @@ $body$;
 CREATE OR REPLACE FUNCTION audit_table(target_table regclass) RETURNS VOID AS $body$
 BEGIN
     CREATE SCHEMA IF NOT EXISTS audit;
-    CREATE SCHEMA IF NOT EXISTS limbo;
     EXECUTE gen_table(target_table);
     EXECUTE format('CREATE TRIGGER %I
     AFTER UPDATE OR DELETE OR INSERT ON %I
@@ -86,6 +98,27 @@ The standard search_path = public, and the data residing in the alternate schema
 not be viewable to the majority of users.
 $body$;
 
+CREATE OR REPLACE FUNCTION usario_id_insert() RETURNS trigger AS $body$
+BEGIN
+  IF NEW.cargador_id IS NULL THEN
+     NEW.cargador_id := NEW.part_id;
+  END IF;
+  RETURN NEW;
+END;
+$body$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER usario_id_trig
+  BEFORE INSERT ON public.persona
+  FOR EACH ROW
+  EXECUTE PROCEDURE usario_id_insert();
+
+CREATE TRIGGER usario_id_trig
+  BEFORE INSERT ON public.agregar
+  FOR EACH ROW
+  EXECUTE PROCEDURE usario_id_insert();
+
+/*
 CREATE OR REPLACE FUNCTION publish(pk_id int, usr_id int, target_table REGCLASS) RETURNS VOID AS $body$
 DECLARE
   pk_name text; -- primary key of the given table
@@ -121,4 +154,4 @@ This id of record and id of the mod performing the action is given
 along with the name of the table in the public schema.
 The article remains in the limbo schema, but with status 'Publicado'.
 $body$;
-
+*/

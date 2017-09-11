@@ -1,4 +1,3 @@
-SELECT audit_table('participante');
 SELECT audit_table('persona');
 SELECT audit_table('agregar');
 SELECT audit_table('pista_son');

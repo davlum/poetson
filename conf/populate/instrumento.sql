@@ -1,4 +1,6 @@
-﻿INSERT INTO instrumento (nom_inst, familia_instr_id, electronico, instrumento_comentario) VALUES
+﻿INSERT INTO instrumento (nom_inst) VALUES ('Ninguno');
+
+INSERT INTO instrumento (nom_inst, familia_instr_id, electronico, instrumento_comentario) VALUES
 ('Voz', 1, 'f', 'Uso de la voz para declamar, recitar, cantar o realizar algún efecto melódico, armónico o tímbrico. Para funciones percusivas, utilizar los valores "palmas" y "piernas"'),
 ('Sintetizador digital', 12, 't', 'Genera señales eléctricas que a su vez son convertidas a sonidos a través de bocinas o audífonos'),
 ('Programa de computadora', 14, 't', 'Programa de computadora no identificado'),

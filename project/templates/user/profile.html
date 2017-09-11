@@ -50,7 +50,7 @@
                             {{ render_profile('Comentario Adicional: ', user.coment_participante) }}
                     </tbody>
                 </table>
-                {% if pers_ag is not none and pers_ag is defined %}
+                {% if pers_ag.rowcount > 0 %}
                 <table class="table">
                     <h3>Parte de</h3>
                     <thead>
@@ -71,25 +71,147 @@
                             </tr>
                         {% endfor %}
                     </tbody>
-                    {% endif %}
                 </table>
+                {% endif %}
             </div>
-        </div>
-
-        <div id="pista" class="tab-pane fade">
-            <br>
-            <h2>Añadir una pista de audio</h2>
-            <br>
-            <p>Por favor, agregue información adicional sobre este trabajo.</p>
         </div>
 
         <div id="part" class="tab-pane fade">
             <br>
             <h2>Añadido por usted</h2>
             <br>
-            <span>Estos son los que ha agregado;
-            </span>
+            <span>Estos son los que ha agregado;</span>
             <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
+            <div class="skinny center-block">
+            {% if pers is not none and pers is defined %}
+                <table class="table">
+                    <h3>Persona</h3>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in pers %}
+                            <tr>
+                                <td>{{ nom(entry) }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_comienzo }}</td>
+                                <td>{{ entry.fecha_finale }}</td>
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.poner_pers', part_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.part_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% if ags is not none and ags is defined %}
+                <table class="table">
+                    <h3>Agregar</h3>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in ags %}
+                            <tr>
+                                <td>{{ entry.nom_part }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_comienzo }}</td>
+                                <td>{{ entry.fecha_finale }}</td>
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.poner_ag', part_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.part_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="pista" class="tab-pane fade">
+            <br>
+            <h2>Añadir una Composición</h2>
+            <br>
+            <span>Estos son los que ha agregado;</span>
+            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a>
+            <br>
+            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a>
+            <div class="skinny center-block">
+                {% if comps is not none and comps is defined %}
+                <table class="table">
+                    <h3>Composición</h3>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Título Alternativo</th>
+                            <th>Fecha publication</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in comps %}
+                            <tr>
+                                <td>{{ entry.nom_tit }}</td>
+                                <td>{{ entry.nom_alt }}</td>
+                                <td>{{ entry.fecha_pub }}</td>
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.update_comp', comp_id=entry.composicion_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.composicion_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% if pista is not none and pista is defined %}
+                <table class="table">
+                    <h3>Pista son</h3>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>lugar de interpretación</th>
+                            <th>fecha de grabación</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in pista %}
+                            <tr>
+                                <td>{{ entry.nom_tit }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_grab }}</td>
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.poner_comp', comp_id=entry.composicion_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.composicion_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
         </div>
 
         <div id="contrasena" class="tab-pane fade">
@@ -123,4 +245,7 @@
     </div>
 
 </div>
+
+
+
 {% endblock %}

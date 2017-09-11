@@ -39,6 +39,20 @@ def is_mod(f):
     return wrap
 
 
+def is_author(f):
+    @wraps(f)
+    def wrap(part_id, *args, **kwargs):
+        if 'permission' in session and (session['permission'] == 'MOD' or
+                                        session['permission'] == 'ADMIN') or (
+                                        part_id in session['pers'] or
+                                        part_id in session['ag']):
+            return f(part_id, *args, **kwargs)
+        else:
+            flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
+            return redirect(url_for('user.profile'))
+    return wrap
+
+
 def is_admin(f):
     @wraps(f)
     def wrap(*args, **kwargs):

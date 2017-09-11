@@ -27,9 +27,7 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 
 mail = Mail(app)
 toolbar = DebugToolbarExtension(app)
-#db = SQLAlchemy(app)
 engine = create_engine('postgresql:///postgres')
-
 
 ####################
 #### blueprints ####
@@ -40,8 +38,12 @@ from project.user.views import user_blueprint
 app.register_blueprint(main_blueprint)
 app.register_blueprint(user_blueprint)
 
+
 def current_user(con, email):
-    query = text("""SELECT * FROM part_us WHERE LOWER(email)=LOWER(:email)""")
+    query = text("""SELECT * 
+                      FROM public.usario 
+                      WHERE LOWER(ag_email)=LOWER(:email)
+                         OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 

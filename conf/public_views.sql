@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION us_insert() RETURNS TRIGGER AS $body$
 DECLARE
   id int;
 BEGIN
-  INSERT INTO participante (nom_part
+  INSERT INTO public.participante (nom_part
                           , sitio_web
                           , direccion
                           , lugar_id
@@ -41,7 +41,7 @@ BEGIN
                                 , NEW.fecha_finale
                                 , NEW.coment_part)
                                 RETURNING part_id INTO id;
- INSERT INTO usario ( part_id
+ INSERT INTO public.usario ( part_id
                     , nom_usario
                     , contrasena
                     , permiso
@@ -94,7 +94,8 @@ CREATE OR REPLACE VIEW part_pers AS
        , part.email
        , pers.genero
        , part.coment_part
-       , part.actualizador_id
+       , part.cargador_id
+       , part.estado
      FROM public.participante part
       JOIN public.persona pers
         ON pers.part_id = part.part_id
@@ -106,10 +107,12 @@ CREATE OR REPLACE VIEW part_pers AS
 CREATE OR REPLACE FUNCTION pers_insert() RETURNS TRIGGER AS $body$
 DECLARE
   id int;
+  id_nac int;
   id_muer int;
+
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    INSERT INTO lugar(ciudad
+    INSERT INTO public.lugar(ciudad
                     , nom_subdivision
                     , tipo_subdivision
                     , pais)
@@ -117,9 +120,9 @@ BEGIN
                         , NEW.nom_subdivision
                         , NEW.tipo_subdivision
                         , NEW.pais)
-                      RETURNING lugar_id INTO id;
+                      RETURNING lugar_id INTO id_nac;
 
-    INSERT INTO lugar(ciudad
+    INSERT INTO public.lugar(ciudad
                     , nom_subdivision
                     , tipo_subdivision
                     , pais)
@@ -129,7 +132,7 @@ BEGIN
                         , NEW.pais_muer)
                       RETURNING lugar_id INTO id_muer;
 
-    INSERT INTO participante (nom_part
+    INSERT INTO public.participante (nom_part
                             , sitio_web
                             , direccion
                             , lugar_id
@@ -137,33 +140,42 @@ BEGIN
                             , email
                             , fecha_comienzo
                             , fecha_finale
-                            , coment_part)
+                            , coment_part
+                            , cargador_id
+                            , mod_id
+                            , estado)
                             VALUES (NEW.nom_part
                                   , NEW.sitio_web
                                   , NEW.direccion
-                                  , id
+                                  , id_nac
                                   , NEW.telefono
                                   , NEW.email
                                   , NEW.fecha_comienzo_insert
                                   , NEW.fecha_finale_insert
-                                  , NEW.coment_part) 
+                                  , NEW.coment_part
+                                  , NEW.cargador_id
+                                  , NEW.mod_id
+                                  , NEW.estado)
                                   RETURNING part_id INTO id;
-    INSERT INTO persona(part_id
+
+    INSERT INTO public.persona(part_id
                       , nom_segundo
                       , nom_paterno
                       , nom_materno
                       , seudonimo
                       , lugar_muer
                       , genero
-                      , actualizador_id) 
+                      , cargador_id) 
                     VALUES (id
                           , NEW.nom_segundo
                           , NEW.nom_paterno
                           , NEW.nom_materno
                           , NEW.seudonimo
-                          , muer_id
+                          , id_muer
                           , NEW.genero
-                          , id);
+                          , NEW.cargador_id
+                          , NEW.mod_id
+                          , NEW.estado);
 
   ELSIF (TG_OP = 'UPDATE') THEN
 
@@ -175,9 +187,10 @@ BEGIN
                             , fecha_comienzo=NEW.fecha_comienzo_insert
                             , fecha_finale=NEW.fecha_finale_insert
                             , coment_part=NEW.coment_part
-                            , actualizador_id=NEW.actualizador_id
-                            WHERE part_id=OLD.pp_id
-                            RETURNING old.pp_id INTO id;
+                            , cargador_id=NEW.cargador_id
+                            , mod_id=NEW.mod_id
+                            , estado=NEW.estado
+                            WHERE part_id=OLD.pp_id;
 
     UPDATE public.persona SET nom_segundo=NEW.nom_segundo
                       , nom_paterno=NEW.nom_paterno
@@ -185,7 +198,9 @@ BEGIN
                       , seudonimo=NEW.seudonimo
                       , lugar_muer=NEW.lugar_muer
                       , genero=NEW.genero
-                      , actualizador_id=NEW.actualizador_id
+                      , cargador_id=NEW.cargador_id
+                      , mod_id=NEW.mod_id
+                      , estado=NEW.estado
                       WHERE part_id=OLD.pp_id;
 
     UPDATE public.lugar SET ciudad=NEW.ciudad
@@ -199,9 +214,6 @@ BEGIN
                     , tipo_subdivision=NEW.tipo_subdivision_muer
                     , pais=NEW.pais_muer
                     WHERE lugar_id=OLD.lugar_muer;
-
-
-
 
   END IF;
   RETURN NULL;
@@ -248,7 +260,7 @@ DECLARE
 BEGIN
 
   IF (TG_OP = 'INSERT') THEN
-    INSERT INTO lugar(ciudad
+    INSERT INTO public.lugar(ciudad
                     , nom_subdivision
                     , tipo_subdivision
                     , pais)
@@ -258,7 +270,7 @@ BEGIN
                         , NEW.pais)
                       RETURNING lugar_id INTO id;
 
-    INSERT INTO participante (nom_part
+    INSERT INTO public.participante (nom_part
                             , sitio_web
                             , direccion
                             , lugar_id
@@ -266,7 +278,10 @@ BEGIN
                             , email
                             , fecha_comienzo
                             , fecha_finale
-                            , coment_part)
+                            , coment_part
+                            , cargador_id
+                            , mod_id
+                            , estado)
                           VALUES (NEW.nom_part
                                 , NEW.sitio_web
                                 , NEW.direccion
@@ -275,15 +290,25 @@ BEGIN
                                 , NEW.email
                                 , NEW.fecha_comienzo_insert
                                 , NEW.fecha_finale_insert
-                                , NEW.coment_part)
+                                , NEW.coment_part
+                                , NEW.cargador_id
+                                , NEW.mod_id
+                                , NEW.estado)
                               RETURNING part_id INTO id;
-    INSERT INTO agregar(part_id
-                      , tipo_agregar)
+
+    INSERT INTO public.agregar(part_id
+                      , tipo_agregar
+                      , cargador_id
+                      , mod_id
+                      , estado)
                     VALUES (id
-                          , NEW.tipo_agregar);
+                          , NEW.tipo_agregar
+                          , NEW.cargador_id
+                          , NEW.mod_id
+                          , NEW.estado);
 
   ELSIF (TG_OP = 'UPDATE') THEN
-    UPDATE participante SET nom_part=NEW.nom_part
+    UPDATE public.participante SET nom_part=NEW.nom_part
                             , sitio_web=NEW.sitio_web
                             , direccion=NEW.direccion
                             , telefono=NEW.telefono
@@ -291,19 +316,21 @@ BEGIN
                             , fecha_comienzo=NEW.fecha_comienzo_insert
                             , fecha_finale=NEW.fecha_finale_insert
                             , coment_part=NEW.coment_part
-                            WHERE part_id=OLD.pa_id;
+                            , cargador_id=NEW.cargador_id
+                            , mod_id=NEW.mod_id
+                            , estado=NEW.estado
+                          WHERE part_id=OLD.pa_id;
     
-    UPDATE lugar SET ciudad=NEW.ciudad
+    UPDATE public.lugar SET ciudad=NEW.ciudad
                    , nom_subdivision=NEW.nom_subdivision
                    , tipo_subdivision=NEW.tipo_subdivision
                    , pais=NEW.pais
+                   , cargador_id=NEW.cargador_id
+                   , mod_id=NEW.mod_id
+                   , estado=NEW.estado
                   WHERE lugar_id=OLD.lugar_id;
 
-
-    UPDATE agregar SET tipo_agregar=NEW.tipo_agregar
-                      WHERE part_id=OLD.pa_id;
-
-
+    UPDATE public.agregar SET tipo_agregar=NEW.tipo_agregar WHERE part_id=OLD.pa_id;
   END IF;
   RETURN NULL;
 END;
@@ -326,9 +353,10 @@ CREATE OR REPLACE VIEW part_us_pers AS
 
 CREATE OR REPLACE FUNCTION us_pers_insert() RETURNS TRIGGER AS $body$
 DECLARE
+  id_comienzo int;
   id int;
 BEGIN
-  INSERT INTO lugar(ciudad
+  INSERT INTO public.lugar(ciudad
                     , nom_subdivision
                     , tipo_subdivision
                     , pais)
@@ -336,9 +364,9 @@ BEGIN
                         , NEW.nom_subdivision
                         , NEW.tipo_subdivision
                         , NEW.pais)
-                      RETURNING lugar_id INTO id;
+                      RETURNING lugar_id INTO id_comienzo;
 
-  INSERT INTO participante (nom_part
+  INSERT INTO public.participante (nom_part
                           , sitio_web
                           , direccion
                           , lugar_id
@@ -346,32 +374,41 @@ BEGIN
                           , email
                           , fecha_comienzo
                           , fecha_finale
-                          , coment_part)
+                          , coment_part
+                          , estado)
                           VALUES (NEW.nom_part
                                 , NEW.sitio_web
                                 , NEW.direccion
-                                , id
+                                , id_comienzo
                                 , NEW.telefono
                                 , NEW.email
                                 , NEW.fecha_comienzo_insert
                                 , NEW.fecha_finale_insert
-                                , NEW.coment_part) 
+                                , NEW.coment_part
+                                , 'PENDIENTE')
                                 RETURNING part_id INTO id;
-  INSERT INTO persona(part_id
+
+  INSERT INTO public.persona(part_id
                     , nom_segundo
                     , nom_paterno
                     , nom_materno
                     , seudonimo
                     , lugar_muer
-                    , genero) 
+                    , genero
+                    , cargador_id
+                    , mod_id
+                    , estado)
                   VALUES (id
                         , NEW.nom_segundo
                         , NEW.nom_paterno
                         , NEW.nom_materno
                         , NEW.seudonimo
                         , NEW.lugar_muer
-                        , NEW.genero);
-  INSERT INTO usario (part_id
+                        , NEW.genero
+                        , id
+                        , 'PENDIENTE');
+
+  INSERT INTO public.usario (part_id
                     , nom_usario
                     , contrasena
                     , permiso
@@ -405,9 +442,10 @@ CREATE OR REPLACE VIEW part_us_ag AS
 
 CREATE OR REPLACE FUNCTION us_ag_insert() RETURNS TRIGGER AS $body$
 DECLARE
+  id_comienzo int;
   id int;
 BEGIN
-  INSERT INTO lugar(ciudad
+  INSERT INTO public.lugar(ciudad
                     , nom_subdivision
                     , tipo_subdivision
                     , pais)
@@ -415,9 +453,9 @@ BEGIN
                         , NEW.nom_subdivision
                         , NEW.tipo_subdivision
                         , NEW.pais)
-                      RETURNING lugar_id INTO id;
+                      RETURNING lugar_id INTO id_comienzo;
 
-  INSERT INTO participante (nom_part
+  INSERT INTO public.participante (nom_part
                           , sitio_web
                           , direccion
                           , lugar_id
@@ -425,24 +463,30 @@ BEGIN
                           , email
                           , fecha_comienzo
                           , fecha_finale
-                          , coment_part)
+                          , coment_part
+                          , estado)
                         VALUES (NEW.nom_part
                               , NEW.sitio_web
                               , NEW.direccion
-                              , id
+                              , id_comienzo
                               , NEW.telefono
                               , NEW.email
                               , NEW.fecha_comienzo_insert
                               , NEW.fecha_finale_insert
-                              , NEW.coment_part) 
+                              , NEW.coment_part
+                              , 'PENDIENTE')
                             RETURNING part_id INTO id;
  
-  INSERT INTO agregar(part_id
-                    , tipo_agregar) 
+  INSERT INTO public.agregar(part_id
+                    , tipo_agregar
+                    , cargador_id
+                    , estado)
                   VALUES (id
-                        , NEW.tipo_agregar);
+                        , NEW.tipo_agregar
+                        , id
+                        , 'PENDIENTE');
   
-  INSERT INTO usario (part_id
+  INSERT INTO public.usario (part_id
                     , nom_usario
                     , contrasena
                     , permiso
@@ -460,7 +504,7 @@ END;
 $body$
 LANGUAGE plpgsql;
  
-DROP TRIGGER IF EXISTS us_ag_trigger ON part_us_ag;
+DROP TRIGGER IF EXISTS us_ag_trigger ON public.part_us_ag;
 
 CREATE TRIGGER us_ag_trigger
   INSTEAD OF INSERT ON part_us_ag

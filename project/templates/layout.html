@@ -38,6 +38,26 @@
     </head>
     <body data-bodyview="index" class="default">
 
+    <!-- Modal -->
+    <div class="modal fade" id="confirm-modal" role="dialog">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-alignment-center">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">¿Estas seguro que quieres borrarlo?</h4>
+                    </div>
+                    <div class="modal-body text-center">
+                        <a href="" id="delete-button" type="button"
+                            class="btn btn-danger">Borrar</a>
+                        <button type="button" class="btn btn-default"
+                                data-dismiss="modal">Cerca</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
         {% include 'includes/_navbar.html' %}
 

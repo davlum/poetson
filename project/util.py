@@ -2,14 +2,16 @@
 # coding=utf-8
 
 from flask_mail import Message
-from flask import session
 from sqlalchemy import text
 from project import app, mail
 from re import compile
 
 
 def current_user(con, email):
-    query = text("""SELECT * FROM part_us WHERE LOWER(email)=LOWER(:email)""")
+    query = text("""SELECT * 
+                      FROM public.usario 
+                      WHERE LOWER(ag_email)=LOWER(:email)
+                         OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 
@@ -25,6 +27,7 @@ def send_email(to, subject, template):
     )
     mail.send(msg)
 
+
 # Properly parses a date-like string
 # into the UDT fecha
 def parse_fecha(d):
@@ -37,19 +40,19 @@ def parse_fecha(d):
     if year.match(d):
         return ("'01/01/" + d + "'", 'YEAR')
     if month.match(d):
-        ("'01/" + d + "'", 'MONTH')
+        return ("'01/" + d + "'", 'MONTH')
     if full.match(d):
         return ("'" + d + "'", 'FULL')
 
 
-def current_org(con, email):
-    query = text("""SELECT * FROM part_us_ag WHERE LOWER(email)=LOWER(:email)""")
+def current_ag(con, email):
+    query = text("""SELECT * FROM public.us_ag WHERE LOWER(email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 
 
 def current_pers(con, email):
-    query = text("""SELECT * FROM part_us_pers WHERE LOWER(email)=LOWER(:email)""")
+    query = text("""SELECT * FROM public.us_pers WHERE LOWER(email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 
