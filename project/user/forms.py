@@ -387,6 +387,7 @@ class DynamicInterpForm(Form):
     rol_query = text("""SELECT nom_rol_pista FROM public.rol_pista_son""")
     rol_result = con.execute(rol_query)
     rol_arr = [(res.nom_rol_pista, res.nom_rol_pista) for res in rol_result]
+    print('rol_arr')
     con.close()
     part_id = SelectField('Artista', choices=part_id_arr)
     rol_pista_son = SelectField('Papel en esta pista', choices=rol_arr)
@@ -430,7 +431,6 @@ class AddTrackForm(Form):
 
     comp_id = SelectField('Composición de referencia', choices=comp_arr,
                           validators=[InputRequired(message='Esto es requerido.')])
-    print(comp_arr)
     track_no_arr = [(str(i), str(i)) for i in range(1, 100)]
     numero_de_pista = SelectField('Número de pista', choices=track_no_arr, validators=[Optional()])
     medio = SelectField('Medios originales', choices=medio_arr, validators=[Optional()])

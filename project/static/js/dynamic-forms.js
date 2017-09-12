@@ -58,6 +58,22 @@ $(function() {
             );
         }
     );
+    $(document).on('change', function() {
+        $('.form-custom').on('change',
+            function () {
+                var instForm = $(this).find('.instrumento:first');
+                if ($(this).find('.rol-pista:first').val() !== 'Ejecutante') {
+                    instForm.val("1");
+                    instForm.attr('disabled', true);
+
+                }
+                else {
+                    instForm.attr('disabled', false);
+                }
+            }
+        );
+    });
+
     $('.pull-down').each(function() {
         var $this = $(this);
         $this.css('margin-top', $this.parent().height() - $this.height())
