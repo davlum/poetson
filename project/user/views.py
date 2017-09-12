@@ -17,9 +17,14 @@ from .forms import LoginForm, RegisterForm, \
     InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
 from project.util import current_user, current_ag, current_pers, send_email
+
 from project.user.models import query_ags, query_pers_ag, query_pers, populate_info, update_info, \
     insert_part, populate_poner_ag, populate_poner_pers, update_poner_ag, update_poner_pers, delete_part, \
-    init_comps, init_pistas, init_pers, init_ags, insert_comp, query_comps, insert_pista, query_pista
+    init_comps, init_pistas, init_pers, init_ags, insert_comp, query_comps, insert_pista, query_pista, \
+    populate_ags_form, populate_pais_form, populate_genero_form, populate_tipo_ags_form, \
+    populate_part_id_form, populate_rol_comp_form, populate_idiomas_form, populate_temas_form, populate_comps_form, \
+    populate_instrumento_form, populate_rol_pista_form, populate_gen_mus_form, populate_comp, \
+    populate_comps_pista_form, populate_medio_form, populate_serie_form
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -82,6 +87,13 @@ def register():
 @is_logged_in
 def info():
     form = InfoForm(request.form)
+    con = engine.connect()
+    for sub_form in form.org_form:
+        sub_form.agregar_id.choices = populate_ags_form(con)
+    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+    form.genero.choices = populate_genero_form(con)
+    form.pais.choices = populate_pais_form(con)
+    con.close()
     if request.method == 'GET':
         # prepopulate
         con = engine.connect()
@@ -262,6 +274,14 @@ def profile():
 @check_confirmed
 def poner_part():
     form = AddEntityForm(request.form)
+    con = engine.connect()
+    for sub_form in form.org_form:
+        sub_form.agregar_id.choices = populate_ags_form(con)
+    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+    form.genero.choices = populate_genero_form(con)
+    form.pais.choices = populate_pais_form(con)
+    form.pais_muer.choices = populate_pais_form(con)
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
@@ -286,10 +306,14 @@ def poner_part():
 @is_author
 def poner_pers(part_id):
     form = UpdateEntityForm(request.form)
+    con = engine.connect()
+    form.org_form.agregar_id.choices = populate_ags_form(con)
+    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+    form.genero.choices = populate_genero_form(con)
+    form.pais.choices = populate_pais_form(con)
     if request.method == 'GET':
-        con = engine.connect()
         populate_poner_pers(con, form, part_id)
-        con.close()
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
@@ -313,10 +337,12 @@ def poner_pers(part_id):
 @is_author
 def poner_ag(part_id):
     form = UpdateEntityForm(request.form)
+    con = engine.connect()
+    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+    form.pais.choices = populate_pais_form(con)
     if request.method == 'GET':
-        con = engine.connect()
         populate_poner_ag(con, form, part_id)
-        con.close()
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
@@ -357,6 +383,16 @@ def remove_part(part_id):
 @check_confirmed
 def poner_comp():
     form = AddCompForm(request.form)
+    con = engine.connect()
+    for sub_form in form.part_id_form:
+        sub_form.part_id.choices = populate_part_id_form(con)
+        sub_form.rol_composicion.choices = populate_rol_comp_form(con)
+    for sub_form in form.idioma_form:
+        sub_form.idioma_id.choices = populate_idiomas_form(con)
+    for sub_form in form.tema_form:
+        sub_form.tema_id.choices = populate_temas_form(con)
+    form.comp_id.choices = populate_comps_form(con)
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
@@ -380,6 +416,18 @@ def poner_comp():
 @check_confirmed
 def poner_pista():
     form = AddTrackForm(request.form)
+    con = engine.connect()
+    for sub_form in form.gen_mus_form:
+        sub_form.gen_mus_id.choices = populate_gen_mus_form(con)
+    for sub_form in form.interp_form:
+        sub_form.part_id.choices = populate_part_id_form(con)
+        sub_form.rol_pista_son.choices = populate_rol_pista_form(con)
+        sub_form.instrumento_id.choices = populate_instrumento_form(con)
+    form.medio.choices = populate_medio_form(con)
+    form.serie_id.choices = populate_serie_form(con)
+    form.comp_id.choices = populate_comps_pista_form(con)
+    form.pais.choices = populate_pais_form(con)
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
@@ -404,10 +452,15 @@ def poner_pista():
 @is_author
 def update_comp(comp_id):
     form = AddCompForm(request.form)
+    con = engine.connect()
+    form.part_id_form.part_id_form.part_id.choices = populate_part_id_form(con)
+    form.part_id_form.rol_composicion.choices = populate_rol_comp_form(con)
+    form.idioma_form.idioma_id.choices = populate_idiomas_form(con)
+    form.tema_form.tema_id.choices = populate_temas_form(con)
+    form.comp_id.choices = populate_comps_form(con)
     if request.method == 'GET':
-        con = engine.connect()
         populate_comp(con, form, comp_id)
-        con.close()
+    con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()

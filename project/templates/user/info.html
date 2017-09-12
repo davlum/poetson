@@ -7,17 +7,28 @@
   {% from "includes/_formhelpers.html" import render_field %}
     <div id="toggle-div" style="display: none;" name="{{ session['is_person']|safe }}"></div>
     <form id="info-form" method='POST' action="">
+
         {{ form.csrf_token }}
         <br>
         <div class="center-block skinny">
+        <div class="text-center">
+            <p>Ahora que ha creado su cuenta, cuéntenos un poco más sobre usted. <br>
+NOTA: la información confidencial (dirección postal y teléfono) no será compartida en nuestra
+base de datos. <br> Sólo tiene como propósito comunicarnos con usted en caso de ser necesario.
+            </p>
+        </div>
+            <br>
             <div class="row individual">
-                <div class="form-group col-sm-4">
+                <div class="form-group col-md-3">
                   {{render_field(form.nom_part, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.nom_segundo, class ="form-control")}}
+                <div class="form-group col-md-3">
+                  {{render_field(form.nom_paterno, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-4">
+                <div class="form-group col-md-3">
+                  {{render_field(form.nom_materno, class ="form-control")}}
+                </div>
+                <div class="form-group col-md-3">
                   {{render_field(form.seudonimo, class ="form-control")}}
                 </div>
             </div>
@@ -26,15 +37,18 @@
                   {{render_field(form.nom_part_ag, class ="form-control")}}
                 </div>
             </div>
-            <div class="form-group">
-              {{render_field(form.sitio_web, class ="form-control"
-                                         , placeholder="https://www.example.com")}}
+            <div class="row">
+                <div class="form-group col-md-6">
+                  {{render_field(form.sitio_web, class ="form-control"
+                                             , placeholder="https://www.example.com")}}
+                </div>
+                <div class="form-group col-md-6">
+                  {{render_field(form.telefono, class ="form-control"
+                           , placeholder="(55)5555-55555")}}
+                </div>
             </div>
             <div class="form-group">
               {{render_field(form.direccion, class ="form-control")}}
-            </div>
-            <div class="form-group">
-              {{render_field(form.telefono, class ="form-control")}}
             </div>
             <div class="form-group">
                 {{render_field(form.fecha_comienzo, class ="form-control"
@@ -44,16 +58,13 @@
                 {{render_field(form.genero, class ="form-control")}}
             </div>
             <div class="row">
-                <div class="form-group col-sm-3">
+                <div class="form-group col-md-4">
                   {{render_field(form.ciudad, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-3">
-                  {{render_field(form.nom_subdivision, class ="form-control")}}
+                <div class="form-group col-md-4">
+                  {{render_field(form.subdivision, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-3">
-                  {{render_field(form.tipo_subdivision, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-3">
+                <div class="form-group col-md-4">
                   {{render_field(form.pais, class ="form-control")}}
                 </div>
             </div>
@@ -95,20 +106,12 @@
                   {{render_field(form.tipo_agregar, class ="form-control")}}
                 </div>
             </div>
-            <div class="row individual">
-                <div class="form-group col-sm-6">
-                  {{render_field(form.nom_paterno, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-6">
-                  {{render_field(form.nom_materno, class ="form-control")}}
-                </div>
-            </div>
             <div class="form-group">
               {{render_field(form.coment_part, class ="form-control")}}
             </div>
              <div class="row">
                 <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
-                <a data-inline="true" role="button" class="btn btn-info" href="{{ url_for('user.profile') }}">Continuar</a>
+                <a data-inline="true" role="button" class="btn btn-info" href="{{ url_for('user.profile') }}">Omitir</a>
             </div>
         </div>
       </form>

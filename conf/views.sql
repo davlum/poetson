@@ -1,7 +1,7 @@
 CREATE OR REPLACE view public.part_view AS
   SELECT pa.part_id
        , COALESCE(a.nom_part,
-         CONCAT(pe.nom_part, ' ''', pe.seudonimo, ''' ', pe.nom_segundo)) nom_part
+         CONCAT(pe.nom_part, ' ''', pe.seudonimo, ''' ', pe.nom_paterno)) nom_part
     FROM public.participante pa
     LEFT JOIN public.persona pe
       ON pa.part_id = pe.part_id
@@ -11,7 +11,6 @@ CREATE OR REPLACE view public.part_view AS
 
 CREATE OR REPLACE VIEW public.pers_view AS
   SELECT pers.part_id
-       , pers.nom_segundo
        , pers.seudonimo
        , pers.nom_paterno
        , pers.nom_materno
@@ -19,8 +18,7 @@ CREATE OR REPLACE VIEW public.pers_view AS
         -- Join with lugar
        , pers.lugar_muer
        , l2.ciudad ciudad_muer
-       , l2.nom_subdivision nom_subdivision_muer
-       , l2.tipo_subdivision tipo_subdivision_muer
+       , l2.subdivision subdivision_muer
        , l2.pais pais_muer
         -- Common attrs
        , pers.nom_part
@@ -36,8 +34,7 @@ CREATE OR REPLACE VIEW public.pers_view AS
         -- Join with lugar
        , pers.lugar_id
        , l1.ciudad
-       , l1.nom_subdivision
-       , l1.tipo_subdivision
+       , l1.subdivision
        , l1.pais
         -- Audit attrs
        , pers.mod_id
@@ -57,27 +54,22 @@ DECLARE
 BEGIN
   IF TG_OP = 'INSERT' THEN
     INSERT INTO public.lugar(ciudad
-                    , nom_subdivision
-                    , tipo_subdivision
+                    , subdivision
                     , pais)
                   VALUES (NEW.ciudad
-                        , NEW.nom_subdivision
-                        , NEW.tipo_subdivision
+                        , NEW.subdivision
                         , NEW.pais)
                       RETURNING lugar_id INTO id_nac;
 
     INSERT INTO public.lugar(ciudad
-                    , nom_subdivision
-                    , tipo_subdivision
+                    , subdivision
                     , pais)
                   VALUES (NEW.ciudad_muer
-                        , NEW.nom_subdivision_muer
-                        , NEW.tipo_subdivision_muer
+                        , NEW.subdivision_muer
                         , NEW.pais_muer)
                       RETURNING lugar_id INTO id_muer;
 
-    INSERT INTO public.persona(nom_segundo
-                              , nom_paterno
+    INSERT INTO public.persona(nom_paterno
                               , nom_materno
                               , seudonimo
                               , lugar_muer
@@ -94,8 +86,7 @@ BEGIN
                               , coment_part
                               -- Audit attr
                               , cargador_id)
-                            VALUES (NEW.nom_segundo
-                                  , NEW.nom_paterno
+                            VALUES (NEW.nom_paterno
                                   , NEW.nom_materno
                                   , NEW.seudonimo
                                   , id_muer
@@ -115,8 +106,7 @@ BEGIN
 
   ELSIF (TG_OP = 'UPDATE') THEN
 
-    UPDATE public.persona SET nom_segundo=NEW.nom_segundo
-                            , nom_paterno=NEW.nom_paterno
+    UPDATE public.persona SET nom_paterno=NEW.nom_paterno
                             , nom_materno=NEW.nom_materno
                             , seudonimo=NEW.seudonimo
                             , lugar_muer=NEW.lugar_muer
@@ -137,14 +127,12 @@ BEGIN
                       WHERE part_id=OLD.part_id;
 
     UPDATE public.lugar SET ciudad=NEW.ciudad
-                    , nom_subdivision=NEW.nom_subdivision
-                    , tipo_subdivision=NEW.tipo_subdivision
+                    , subdivision=NEW.subdivision
                     , pais=NEW.pais
                     WHERE lugar_id=OLD.lugar_id;
 
     UPDATE public.lugar SET ciudad=NEW.ciudad_muer
-                    , nom_subdivision=NEW.nom_subdivision_muer
-                    , tipo_subdivision=NEW.tipo_subdivision_muer
+                    , subdivision=NEW.subdivision_muer
                     , pais=NEW.pais_muer
                     WHERE lugar_id=OLD.lugar_muer;
 
@@ -180,8 +168,7 @@ CREATE OR REPLACE VIEW public.ag_view AS
         -- Join with lugar
        , ag.lugar_id
        , l1.ciudad
-       , l1.nom_subdivision
-       , l1.tipo_subdivision
+       , l1.subdivision
        , l1.pais
         -- Audit attrs
        , ag.cargador_id
@@ -197,12 +184,10 @@ DECLARE
 BEGIN
   IF TG_OP = 'INSERT' THEN
     INSERT INTO public.lugar(ciudad
-                    , nom_subdivision
-                    , tipo_subdivision
+                    , subdivision
                     , pais)
                   VALUES (NEW.ciudad
-                        , NEW.nom_subdivision
-                        , NEW.tipo_subdivision
+                        , NEW.subdivision
                         , NEW.pais)
                       RETURNING lugar_id INTO id_comienzo;
 
@@ -252,8 +237,7 @@ BEGIN
                       WHERE part_id=OLD.part_id;
 
       UPDATE public.lugar SET ciudad=NEW.ciudad
-                      , nom_subdivision=NEW.nom_subdivision
-                      , tipo_subdivision=NEW.tipo_subdivision
+                      , subdivision=NEW.subdivision
                       , pais=NEW.pais
                       WHERE lugar_id=OLD.lugar_id;
 

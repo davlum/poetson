@@ -4,8 +4,138 @@ from project.util import current_pers, current_ag, parse_fecha
 from project.user.forms import OrgForm
 
 
+# Queries for InfoForm
+def populate_ags_form(con):
+    # List of all agregates
+    ag_query = text("""SELECT part_id, nom_part FROM public.agregar;""")
+    ag_result = con.execute(ag_query)
+    ag_arr = [(str(res.part_id), res.nom_part) for res in ag_result]
+    ag_arr.insert(0, ("0", 'Ninguno'))
+    return ag_arr
+
+
+def populate_tipo_ags_form(con):
+    # Get List of possible agregate types
+    tipo_ag_query = text("""SELECT nom_tipo_agregar nom FROM public.tipo_agregar;""")
+    tipo_ag_result = con.execute(tipo_ag_query)
+    tipo_ag_arr = [(res.nom, res.nom) for res in tipo_ag_result]
+    return tipo_ag_arr
+
+
+def populate_genero_form(con):
+    # Get List of possible genders
+    gender_query = text("""SELECT nom_genero FROM public.genero_persona;""")
+    gender_result = con.execute(gender_query)
+    gender_arr = [(str(res.nom_genero), res.nom_genero) for res in gender_result]
+    return gender_arr
+
+
+def populate_pais_form(con):
+    # Get List of countries
+    country_query = text("""SELECT nom_pais FROM public.pais;""")
+    country_result = con.execute(country_query)
+    country_arr = [(res.nom_pais, res.nom_pais) for res in country_result]
+    return country_arr
+
+
+# Queries for AddCompForm
+def populate_part_id_form(con):
+    # Get list of all artists
+    part_id_query = text("""SELECT part_id, nom_part FROM public.part_view""")
+    part_id_result = con.execute(part_id_query)
+    part_id_arr = [(str(res.part_id), res.nom_part) for res in part_id_result]
+    return part_id_arr
+
+
+def populate_rol_comp_form(con):
+    # list of roles in a composicion
+    rol_query = text("""SELECT nom_rol_comp FROM public.rol_composicion""")
+    rol_result = con.execute(rol_query)
+    rol_arr = [(res.nom_rol_comp, res.nom_rol_comp) for res in rol_result]
+    return rol_arr
+
+
+def populate_idiomas_form(con):
+    # list of languages
+    idioma_query = text("""SELECT idioma_id, nom_idioma FROM public.idioma""")
+    idioma_result = con.execute(idioma_query)
+    idioma_arr = [(str(res.idioma_id), res.nom_idioma) for res in idioma_result]
+    idioma_arr.insert(0, ("0", 'Ninguno'))
+    return idioma_arr
+
+
+def populate_temas_form(con):
+    tema_query = text("""SELECT tema_id, nom_tema FROM public.tema""")
+    tema_result = con.execute(tema_query)
+    tema_arr = [(str(res.tema_id), res.nom_tema) for res in tema_result]
+    tema_arr.insert(0, ("0", 'Ninguno'))
+    return tema_arr
+
+
+def populate_comps_form(con):
+    # List of composicion
+    comp_query = text("""SELECT composicion_id, nom_tit FROM public.composicion""")
+    comp_result = con.execute(comp_query)
+    comp_arr = [(str(res.composicion_id), res.nom_tit) for res in comp_result]
+    comp_arr.insert(0, ("0", 'Ninguno'))
+    return comp_arr
+
+
+# Queries for the AddTrackForm
+def populate_instrumento_form(con):
+    # Get list of instruments
+    instrumento_query = text("""SELECT instrumento_id, nom_inst FROM public.instrumento""")
+    instrumento_result = con.execute(instrumento_query)
+    instrumento_arr = [(str(res.instrumento_id), res.nom_inst) for res in instrumento_result]
+    return instrumento_arr
+
+
+def populate_rol_pista_form(con):
+    # List of possible roles in a pista_son
+    rol_query = text("""SELECT nom_rol_pista FROM public.rol_pista_son""")
+    rol_result = con.execute(rol_query)
+    rol_arr = [(res.nom_rol_pista, res.nom_rol_pista) for res in rol_result]
+    return rol_arr
+
+
+def populate_gen_mus_form(con):
+    # List of possible genres of music
+    gen_mus_query = text("""SELECT gen_mus_id, nom_gen_mus FROM public.genero_musical""")
+    gen_mus_result = con.execute(gen_mus_query)
+    gen_mus_arr = [(str(res.gen_mus_id), res.nom_gen_mus) for res in gen_mus_result]
+    gen_mus_arr.insert(0, ("0", 'Ninguno'))
+    return gen_mus_arr
+
+
+def populate_medio_form(con):
+    # List of possible mediums of origin for the tracks
+    medio_query = text("""SELECT nom_medio FROM public.medio;""")
+    medio_result = con.execute(medio_query)
+    medio_arr = [(res.nom_medio, res.nom_medio) for res in medio_result]
+    return medio_arr
+
+
+def populate_serie_form(con):
+    # list of series
+    serie_query = text("""SELECT serie_id, nom_serie FROM public.serie;""")
+    serie_result = con.execute(serie_query)
+    serie_arr = [(str(res.serie_id), res.nom_serie) for res in serie_result]
+    serie_arr.insert(0, ("0", 'Ninguno'))
+    return serie_arr
+
+
+def populate_comps_pista_form(con):
+    # list of possible composicions without the none option
+    comp_query = text("""SELECT composicion_id, nom_tit FROM public.composicion""")
+    comp_result = con.execute(comp_query)
+    comp_arr = [(str(res.composicion_id), res.nom_tit) for res in comp_result]
+    return comp_arr
+
+
+
 # Queries for the info view
 def populate_info(con, form):
+    # populate the form
     if session['is_person']:
         user = current_pers(con, session['email'])
         pers_org_query = text("""SELECT pa.agregar_id
@@ -26,7 +156,6 @@ def populate_info(con, form):
             form.org_form.append_entry(org_form)
 
         form.nom_part.data = user.nom_part
-        form.nom_segundo.data = user.nom_segundo
         form.seudonimo.data = user.seudonimo
         form.fecha_comienzo.data = user.fecha_comienzo
         form.nom_paterno.data = user.nom_paterno
@@ -42,21 +171,19 @@ def populate_info(con, form):
     form.direccion.data = user.direccion
     form.telefono.data = user.telefono
     form.ciudad.data = user.ciudad
-    form.nom_subdivision.data = user.nom_subdivision
-    form.tipo_subdivision.data = user.tipo_subdivision
+    form.subdivision.data = user.subdivision
     form.pais.data = user.pais
 
 
 def update_info(con, form):
+    # Update personal info
     if session['is_person']:
         user_query = text("""UPDATE public.pers_view SET nom_part=strip(:nom_part)
-                                                 , nom_segundo=strip(:nom_segundo)
                                                  , seudonimo=strip(:seudonimo)
                                                  , nom_materno=strip(:nom_materno)
                                                  , nom_paterno=strip(:nom_paterno)
                                                  , ciudad=strip(:ciudad)
-                                                 , nom_subdivision=strip(:nom_subdivision)
-                                                 , tipo_subdivision=strip(:tipo_subdivision)
+                                                 , subdivision=strip(:subdivision)
                                                  , pais=strip(:pais)
                                                  , fecha_comienzo_insert=:fecha_comienzo
                                                  , sitio_web=strip(:sitio_web)
@@ -67,13 +194,11 @@ def update_info(con, form):
                                                  , cargador_id=:id
                                                  WHERE part_id=:id;""")
         con.execute(user_query, nom_part=form.nom_part.data
-                    , nom_segundo=form.nom_segundo.data
                     , seudonimo=form.seudonimo.data
                     , nom_materno=form.nom_materno.data
                     , nom_paterno=form.nom_paterno.data
                     , ciudad=form.ciudad.data
-                    , nom_subdivision=form.nom_subdivision.data
-                    , tipo_subdivision=form.tipo_subdivision.data
+                    , subdivision=form.subdivision.data
                     , pais=form.pais.data
                     , fecha_comienzo=parse_fecha(form.fecha_comienzo.data)
                     , sitio_web=form.sitio_web.data
@@ -101,8 +226,7 @@ def update_info(con, form):
     else:
         user_query = text("""UPDATE public.ag_view SET nom_part=strip(:nom_part_ag)
                                                  , ciudad=strip(:ciudad)
-                                                 , nom_subdivision=strip(:nom_sudivision)
-                                                 , tipo_subdivision=strip(:tipo_sudivision)
+                                                 , subdivision=strip(:subdivision)
                                                  , pais=strip(:pais)
                                                  , fecha_comienzo_insert=:fecha_comienzo
                                                  , sitio_web=strip(:sitio_web)
@@ -114,8 +238,7 @@ def update_info(con, form):
                                                  WHERE part_id=:id;""")
         con.execute(user_query, nom_part_ag=form.nom_part_ag.data
                     , ciudad=form.ciudad.data
-                    , nom_subdivision=form.nom_subdivision.data
-                    , tipo_subdivision=form.tipo_subdivision.data
+                    , subdivision=form.subdivision.data
                     , pais=form.pais.data
                     , date_formed=parse_fecha(form.fecha_comienzo.data)
                     , sitio_web=form.sitio_web.data
@@ -145,7 +268,7 @@ def query_ags(con, part_id):
                          , fecha_comienzo
                          , fecha_finale
                          , ciudad
-                         , nom_subdivision
+                         , subdivision
                          , pais
                          FROM public.ag_view
                          WHERE cargador_id=:id
@@ -159,12 +282,11 @@ def query_ags(con, part_id):
 def query_pers(con, part_id):
     query = text("""SELECT part_id
                          , nom_part
-                         , nom_segundo
                          , seudonimo
                          , fecha_comienzo
                          , fecha_finale
                          , ciudad
-                         , nom_subdivision
+                         , subdivision
                          , pais
                          FROM public.pers_view
                          WHERE cargador_id=:id
@@ -188,7 +310,7 @@ def query_pista(con, part_id):
     query = text("""SELECT p.pista_son_id
                          , c.nom_tit
                          , l.ciudad
-                         , l.nom_subdivision
+                         , l.subdivision
                          , l.pais
                          , public.get_fecha(p.fecha_grab) fecha_grab
                          FROM public.pista_son p
@@ -206,35 +328,28 @@ def query_pista(con, part_id):
 def insert_part(con, form):
     if form.user_type.data == 'persona':
         query_nac = text("""INSERT INTO public.lugar(ciudad
-                                                    , nom_subdivision
-                                                    , tipo_subdivision
+                                                    , subdivision
                                                     , pais) 
                                                   VALUES (strip(:ciudad)
-                                                  , strip(:nom_subdivision)
-                                                  , strip(:tipo_subdivision)
+                                                  , strip(:subdivision)
                                                   , strip(:pais))
                                                 RETURNING lugar_id""")
         result_nac = con.execute(query_nac
                                    , ciudad=form.ciudad.data
-                                   , nom_subdivision=form.nom_subdivision.data
-                                   , tipo_subdivision=form.tipo_subdivision.data
+                                   , subdivision=form.subdivision.data
                                    , pais=form.pais.data).first()[0]
         query_muer = text("""INSERT INTO public.lugar(ciudad
-                                                   , nom_subdivision
-                                                   , tipo_subdivision
+                                                   , subdivision
                                                    , pais)
                                                   VALUES (strip(:ciudad)
-                                                        , strip(:nom_subdivision)
-                                                        , strip(:tipo_subdivision)
+                                                        , strip(:subdivision)
                                                         , strip(:pais))
                                                       RETURNING lugar_id""")
         result_muer = con.execute(query_muer
                                    , ciudad=form.ciudad_muer.data
-                                   , nom_subdivision=form.nom_subdivision_muer.data
-                                   , tipo_subdivision=form.tipo_subdivision_muer.data
+                                   , subdivision=form.subdivision_muer.data
                                    , pais=form.pais_muer.data).first()[0]
         user_query = text("""INSERT INTO public.persona (nom_part
-                                                           , nom_segundo
                                                            , seudonimo
                                                            , nom_paterno
                                                            , nom_materno
@@ -250,7 +365,6 @@ def insert_part(con, form):
                                                            , coment_part
                                                            , cargador_id)
                                                          VALUES (strip(:nom_part)
-                                                               , strip(:nom_segundo)
                                                                , strip(:seudonimo)
                                                                , strip(:nom_paterno)
                                                                , strip(:nom_materno)
@@ -267,7 +381,6 @@ def insert_part(con, form):
                                                                , :cargador_id)
                                                                RETURNING part_id""")
         user_result = con.execute(user_query, nom_part=form.nom_part.data
-                    , nom_segundo=form.nom_segundo.data
                     , seudonimo=form.seudonimo.data
                     , nom_materno=form.nom_materno.data
                     , nom_paterno=form.nom_paterno.data
@@ -299,8 +412,7 @@ def insert_part(con, form):
     else:
         user_query = text("""INSERT INTO public.ag_view(nom_part
                                                            , ciudad
-                                                           , nom_subdivision
-                                                           , tipo_subdivision
+                                                           , subdivision
                                                            , pais
                                                            , fecha_comienzo_insert
                                                            , fecha_finale_insert
@@ -313,8 +425,7 @@ def insert_part(con, form):
                                                            , cargador_id)
                                                          VALUES (strip(:nom_part)
                                                                , strip(:ciudad)
-                                                               , strip(:nom_subdivision)
-                                                               , strip(:tipo_subdivision)
+                                                               , strip(:subdivision)
                                                                , strip(:pais)
                                                                , :fecha_comienzo
                                                                , :fecha_finale
@@ -327,8 +438,7 @@ def insert_part(con, form):
                                                                , :cargador_id)""")
         con.execute(user_query, nom_part=form.nom_part_ag.data
                     , ciudad=form.ciudad.data
-                    , nom_subdivision=form.nom_subdivision.data
-                    , tipo_subdivision=form.tipo_subdivision.data
+                    , subdivision=form.subdivision.data
                     , pais=form.pais.data
                     , fecha_comienzo=parse_fecha(form.fecha_comienzo.data)
                     , fecha_finale=parse_fecha(form.fecha_finale.data)
@@ -363,7 +473,6 @@ def populate_poner_pers(con, form, part_id):
         form.org_form.append_entry(org_form)
 
     form.nom_part.data = user.nom_part
-    form.nom_segundo.data = user.nom_segundo
     form.seudonimo.data = user.seudonimo
     form.fecha_comienzo.data = user.fecha_comienzo
     form.fecha_comienzo.data = user.fecha_finale
@@ -377,28 +486,23 @@ def populate_poner_pers(con, form, part_id):
     form.direccion.data = user.direccion
     form.telefono.data = user.telefono
     form.ciudad.data = user.ciudad
-    form.nom_subdivision.data = user.nom_subdivision
-    form.tipo_subdivision.data = user.tipo_subdivision
+    form.subdivision.data = user.subdivision
     form.pais.data = user.pais
     form.ciudad_muer.data = user.ciudad_muer
-    form.nom_subdivision_muer.data = user.nom_subdivision_muer
-    form.tipo_subdivision_muer.data = user.tipo_subdivision_muer
+    form.subdivision_muer.data = user.subdivision_muer
     form.pais_muer.data = user.pais_muer
 
 
 def update_poner_pers(con, form, part_id):
     user_query = text("""UPDATE public.pers_view SET nom_part=strip(:nom_part)
-                                             , nom_segundo=strip(:nom_segundo)
                                              , seudonimo=strip(:seudonimo)
                                              , nom_materno=strip(:nom_materno)
                                              , nom_paterno=strip(:nom_paterno)
                                              , ciudad=strip(:ciudad)
-                                             , nom_subdivision=strip(:nom_subdivision)
-                                             , tipo_subdivision=strip(:tipo_subdivision)
+                                             , subdivision=strip(:subdivision)
                                              , pais=strip(:pais)
                                              , ciudad_muer=strip(:ciudad_muer)
-                                             , nom_subdivision_muer=strip(:nom_subdivision_muer)
-                                             , tipo_subdivision_muer=strip(:tipo_subdivision_muer)
+                                             , subdivision_muer=strip(:subdivision_muer)
                                              , pais_muer=strip(:pais_muer)
                                              , fecha_comienzo_insert=:fecha_comienzo
                                              , fecha_finale_insert=:fecha_finale
@@ -411,17 +515,14 @@ def update_poner_pers(con, form, part_id):
                                              , mod_id=:mod_id
                                              WHERE part_id=:part_id;""")
     con.execute(user_query, nom_part=form.nom_part.data
-                , nom_segundo=form.nom_segundo.data
                 , seudonimo=form.seudonimo.data
                 , nom_materno=form.nom_materno.data
                 , nom_paterno=form.nom_paterno.data
                 , ciudad=form.ciudad.data
-                , nom_subdivision=form.nom_subdivision.data
-                , tipo_subdivision=form.tipo_subdivision.data
+                , subdivision=form.subdivision.data
                 , pais=form.pais.data
                 , ciudad_muer=form.ciudad_muer.data
-                , nom_subdivision_muer=form.nom_subdivision_muer.data
-                , tipo_subdivision_muer=form.tipo_subdivision_muer.data
+                , subdivision_muer=form.subdivision_muer.data
                 , pais_muer=form.pais_muer.data
                 , fecha_comienzo=parse_fecha(form.fecha_comienzo.data)
                 , fecha_finale=parse_fecha(form.fecha_finale.data)
@@ -467,16 +568,14 @@ def populate_poner_ag(con, form, part_id):
     form.email.data = user.email
     form.telefono.data = user.telefono
     form.ciudad.data = user.ciudad
-    form.nom_subdivision.data = user.nom_subdivision
-    form.tipo_subdivision.data = user.tipo_subdivision
+    form.subdivision.data = user.subdivision
     form.pais.data = user.pais
 
 
 def update_poner_ag(con, form, part_id):
     user_query = text("""UPDATE public.ag_view SET nom_part=strip(:nom_part_ag)
                                              , ciudad=strip(:ciudad)
-                                             , nom_subdivision=strip(:nom_sudivision)
-                                             , tipo_subdivision=strip(:tipo_sudivision)
+                                             , subdivision=strip(:nom_sudivision)
                                              , pais=strip(:pais)
                                              , fecha_comienzo_insert=:fecha_comienzo
                                              , fecha_comienzo_insert=:fecha_comienzo
@@ -489,8 +588,7 @@ def update_poner_ag(con, form, part_id):
                                              WHERE part_id=:part_id;""")
     con.execute(user_query, nom_part_ag=form.nom_part_ag.data
                 , ciudad=form.ciudad.data
-                , nom_subdivision=form.nom_subdivision.data
-                , tipo_subdivision=form.tipo_subdivision.data
+                , subdivision=form.subdivision.data
                 , pais=form.pais.data
                 , date_formed=parse_fecha(form.fecha_comienzo.data)
                 , sitio_web=form.sitio_web.data
@@ -568,18 +666,15 @@ def insert_comp(con, form, usario_id):
 
 def insert_pista(con, form, usario_id):
     query_lugar = text("""INSERT INTO public.lugar(ciudad
-                                                , nom_subdivision
-                                                , tipo_subdivision
+                                                , subdivision
                                                 , pais) 
                                               VALUES (strip(:ciudad)
-                                              , strip(:nom_subdivision)
-                                              , :tipo_subdivision
+                                              , strip(:subdivision)
                                               , :pais)
                                             RETURNING lugar_id""")
     result_lugar = con.execute(query_lugar
                                , ciudad=form.ciudad.data
-                               , nom_subdivision=form.nom_subdivision.data
-                               , tipo_subdivision=form.tipo_subdivision.data
+                               , subdivision=form.subdivision.data
                                , pais=form.pais.data).first()[0]
 
     query = text("""INSERT INTO public.pista_son(numero_de_pista

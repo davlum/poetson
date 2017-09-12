@@ -15,13 +15,16 @@
         <br>
         <div class="center-block skinny">
             <div class="row">
-                <div class="form-group col-sm-4">
+                <div class="form-group col-md-3">
                   {{render_field(form.nom_part, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-4">
-                  {{render_field(form.nom_segundo, class ="form-control")}}
+                <div class="form-group col-md-3">
+                  {{render_field(form.nom_paterno, class ="form-control")}}
                 </div>
-                <div class="form-group col-sm-4">
+                <div class="form-group col-md-3">
+                  {{render_field(form.nom_materno, class ="form-control")}}
+                </div>
+                <div class="form-group col-md-3">
                   {{render_field(form.seudonimo, class ="form-control")}}
                 </div>
             </div>
@@ -112,14 +115,6 @@
                     </div>  <!-- /div[data-role="dynamic-fields"] -->
                 </div>  <!-- /div.row -->
                 {% endfor %}
-            </div>
-            <div class="row">
-                <div class="form-group col-sm-6">
-                  {{render_field(form.nom_paterno, class ="form-control")}}
-                </div>
-                <div class="form-group col-sm-6">
-                  {{render_field(form.nom_materno, class ="form-control")}}
-                </div>
             </div>
             <div class="form-group">
               {{render_field(form.coment_part, class ="form-control")}}

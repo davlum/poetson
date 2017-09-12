@@ -1,5 +1,4 @@
-﻿INSERT INTO lugar (ciudad, nom_subdivision, tipo_subdivision, pais) VALUES
-(NULL, NULL, NULL, NULL),
+﻿(NULL, NULL, NULL, NULL),
 (NULL, NULL, 'Estado', 'México'),
 (NULL, NULL, 'Estado', 'Estados Unidos'),
 (NULL, NULL, NULL, 'Argentina'),

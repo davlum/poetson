@@ -15,13 +15,6 @@ CREATE TABLE IF NOT EXISTS rol_composicion (
 
 INSERT INTO rol_composicion VALUES ('Primero'), ('Segundo');
 
-CREATE TABLE IF NOT EXISTS tipo_subdivision (
-  tipo_subdiv text PRIMARY KEY
-);
-
-INSERT INTO tipo_subdivision VALUES ('Provincia'), ('Estado'), 
-                                    ('Departamento'), ('Región'),
-                                    ('Condado');
 
 CREATE TABLE IF NOT EXISTS pais (
     nom_pais text PRIMARY KEY
@@ -30,8 +23,7 @@ CREATE TABLE IF NOT EXISTS pais (
 CREATE TABLE IF NOT EXISTS lugar ( 
     lugar_id serial PRIMARY KEY
   , ciudad text
-  , nom_subdivision text
-  , tipo_subdivision text REFERENCES tipo_subdivision
+  , subdivision text
   , pais text REFERENCES pais
 );
 
@@ -56,11 +48,10 @@ COMMENT ON TABLE genero_persona IS 'Comprehensive list of genders. Works as a lo
 -- CREATE INDEXES ON NAMES AND STUFF
 CREATE TABLE IF NOT EXISTS persona (
     part_id int REFERENCES participante ON DELETE CASCADE PRIMARY KEY
-  , nom_segundo text  
-  , seudonimo text
-  , ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
   , nom_paterno text
   , nom_materno text
+  , seudonimo text
+  , ruta_foto text --/<first letter of artist name>/<artist name>/--hashedfilename
   , lugar_muer int REFERENCES lugar
   , genero text REFERENCES genero_persona
 

@@ -8,8 +8,8 @@
         <div>
             <h4>Nom</h4>
             <h3 class="indented">{{ autor.nom_primero }}
-                {% if autor.nom_segundo is not none %}
-                        {{ autor.nom_segundo }}
+                {% if autor.nom_paterno is not none %}
+                        {{ autor.nom_paterno }}
                 {% endif %}
             </h3>
                 {% if autor.seudonimo is not none %}

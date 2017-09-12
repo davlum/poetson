@@ -45,10 +45,9 @@ def artista_query(con, param, year_from, year_to, contains):
         year_to = time.strftime('%Y')
     query = text("""SELECT p.part_id
                           , p.nom_part
-                          , p.nom_segundo
                           , p.seudonimo
                           , p.ciudad
-                          , p.nom_subdivision
+                          , p.subdivision
                           , p.pais
                           FROM public.pers_view p 
                           JOIN public.participante_composicion pc
@@ -63,10 +62,10 @@ def artista_query(con, param, year_from, year_to, contains):
 
 
 def colectivo_query(con, param, year_from, year_to, contains):
-    query = text("""SELECT  a.pa_id
+    query = text("""SELECT  a.part_id
                           , a.nom_part
                           , a.ciudad
-                          , a.nom_subdivision
+                          , a.subdivision
                           , a.pais
                           FROM public.ag_view a 
                           JOIN public.participante_composicion pc
@@ -109,7 +108,7 @@ def tema_query(con, param, year_from, year_to, contains):
 
 def genero_query(con, param, year_from, year_to, contains):
     query = text("""SELECT l.pais
-                         , l.nom_subdivision
+                         , l.subdivision
                          , l.ciudad
                          , c.nom_tit
                          , c.nom_alt 
@@ -128,24 +127,6 @@ def genero_query(con, param, year_from, year_to, contains):
     return con.execute(query, nom=param)
 
 
-
-def instrumento_query(con, param, year_from, year_to, containas):
-    query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR nom_segundo ~* :name;""")
-    return con.execute(query, name=param)
-
-
-def idioma_query(con, param, year_from, year_to, containas):
-    query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
-                          nom_segundo ~* :name;""")
-    return con.execute(query, name=param)
-
-
-def interp_query(con, param, year_from, year_to, containas):
-    artista_query = text("""SELECT * FROM public.artista WHERE nom_primero ~* :name OR 
-                          nom_segundo ~* :name;""")
-    return con.execute(artista_query, name=param)
-
-
 # Tries to parse an Int,
 # returns an empty string on failure
 def parseInt(s):
@@ -153,6 +134,7 @@ def parseInt(s):
         return abs(int(s))
     except ValueError:
         return ""
+
 
 # The main search page. The logic is designed to be
 # comprehensive enough to cover all filtering
@@ -225,7 +207,7 @@ def autor(autorid):
                                      , c.nom_alt
                                      , c.fecha_pub
                                      , l.pais
-                                     , l.nom_subdivision
+                                     , l.subdivision
                                      , l.ciudad 
                                   FROM public.persona pers
                                   LEFT JOIN public.persona_agregar pa
@@ -256,7 +238,7 @@ def colectivo(colid):
 
     # get the list of artists in that colectivo
     author_query = text("""SELECT p.nom_part
-                                , p.nom_segundo
+                                , p.nom_paterno
                                 , p.seudonimo
                                 , p.pais 
                                 FROM public.agregar a
@@ -272,7 +254,6 @@ def colectivo(colid):
                                      , c.nom_tit
                                      , c.nom_alt
                                      , c.fecha_pub
-                                     , c.lugar_comp 
                                   FROM public.composicion c
                                   JOIN public.participante_composicion pc 
                                   ON pc.composicion_id = c.composicion_id
@@ -367,7 +348,7 @@ def serie(serieid):
     serie_query = text("""SELECT s.nom_serie
                              , s.giro
                              , l.pais
-                             , l.nom_subdivision
+                             , l.subdivision
                              , l.ciudad 
                              FROM public.serie s
                              JOIN public.lugar l ON l.lugar_id = s.lugar_id
