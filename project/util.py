@@ -7,6 +7,8 @@ from project import app, mail
 from re import compile
 
 
+
+
 def current_user(con, email):
     query = text("""SELECT * 
                       FROM public.usario 
@@ -14,6 +16,11 @@ def current_user(con, email):
                          OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
 def send_email(to, subject, template):

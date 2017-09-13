@@ -63,7 +63,7 @@ BEGIN
   EXECUTE format('CREATE TABLE IF NOT EXISTS audit.%I (LIKE %I INCLUDING DEFAULTS)'
                   , target_table || '_audit', target_table);
   EXECUTE format('ALTER TABLE audit.%I ' ||
-                 'ADD COLUMN IF NOT EXISTS fecha_accion TIMESTAMP NOT NULL DEFAULT now(), ' ||
+                 'ADD COLUMN IF NOT EXISTS fecha_accion TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), ' ||
                  'ADD COLUMN IF NOT EXISTS accion text NOT NULL ' ||
                  'CHECK (accion IN (''I'', ''D'', ''U'', ''T''))', target_table || '_audit');
 END;

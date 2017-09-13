@@ -3,23 +3,22 @@ CREATE TABLE medio (
   nom_medio text PRIMARY KEY
 );
 
-INSERT INTO medio VALUES ('Digital'), ('CD'), ('Cinta'),('Vinilo');
 
 CREATE TABLE IF NOT EXISTS rol_pista_son(
   nom_rol_pista text PRIMARY KEY
 );
 
+
 CREATE TABLE IF NOT EXISTS rol_composicion (
   nom_rol_comp text PRIMARY KEY
 );
-
-INSERT INTO rol_composicion VALUES ('Primero'), ('Segundo');
 
 
 CREATE TABLE IF NOT EXISTS pais (
     nom_pais text PRIMARY KEY
 );
-                                    
+
+
 CREATE TABLE IF NOT EXISTS lugar ( 
     lugar_id serial PRIMARY KEY
   , ciudad text
@@ -28,6 +27,7 @@ CREATE TABLE IF NOT EXISTS lugar (
 );
 
 COMMENT ON TABLE lugar IS 'City, country, region and specify type of region';
+
 
 ----------------------------------
 ----- Author related entities ----
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS permiso (
   nom_permiso text PRIMARY KEY
 );
 
-INSERT INTO permiso VALUES ('EDITOR'), ('MOD'), ('ADMIN');
+
 
 -- This table will be mutable
 CREATE TABLE IF NOT EXISTS usario (
@@ -110,8 +110,8 @@ CREATE TABLE IF NOT EXISTS usario (
   , contrasena text NOT NULL -- hashed and salted
   , ag_email text UNIQUE REFERENCES agregar(email) ON UPDATE CASCADE
   , pers_email text UNIQUE REFERENCES persona(email) ON UPDATE CASCADE
-  , fecha_registro timestamp DEFAULT now()
-  , fecha_confirmado timestamp
+  , fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT now()
+  , fecha_confirmado TIMESTAMP WITH TIME ZONE
   , permiso text NOT NULL DEFAULT 'EDITOR' REFERENCES permiso
   , CONSTRAINT proper_nom CHECK (nom_usario ~* '^[a-zÀ-ÿ0-9_-]+$')
   , CONSTRAINT tipo_email CHECK ((ag_email IS NULL AND pers_email IS NOT NULL) OR
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS serie (
     serie_id serial PRIMARY KEY
    ,nom_serie text NOT NULL
    ,giro text
-   ,lugar_id int REFERENCES lugar
+   ,lugar_id int REFERENCES lugar ON DELETE CASCADE
 );
 
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
@@ -182,14 +182,6 @@ CREATE TABLE IF NOT EXISTS tema (
 );
 
 COMMENT ON TABLE tema IS 'A tag for the track. Minimum four constraint should be front end. More complex tagging possible';
-
-/*
--- A concept of abstract pista_son and composicion
--- into a work
-CREATE TABLE IF NOT EXISTS obra (
-    obra_id serial PRIMARY KEY  
-);
-*/
 
 
 CREATE TABLE IF NOT EXISTS composicion ( 
@@ -257,7 +249,7 @@ CREATE TABLE IF NOT EXISTS cobertura_tipo (
 
 CREATE TABLE IF NOT EXISTS cobertura (
     cobertura_id serial PRIMARY KEY
-   ,cobertura_tipo_id int NOT NULL REFERENCES cobertura_tipo
+   ,cobertura_tipo int NOT NULL REFERENCES cobertura_tipo
    ,pista_son_id int REFERENCES pista_son ON DELETE SET NULL
    ,composicion_id int REFERENCES composicion ON DELETE SET NULL
    ,lugar_cobertura int REFERENCES lugar

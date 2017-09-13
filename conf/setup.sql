@@ -8,8 +8,6 @@ ALTER DATABASE postgres SET datestyle TO "ISO, DMY";
 \i audit.sql
 \i audit_tables.sql
 \i views.sql
-\i insert.sql 
-INSERT INTO public.ag_view (nom_part, ciudad, subdivision, pais, tipo_agregar) VALUES
-  ('Concordia', 'Montréal', 'Québec', 'Canadá', 'Universidad');
+\i insert.sql
 
 

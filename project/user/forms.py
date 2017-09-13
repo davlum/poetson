@@ -325,10 +325,26 @@ class AddTrackForm(Form):
     subdivision = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad')])
     pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
 
-    archivo = FileField("Subir un archivo", validators=[InputRequired(message='Esto es requerido.')])
+    archivo = FileField("Subir un archivo")
     gen_mus_form = FieldList(FormField(DynamicGenMusForm), min_entries=1, validators=[Optional()])
     interp_form = FieldList(FormField(DynamicInterpForm), min_entries=1)
     coment_pista_son = TextAreaField("Comentario", validators=[Optional()])
+
+
+class SerieForm(Form):
+    # Add a serie to the database
+    nom_serie = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    giro = StringField("Giro", validators=[Optional()])
+    ciudad = StringField('Ciudad', validators=[Optional()])
+    subdivision = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad')])
+    pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
+
+
+class InstrForm(Form):
+    nom_inst = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    familia_instr_id = SelectField("Familia Instrumento", validators=[InputRequired(message='Esto es requerido.')])
+    electronico = BooleanField("Es un instrumento eléctrico")
+    instrumento_comentario = TextAreaField("Comentario", validators=[Optional()])
 
 
 class ChangePasswordForm(Form):

@@ -1,6 +1,6 @@
 INSERT INTO rol_pista_son VALUES ('Ejecutante');
 
---\i populate/tipo_subdivision.sql
+\i populate/lookup.sql
 \i populate/pais.sql
 \i populate/lugar_out.sql
 \i populate/tipo_agregar.sql

@@ -3,7 +3,7 @@
 
 from functools import wraps
 
-from flask import flash, redirect, url_for, session
+from flask import flash, redirect, url_for, session, request
 
 
 def check_confirmed(func):
@@ -43,9 +43,13 @@ def is_author(f):
     @wraps(f)
     def wrap(part_id, *args, **kwargs):
         if 'permission' in session and (session['permission'] == 'MOD' or
-                                        session['permission'] == 'ADMIN') or (
-                                        part_id in session['pers'] or
-                                        part_id in session['ag']):
+                                        session['permission'] == 'ADMIN'):
+            return f(part_id, *args, **kwargs)
+        elif request.endpoint == 'comp' and part_id in session['comps']:
+            return f(part_id, *args, **kwargs)
+        elif request.endpoint == 'pista' and part_id in session['pistas']:
+            return f(part_id, *args, **kwargs)
+        elif request.endpoint == 'part' and part_id in session['parts']:
             return f(part_id, *args, **kwargs)
         else:
             flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')

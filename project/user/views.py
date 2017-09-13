@@ -5,18 +5,21 @@
 #### imports ####
 #################
 
+
+import os
 from project import app
 from flask import render_template, Blueprint, url_for, \
     redirect, flash, request, session, abort
+from werkzeug.utils import secure_filename
 from sqlalchemy import text
 from project.token import generate_confirmation_token, confirm_token, ts
 from project import engine
 from passlib.hash import bcrypt
 from .forms import LoginForm, RegisterForm, \
-    ChangePasswordForm, EmailForm, PasswordForm, \
-    InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm
+    ChangePasswordForm, EmailForm, PasswordForm, InstrForm, \
+    InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
-from project.util import current_user, current_ag, current_pers, send_email
+from project.util import current_user, current_ag, current_pers, send_email, allowed_file
 
 from project.user.models import query_ags, query_pers_ag, query_pers, populate_info, update_info, \
     insert_part, populate_poner_ag, populate_poner_pers, update_poner_ag, update_poner_pers, delete_part, \
@@ -24,12 +27,14 @@ from project.user.models import query_ags, query_pers_ag, query_pers, populate_i
     populate_ags_form, populate_pais_form, populate_genero_form, populate_tipo_ags_form, \
     populate_part_id_form, populate_rol_comp_form, populate_idiomas_form, populate_temas_form, populate_comps_form, \
     populate_instrumento_form, populate_rol_pista_form, populate_gen_mus_form, populate_comp, \
-    populate_comps_pista_form, populate_medio_form, populate_serie_form
+    populate_comps_pista_form, populate_medio_form, populate_serie_form, populate_pista, delete_comp, \
+    delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam
 
 
 user_blueprint = Blueprint('user', __name__,)
 
 
+# a few utility functions that reside in views due to circular dependency
 def init_session(con, email):
     user = current_ag(con, email)
     if user is None:
@@ -46,11 +51,72 @@ def init_session(con, email):
     # get a list of composicions by this user
     session['comps'] = init_comps(con, user.part_id)
     # list of persona added
-    session['pers'] = init_pers(con, user.part_id)
-    # list of agregar added
-    session['ag'] = init_ags(con, user.part_id)
+    session['parts'] = init_pers(con, user.part_id) + init_ags(con, user.part_id)
     # list of pista_son added
-    session['pista'] = init_pistas(con, user.part_id)
+    session['pistas'] = init_pistas(con, user.part_id)
+
+
+def delete_wrapper(fun, con, row_id):
+    try:
+        fun(con, row_id)
+        init_session(con, session['email'])
+        flash('la eliminación se ha realizado correctamente.', 'success')
+    except:
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error.', 'danger')
+
+
+def upsert_wrapper(fun, con, form, row_id=None):
+    trans = con.begin()
+    try:
+        if row_id is not None:
+            fun(con, form, session['id'], row_id)
+        else:
+            fun(con, form, session['id'])
+        trans.commit()
+        flash('La actualización se ha realizado correctamente.', 'success')
+    except:
+        trans.rollback()
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error.', 'danger')
+
+
+def add_pista_choices(con, form):
+    for sub_form in form.gen_mus_form:
+        sub_form.gen_mus_id.choices = populate_gen_mus_form(con)
+    for sub_form in form.interp_form:
+        sub_form.part_id.choices = populate_part_id_form(con)
+        sub_form.rol_pista_son.choices = populate_rol_pista_form(con)
+        sub_form.instrumento_id.choices = populate_instrumento_form(con)
+    form.medio.choices = populate_medio_form(con)
+    form.serie_id.choices = populate_serie_form(con)
+    form.comp_id.choices = populate_comps_pista_form(con)
+    form.pais.choices = populate_pais_form(con)
+
+
+def add_comp_choices(con, form):
+    for sub_form in form.part_id_form:
+        sub_form.part_id.choices = populate_part_id_form(con)
+        sub_form.rol_composicion.choices = populate_rol_comp_form(con)
+    for sub_form in form.idioma_form:
+        sub_form.idioma_id.choices = populate_idiomas_form(con)
+    for sub_form in form.tema_form:
+        sub_form.tema_id.choices = populate_temas_form(con)
+    form.comp_id.choices = populate_comps_form(con)
+
+
+def add_part_choices(con, form):
+    for sub_form in form.org_form:
+        sub_form.agregar_id.choices = populate_ags_form(con)
+    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+    form.genero.choices = populate_genero_form(con)
+    form.pais.choices = populate_pais_form(con)
+    form.pais_muer.choices = populate_pais_form(con)
+
+
+# The view start here
 
 
 @user_blueprint.route('/register', methods=['GET', 'POST'])
@@ -88,32 +154,20 @@ def register():
 def info():
     form = InfoForm(request.form)
     con = engine.connect()
+    if request.method == 'GET':
+        # prepopulate
+        populate_info(con, form)
+    con = engine.connect()
     for sub_form in form.org_form:
         sub_form.agregar_id.choices = populate_ags_form(con)
     form.tipo_agregar.choices = populate_tipo_ags_form(con)
     form.genero.choices = populate_genero_form(con)
     form.pais.choices = populate_pais_form(con)
     con.close()
-    if request.method == 'GET':
-        # prepopulate
-        con = engine.connect()
-        populate_info(con, form)
-        con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        trans = con.begin()
-        try:
-            update_info(con, form)
-            trans.commit()
-            flash('Añadir fue un éxito', 'success')
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
-        con.close()
+        upsert_wrapper(update_info, con, form)
         return redirect(url_for('user.profile'))
-
     return render_template('user/info.html', form=form)
 
 
@@ -142,8 +196,8 @@ def confirm_email(token):
 
 @user_blueprint.route('/reset', methods=["GET", "POST"])
 def reset():
-    form = EmailForm()
-    if form.validate_on_submit():
+    form = EmailForm(request.form)
+    if request.method == 'POST' and form.validate():
         con = engine.connect()
         user = current_user(con, form.email.data)
         con.close()
@@ -167,6 +221,7 @@ def reset():
 
         return redirect(url_for('index'))
     return render_template('reset.html', form=form)
+
 
 @user_blueprint.route('/reset/<token>', methods=["GET", "POST"])
 def reset_with_token(token):
@@ -275,29 +330,13 @@ def profile():
 def poner_part():
     form = AddEntityForm(request.form)
     con = engine.connect()
-    for sub_form in form.org_form:
-        sub_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
-    form.genero.choices = populate_genero_form(con)
-    form.pais.choices = populate_pais_form(con)
-    form.pais_muer.choices = populate_pais_form(con)
+    add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        trans = con.begin()
-        try:
-            insert_part(con, form)
-            trans.commit()
-            flash('Añadir fue un éxito.', 'success')
-            init_session(con, session['email'])
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
-        con.close()
+        upsert_wrapper(insert_part, con, form)
         return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner_part.html', form=form)
+    return render_template('user/poner/poner_part.html', form=form)
 
 
 @user_blueprint.route('/poner_pers/<int:part_id>/', methods=['GET', 'POST'])
@@ -307,28 +346,16 @@ def poner_part():
 def poner_pers(part_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
-    form.org_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
-    form.genero.choices = populate_genero_form(con)
-    form.pais.choices = populate_pais_form(con)
     if request.method == 'GET':
         populate_poner_pers(con, form, part_id)
+    add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        trans = con.begin()
-        try:
-            update_poner_pers(con, form, part_id)
-            trans.commit()
-            flash('Añadir fue un éxito.', 'success')
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
+        upsert_wrapper(update_poner_pers, con, form, part_id)
         con.close()
         return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner_pers.html', form=form)
+    return render_template('user/poner/poner_pers.html', form=form)
 
 
 @user_blueprint.route('/poner_ag/<int:part_id>/', methods=['GET', 'POST'])
@@ -338,26 +365,15 @@ def poner_pers(part_id):
 def poner_ag(part_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
-    form.pais.choices = populate_pais_form(con)
     if request.method == 'GET':
         populate_poner_ag(con, form, part_id)
+    add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        trans = con.begin()
-        try:
-            update_poner_ag(con, form, part_id)
-            trans.commit()
-            flash('Añadir fue un éxito.', 'success')
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
-        con.close()
+        upsert_wrapper(update_poner_ag, con, form, part_id)
         return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner_ag.html', form=form)
+    return render_template('user/poner/poner_ag.html', form=form)
 
 
 @user_blueprint.route('/remove_part/<int:part_id>/', methods=['GET', 'POST'])
@@ -366,16 +382,32 @@ def poner_ag(part_id):
 @is_author
 def remove_part(part_id):
     con = engine.connect()
-    try:
-        delete_part(con, part_id)
-        init_session(con, session['email'])
-        flash('la eliminación se ha realizado correctamente.', 'success')
-    except:
-        if app.config['DEBUG']:
-            raise  # Only for development
-        flash('Ocurrió un error.', 'danger')
+    delete_wrapper(delete_part, con, part_id)
     con.close()
     return redirect(url_for('user.profile', _anchor='tab_part'))
+
+
+@user_blueprint.route('/remove_comp/<int:comp_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_author
+def remove_comp(comp_id):
+    con = engine.connect()
+    delete_wrapper(delete_comp, con, comp_id)
+    con.close()
+    return redirect(url_for('user.profile', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/remove_pista/<int:pista_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_author
+def remove_pista(pista_id):
+    con = engine.connect()
+    delete_wrapper(delete_pista, con, pista_id)
+    con.close()
+    return redirect(url_for('user.profile', _anchor='tab_pista'))
+
 
 
 @user_blueprint.route('/poner_comp', methods=['GET', 'POST'])
@@ -384,31 +416,14 @@ def remove_part(part_id):
 def poner_comp():
     form = AddCompForm(request.form)
     con = engine.connect()
-    for sub_form in form.part_id_form:
-        sub_form.part_id.choices = populate_part_id_form(con)
-        sub_form.rol_composicion.choices = populate_rol_comp_form(con)
-    for sub_form in form.idioma_form:
-        sub_form.idioma_id.choices = populate_idiomas_form(con)
-    for sub_form in form.tema_form:
-        sub_form.tema_id.choices = populate_temas_form(con)
-    form.comp_id.choices = populate_comps_form(con)
+    add_comp_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        trans = con.begin()
-        try:
-            insert_comp(con, form, session['id'])
-            trans.commit()
-            flash('Añadir fue un éxito.', 'success')
-            init_session(con, session['email'])
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
+        upsert_wrapper(insert_comp, con, form)
         con.close()
         return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner_comp.html', form=form)
+    return render_template('user/poner/poner_comp.html', form=form)
 
 
 @user_blueprint.route('/poner_pista', methods=['GET', 'POST'])
@@ -417,24 +432,27 @@ def poner_comp():
 def poner_pista():
     form = AddTrackForm(request.form)
     con = engine.connect()
-    for sub_form in form.gen_mus_form:
-        sub_form.gen_mus_id.choices = populate_gen_mus_form(con)
-    for sub_form in form.interp_form:
-        sub_form.part_id.choices = populate_part_id_form(con)
-        sub_form.rol_pista_son.choices = populate_rol_pista_form(con)
-        sub_form.instrumento_id.choices = populate_instrumento_form(con)
-    form.medio.choices = populate_medio_form(con)
-    form.serie_id.choices = populate_serie_form(con)
-    form.comp_id.choices = populate_comps_pista_form(con)
-    form.pais.choices = populate_pais_form(con)
+    add_pista_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
+        if 'archivo' not in request.files:
+            flash('Ninguna parte del archivo', 'danger')
+            return redirect(request.url)
+        file = request.files['archivo']
+        if file.filename == '':
+            flash('Ningún archivo seleccionado', 'danger')
+            return redirect(request.url)
+        if not file or not allowed_file(file.filename):
+            flash('Este tipo de archivo no es aceptado', 'danger')
+            return redirect(request.url)
         con = engine.connect()
         trans = con.begin()
         try:
             insert_pista(con, form, session['id'])
             trans.commit()
-            flash('Añadir fue un éxito.', 'success')
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            flash('La actualización se ha realizado correctamente.', 'success')
             init_session(con, session['email'])
         except:
             trans.rollback()
@@ -443,7 +461,7 @@ def poner_pista():
             flash('Ocurrió un error.', 'danger')
         con.close()
         return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner_pista.html', form=form)
+    return render_template('user/poner/poner_pista.html', form=form)
 
 
 @user_blueprint.route('/poner_comp/<int:comp_id>/', methods=['GET', 'POST'])
@@ -453,21 +471,37 @@ def poner_pista():
 def update_comp(comp_id):
     form = AddCompForm(request.form)
     con = engine.connect()
-    form.part_id_form.part_id_form.part_id.choices = populate_part_id_form(con)
-    form.part_id_form.rol_composicion.choices = populate_rol_comp_form(con)
-    form.idioma_form.idioma_id.choices = populate_idiomas_form(con)
-    form.tema_form.tema_id.choices = populate_temas_form(con)
-    form.comp_id.choices = populate_comps_form(con)
     if request.method == 'GET':
         populate_comp(con, form, comp_id)
+    add_comp_choices(con, form)
+    form.comp_id.choices = populate_comps_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        upsert_wrapper(update_comp, con, form, comp_id)
+        con.close()
+        return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return render_template('user/poner/poner_comp.html', form=form)
+
+
+@user_blueprint.route('/poner_pista/<int:pista_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_author
+def update_pista(pista_id):
+    form = AddTrackForm(request.form)
+    con = engine.connect()
+    if request.method == 'GET':
+        populate_pista(con, form, pista_id)
+    add_pista_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
         try:
-            update_comp(con, form, session['id'])
+            update_pista(con, form, pista_id, session['id'])
             trans.commit()
-            flash('Añadir fue un éxito.', 'success')
+            flash('La actualización se ha realizado correctamente.', 'success')
             init_session(con, session['email'])
         except:
             trans.rollback()
@@ -476,6 +510,56 @@ def update_comp(comp_id):
             flash('Ocurrió un error.', 'danger')
         con.close()
         return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner_comp.html', form=form)
+    return render_template('user/poner/poner_pista.html', form=form)
 
 
+@user_blueprint.route('/poner_serie', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_serie():
+    form = SerieForm(request.form)
+    con = engine.connect()
+    form.pais.choices = populate_pais_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        upsert_wrapper(insert_serie, con, form)
+        con.close()
+        return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return render_template('user/poner/poner_serie.html', form=form)
+
+
+@user_blueprint.route('/poner_inst', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_inst():
+    form = InstrForm(request.form)
+    con = engine.connect()
+    form.familia_instr_id.choices = populate_inst_fam(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        upsert_wrapper(insert_inst, con, form)
+        con.close()
+        return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return render_template('user/poner/poner_inst.html', form=form)
+
+
+@user_blueprint.route('/remove_serie/<int:serie_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def remove_serie(serie_id):
+    con = engine.connect()
+    delete_wrapper(delete_serie, con, serie_id)
+    con.close()
+    return redirect(url_for('user.profile', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/remove_inst/<int:inst_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def remove_inst(inst_id):
+    con = engine.connect()
+    delete_wrapper(delete_inst, con, inst_id)
+    con.close()
+    return redirect(url_for('user.profile', _anchor='tab_pista'))

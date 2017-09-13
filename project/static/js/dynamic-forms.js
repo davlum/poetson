@@ -62,7 +62,7 @@ $(function() {
         $('.form-custom').on('change',
             function () {
                 var instForm = $(this).find('.instrumento:first');
-                if ($(this).find('.rol-pista:first').val() !== 'Ejecutante') {
+                if ($(this).find('.rol-pista:first').val() !== 'Interpretación musical') {
                     instForm.val("1");
                     instForm.attr('disabled', true);
 

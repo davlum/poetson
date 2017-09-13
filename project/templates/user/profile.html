@@ -151,9 +151,10 @@
             <h2>Añadir una Composición</h2>
             <br>
             <span>Estos son los que ha agregado;</span>
-            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a>
-            <br>
-            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a>
+            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a>
             <div class="skinny center-block">
                 {% if comps is not none and comps is defined %}
                 <table class="table">
@@ -202,8 +203,8 @@
                                 <td>{{ entry.fecha_grab }}</td>
                                 <td>
                                     <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.poner_comp', comp_id=entry.composicion_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.composicion_id }}"
+                                       href="{{ url_for('user.update_pista', pista_id=entry.pista_son_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.pista_son_id }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
                                 </td>
                             </tr>

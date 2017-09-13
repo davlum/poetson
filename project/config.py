@@ -15,6 +15,10 @@ class BaseConfig(object):
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get("POETSON_SECRET_KEY", "")
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT", "")
+    UPLOAD_FOLDER = os.environ.get("POETSON_UPLOAD_FOLDER", "")
+    ALLOWED_EXTENSIONS = set(['jpg', 'mp3', 'flac', 'wav', 'png', 'gif', 'opus', 'ogg'])
+    # Max content length is 5 minutes of 32 bit wav file mono ~50mbs
+    MAX_CONTENT_LENGTH = 4 * 44100 * 60 * 5
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_DATABASE_URI = 'postgresql:///postgres'

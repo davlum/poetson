@@ -6,8 +6,11 @@
             {% if result.seudonimo is not none and result is defined %}
                '{{ result.seudonimo }}'
             {% endif %}
-            {% if result.nom_segundo is not none %}
-               {{ result.nom_segundo }}
+            {% if result.nom_materno is not none and result is defined %}
+               {{ result.nom_materno }}
+            {% endif %}
+            {% if result.nom_paterno is not none %}
+               {{ result.nom_paterno }}
             {% endif %}
     {% endset %}
     {% if name|trim == "" %}
