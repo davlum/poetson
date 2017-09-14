@@ -16,7 +16,7 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if session['logged_in'] and session['confirmed'] %}
-                <li><a href="{{ url_for('user.profile') }}">Perfil</a></li>
+                <li><a href="{{ url_for('user.perfil') }}">Perfil</a></li>
                 <li><a href="{{ url_for('user.logout') }}">Cerrar Sesión</a></li>
             {% elif session['logged_in'] %}
                 <li><a href="{{ url_for('user.unconfirmed') }}">Confirmado</a></li>

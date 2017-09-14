@@ -58,7 +58,8 @@ $(function() {
             );
         }
     );
-    $(document).on('change', function() {
+    // Only allow instrument selection when the rol is set as Interpretación musical'
+    $(document).on('click', function() {
         $('.form-custom').on('change',
             function () {
                 var instForm = $(this).find('.instrumento:first');

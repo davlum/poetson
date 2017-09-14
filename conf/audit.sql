@@ -56,7 +56,7 @@ BEGIN
   EXECUTE format('ALTER TABLE %I ' ||
                  'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL ' ||
                  'REFERENCES public.participante ON DELETE CASCADE, '
-                 'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usario, ' ||
+                 'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usuario, ' ||
                  'ADD COLUMN IF NOT EXISTS estado text NOT NULL DEFAULT ''PENDIENTE''' ||
                  'CHECK (estado IN (''DEPOSITAR'', ''RECHAZADO'', ''PENDIENTE'', ''PUBLICADO''))'
                   , target_table);
@@ -98,7 +98,7 @@ The standard search_path = public, and the data residing in the alternate schema
 not be viewable to the majority of users.
 $body$;
 
-CREATE OR REPLACE FUNCTION usario_id_insert() RETURNS trigger AS $body$
+CREATE OR REPLACE FUNCTION usuario_id_insert() RETURNS trigger AS $body$
 BEGIN
   IF NEW.cargador_id IS NULL THEN
      NEW.cargador_id := NEW.part_id;
@@ -108,15 +108,15 @@ END;
 $body$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER usario_id_trig
+CREATE TRIGGER usuario_id_trig
   BEFORE INSERT ON public.persona
   FOR EACH ROW
-  EXECUTE PROCEDURE usario_id_insert();
+  EXECUTE PROCEDURE usuario_id_insert();
 
-CREATE TRIGGER usario_id_trig
+CREATE TRIGGER usuario_id_trig
   BEFORE INSERT ON public.agregar
   FOR EACH ROW
-  EXECUTE PROCEDURE usario_id_insert();
+  EXECUTE PROCEDURE usuario_id_insert();
 
 /*
 CREATE OR REPLACE FUNCTION publish(pk_id int, usr_id int, target_table REGCLASS) RETURNS VOID AS $body$

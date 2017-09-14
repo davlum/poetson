@@ -1,0 +1,187 @@
+
+    {% if 'mod' in perf and perf.mod == True %}
+        <div id="part" class="tab-pane fade in active">
+    {% else %}
+        <div id="part" class="tab-pane fade">
+    {% endif %}
+            <br>
+            <h2>Añadido por usted</h2>
+            <br>
+            <span>Estos son los que ha agregado;</span>
+            <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
+            <div class="skinny center-block">
+            {% if perf.pers is not none and perf.pers is defined %}
+                <table class="table">
+                    <h3>Persona</h3>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                        {% if 'mod' in perf and perf.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in perf.pers %}
+                            <tr>
+                                <td>{{ nom(entry) }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_comienzo }}</td>
+                                <td>{{ entry.fecha_finale }}</td>
+                                {% if 'mod' in perf and perf.mod == True %}
+                                    <td>{{ entry.estado }}</td>
+                                    <td>{{ entry.nom_usuario }}</td>
+                                {% endif %}
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.poner_pers', obra_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% if perf.ags is not none and perf.ags is defined %}
+                <table class="table">
+                    <h3>Agregar</h3>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                        {% if 'mod' in perf and perf.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in perf.ags %}
+                            <tr>
+                                <td>{{ entry.nom_part }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_comienzo }}</td>
+                                <td>{{ entry.fecha_finale }}</td>
+                                {% if 'mod' in perf and perf.mod == True %}
+                                    <td>{{ entry.estado }}</td>
+                                    <td>{{ entry.nom_usuario }}</td>
+                                {% endif %}
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.poner_ag', obra_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="pista" class="tab-pane fade">
+            <br>
+            <h2>Añadido por usted</h2>
+            <br>
+            <span>Estos son los que ha agregado;</span>
+            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
+            <div class="skinny center-block">
+                {% if perf.comps is not none and perf.comps is defined %}
+                <table class="table">
+                    <h3>Composición</h3>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Título Alternativo</th>
+                            <th>Fecha publication</th>
+                        {% if 'mod' in perf and perf.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in perf.comps %}
+                            <tr>
+                                <td>{{ entry.nom_tit }}</td>
+                                <td>{{ entry.nom_alt }}</td>
+                                <td>{{ entry.fecha_pub }}</td>
+                                {% if 'mod' in perf and perf.mod == True %}
+                                    <td>{{ entry.estado }}</td>
+                                    <td>{{ entry.nom_usuario }}</td>
+                                {% endif %}
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.update_comp', obra_id=entry.composicion_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="comp" data-id="{{ entry.composicion_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% if perf.pistas is not none and perf.pistas is defined %}
+                <table class="table">
+                    <h3>Pista son</h3>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>lugar de interpretación</th>
+                            <th>fecha de grabación</th>
+                            {% if 'mod' in perf and perf.mod == True %}
+                                <th>Estado</th>
+                                <th>Usuario</th>
+                            {% endif %}
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in perf.pistas %}
+                            <tr>
+                                <td>{{ entry.nom_tit }}</td>
+                                <td>{{ lugar(entry) }}</td>
+                                <td>{{ entry.fecha_grab }}</td>
+                                {% if 'mod' in perf and perf.mod == True %}
+                                    <td>{{ entry.estado }}</td>
+                                    <td>{{ entry.nom_usuario }}</td>
+                                {% endif %}
+                                <td>
+                                    <a class="glyphicon glyphicon-pencil"
+                                       href="{{ url_for('user.update_pista', obra_id=entry.pista_son_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="pista" data-id="{{ entry.pista_son_id }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+
+        <div id="vario" class="tab-pane fade">
+            <br>
+            <h2>Añadir varios</h2>
+            <br>
+
+            <div class="skinny center-block">
+                <a class="underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
+                <a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a><br>
+                <a class="underline" href="">Nuevo idioma</a><br>
+                <a class="underline" href="">Nuevo Genero musical</a><br>
+                <a class="underline" href="">Nuevo tema</a>
+            </div>
+        </div>

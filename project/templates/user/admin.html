@@ -3,21 +3,17 @@
 {% block resultbody %}
 
 {% from "includes/_formhelpers.html" import render_field %}
-{% from "queryMacros.html" import nom, lugar, fecha, render_profile %}
+{% from "macros.html" import nom, fecha, render_profile %}
 
 <div id="tabs" class="container" style="width: 80%;">
 
-    <h2>Bienvenido {{ user.nom_usario }}</h2>
+    <h2>Bienvenido {{ user.nom_usuario }}</h2>
     <br>
     <h3>Tu perfil</h3>
     <p>Algo que explica lo que está pasando</p>
-    <br>
-
     <ul class="nav nav-tabs nav-justified">
-        <li class="active"><a data-toggle="tab" href="#inicio">Inicio</a></li>
-        <li><a data-toggle="tab" href="#part">Añadir una persona u organización</a></li>
-        <li><a data-toggle="tab" href="#pista">Añadir una pista de audio</a></li>
-        <li><a data-toggle="tab" href="#contrasena">Cambia la contraseña</a></li>
+        <li class="active"><a data-toggle="tab" href="#entradas">Entradas</a></li>
+        <li><a data-toggle="tab" href="#usuarios">Usuarios</a></li>
     </ul>
 
     <div class="tab-content">
@@ -104,8 +100,8 @@
                                 <td>{{ entry.fecha_finale }}</td>
                                 <td>
                                     <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.poner_pers', part_id=entry.part_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.part_id }}"
+                                       href="{{ url_for('user.poner_pers', obra_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
                                 </td>
                             </tr>
@@ -134,8 +130,8 @@
                                 <td>{{ entry.fecha_finale }}</td>
                                 <td>
                                     <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.poner_ag', part_id=entry.part_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.part_id }}"
+                                       href="{{ url_for('user.poner_ag', obra_id=entry.part_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
                                 </td>
                             </tr>
@@ -148,13 +144,11 @@
 
         <div id="pista" class="tab-pane fade">
             <br>
-            <h2>Añadir una Composición</h2>
+            <h2>Añadido por usted</h2>
             <br>
             <span>Estos son los que ha agregado;</span>
             <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a><br>
             <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
-            <a class="right underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
-            <a class="right underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a>
             <div class="skinny center-block">
                 {% if comps is not none and comps is defined %}
                 <table class="table">
@@ -175,8 +169,8 @@
                                 <td>{{ entry.fecha_pub }}</td>
                                 <td>
                                     <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.update_comp', comp_id=entry.composicion_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.composicion_id }}"
+                                       href="{{ url_for('user.update_comp', obra_id=entry.composicion_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="comp" data-id="{{ entry.composicion_id }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
                                 </td>
                             </tr>
@@ -203,8 +197,8 @@
                                 <td>{{ entry.fecha_grab }}</td>
                                 <td>
                                     <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.update_pista', pista_id=entry.pista_son_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-id="{{ entry.pista_son_id }}"
+                                       href="{{ url_for('user.update_pista', obra_id=entry.pista_son_id) }}"></a>&nbsp;
+                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="pista" data-id="{{ entry.pista_son_id }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
                                 </td>
                             </tr>
@@ -212,6 +206,20 @@
                     </tbody>
                 </table>
                 {% endif %}
+            </div>
+        </div>
+
+        <div id="vario" class="tab-pane fade">
+            <br>
+            <h2>Añadir varios</h2>
+            <br>
+
+            <div class="skinny center-block">
+                <a class="underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
+                <a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a>
+                <a class="underline" href="">Nuevo idioma</a>
+                <a class="underline" href="">Nuevo Genero musical</a>
+                <a class="underline" href="">Nuevo tema</a>
             </div>
         </div>
 

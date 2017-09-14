@@ -1,4 +1,3 @@
-INSERT INTO rol_pista_son VALUES ('Ejecutante');
 
 \i populate/lookup.sql
 \i populate/pais.sql

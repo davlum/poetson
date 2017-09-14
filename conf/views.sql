@@ -259,8 +259,8 @@ CREATE TRIGGER ag_trigger
 
 CREATE OR REPLACE VIEW public.us_pers AS
   SELECT * FROM public.pers_view p
-  JOIN public.usario u
-  ON p.part_id = u.usario_id;
+  JOIN public.usuario u
+  ON p.part_id = u.usuario_id;
 
 CREATE OR REPLACE FUNCTION us_pers_insert() RETURNS TRIGGER AS $body$
 DECLARE
@@ -274,18 +274,18 @@ BEGIN
                             -- Common attrs
                             , email
                             , lugar_id)
-                  VALUES (NEW.nom_usario
+                  VALUES (NEW.nom_usuario
                         -- Common attrs
                         , NEW.email
                         , id_comienzo)
                         RETURNING part_id INTO id;
 
-  INSERT INTO public.usario (usario_id
-                            , nom_usario
+  INSERT INTO public.usuario (usuario_id
+                            , nom_usuario
                             , pers_email
                             , contrasena)
                   VALUES (id
-                        , NEW.nom_usario
+                        , NEW.nom_usuario
                         , NEW.email
                         , NEW.contrasena);
 
@@ -305,8 +305,8 @@ CREATE TRIGGER us_pers_trigger
 
 CREATE OR REPLACE VIEW public.us_ag AS
   SELECT * FROM public.ag_view a
-  JOIN public.usario u
-  ON a.part_id = u.usario_id;
+  JOIN public.usuario u
+  ON a.part_id = u.usuario_id;
 
 CREATE OR REPLACE FUNCTION us_ag_insert() RETURNS TRIGGER AS $body$
 DECLARE
@@ -316,14 +316,14 @@ BEGIN
   INSERT INTO public.lugar DEFAULT VALUES RETURNING lugar_id INTO id_comienzo;
 
   INSERT INTO public.agregar(nom_part, email, lugar_id) VALUES
-    (NEW.nom_usario, NEW.email, id_comienzo) RETURNING part_id INTO id;
+    (NEW.nom_usuario, NEW.email, id_comienzo) RETURNING part_id INTO id;
 
-  INSERT INTO public.usario (usario_id
-                            , nom_usario
+  INSERT INTO public.usuario (usuario_id
+                            , nom_usuario
                             , ag_email
                             , contrasena)
                           VALUES (id
-                                , NEW.nom_usario
+                                , NEW.nom_usuario
                                 , NEW.email
                                 , NEW.contrasena);
 

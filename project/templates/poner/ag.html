@@ -3,7 +3,7 @@
 {% block body %}
 
 {% from "includes/_formhelpers.html" import render_field %}
-{% from "queryMacros.html" import nom, lugar, fecha, render_profile %}
+{% from "macros.html" import nom, fecha, render_profile %}
 
 <div>
     <br>
@@ -64,7 +64,7 @@
              <div>
                 <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
                  <a data-inline="true" role="button" class="btn btn-info"
-                    href="{{ url_for('user.profile', _anchor='tab_part') }}">Omitir</a>
+                    href="{{ url_for('user.perfil', _anchor='tab_part') }}">Omitir</a>
             </div>
         </div>
     </form>

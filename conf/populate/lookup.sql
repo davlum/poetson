@@ -15,7 +15,7 @@ INSERT INTO public.rol_pista_son VALUES
 ('Post-producción'),
 ('Auxiliar de sonido');
 
-INSERT INTO public.cobertura_tipo (cobertura_tipo, cobertura_comentario) VALUES
+INSERT INTO public.cobertura_tipo  VALUES
 ('Dominio público', 'Sin licencia'),
 ('Copyleft débil', 'Permisos liberados sin limitaciones hasta donde la legislación de cada país lo permita'),
 ('Copyleft fuerte', 'Permisos liberados pero con ciertas limitaciones'),
@@ -23,17 +23,17 @@ INSERT INTO public.cobertura_tipo (cobertura_tipo, cobertura_comentario) VALUES
 ('Secreto comercial', 'Todos los permisos restringidos'),
 ('Desconocido', 'Tipo de licencia no identificado');
 
-INSERT INTO public.cobertura (licencia_cobertura, cobertura_tipo) VALUES
-('(C) Copyright', 4),
-('(CC BY) Creative Commons Atribución', 3),
-('(CC BY-SA) Creative Commons Atribución-CompartirIgual', 3),
-('(CC BY-ND)Creative Commons Atribución-SinDerivadas', 3),
-('(CC BY-NC) Creative Commons Atribución-NoComercial', 3),
-('(CC BY-NC-SA) Creative Commons Atribución-NoComercial-CompartirIgual', 3),
-('(CC BY-NC-ND) Creative Commons Atribución-NoComercial-SinDerivadas', 3),
-('(CC0) Sin derechos reservados', 2),
-('(GPL) Licencia pública general GNU', 3),
-('(LGPL) Licencia pública menos general GNU', 2),
-('Dominio público', 1),
-('Patente', 5),
-('Por confirmar', 6);
+INSERT INTO public.cobertura_licencia (licencia_cobertura, tipo_cob) VALUES
+('(CC BY) Creative Commons Atribución', 'Copyleft fuerte'),
+('(CC BY-SA) Creative Commons Atribución-CompartirIgual', 'Copyleft fuerte'),
+('(CC BY-ND)Creative Commons Atribución-SinDerivadas', 'Copyleft fuerte'),
+('(CC BY-NC) Creative Commons Atribución-NoComercial', 'Copyleft fuerte'),
+('(CC BY-NC-SA) Creative Commons Atribución-NoComercial-CompartirIgual', 'Copyleft fuerte'),
+('(CC BY-NC-ND) Creative Commons Atribución-NoComercial-SinDerivadas', 'Copyleft fuerte'),
+('(CC0) Sin derechos reservados', 'Copyleft débil'),
+('(GPL) Licencia pública general GNU', 'Copyleft fuerte'),
+('(C) Copyright', 'Licencia propietaria'),
+('(LGPL) Licencia pública menos general GNU', 'Copyleft débil'),
+('Dominio público', 'Dominio público'),
+('Patente', 'Secreto comercial'),
+('Por confirmar', 'Desconocido');

@@ -30,6 +30,6 @@ $('#user-type').on('change', function(){
 
 $(document).on("click", ".open-confirm-modal", function () {
      var partId = $(this).data('id');
-     console.log(partId);
-     $(".modal-body #delete-button").attr('href', '/remove_part/' + partId + '/');
+     var entType = $(this).data('role');
+     $(".modal-body #delete-button").attr('href', '/remove_'+ entType + '/' + partId + '/');
 });

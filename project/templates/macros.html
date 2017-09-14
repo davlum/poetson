@@ -20,11 +20,13 @@
     {% endif %}
 {% endmacro %}
 
+
 {% macro render_profile(label, result) -%}
     {% if result is not none and result is defined %}
         <tr><th scope="row">{{ label|safe }} </th><td>{{ result|safe }}</td></tr>
     {% endif %}
 {% endmacro %}
+
 
 {% macro part_of(result) -%}
     {% set lugar %}

@@ -100,11 +100,27 @@
             </div>
             <div id="references-collapsible" class="collapse skinny">
                 <div class="form-group">
-                    {{render_field(form.comp_id, class ="form-control" )}}
+                    {{render_field(form.composicion_id, class ="form-control" )}}
                 </div>
             </div>
             <div class="form-group">
               {{render_field(form.texto, class ="form-control")}}
+            </div>
+            <hr>
+            <div class="row">
+                <h3>Cobertura</h3>
+                <div class="form-group col-md-4">
+                    {{render_field(form.pais_cob, class ="form-control" )}}
+                </div>
+                <div class="form-group col-md-4">
+                    {{render_field(form.fecha_comienzo_cob, class ="form-control" )}}
+                </div>
+                <div class="form-group col-md-4">
+                    {{render_field(form.fecha_finale_cob, class ="form-control" )}}
+                </div>
+            </div>
+            <div class="form-group">
+                {{render_field(form.cobertura, class ="form-control" )}}
             </div>
             <br>
              <div>

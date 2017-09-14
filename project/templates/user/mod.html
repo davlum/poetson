@@ -1,0 +1,32 @@
+{% extends "searchlayout.html" %}
+
+{% block resultbody %}
+
+{% from "includes/_formhelpers.html" import render_field %}
+{% from "macros.html" import nom, fecha, render_profile %}
+
+<div id="tabs" class="container" style="width: 80%;">
+
+    <h3>El panel Mod</h3>
+    <a class="right underline" href="{{ url_for('user.perfil') }}">Volver al perfil</a>
+    <p> Desde aquí puede cambiar el estado de
+        cualquier inserto y ponerlo a disposición del público, o retractarlo.<br>
+        También tiene la posibilidad de editar cualquiera de las
+        entradas actuales en la base de datos.</p>
+    <ul class="nav nav-tabs nav-justified">
+        <li class="active"><a data-toggle="tab" href="#part">Añadir artistas</a></li>
+        <li><a data-toggle="tab" href="#pista">Añadir composición</a></li>
+        <li><a data-toggle="tab" href="#vario">Añadir varios</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        {% include 'includes/_profile.html' %}
+
+    </div>
+
+</div>
+
+    {% include 'includes/_footer.html' %}
+
+{% endblock %}

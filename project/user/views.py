@@ -21,14 +21,12 @@ from .forms import LoginForm, RegisterForm, \
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
 from project.util import current_user, current_ag, current_pers, send_email, allowed_file
 
-from project.user.models import query_ags, query_pers_ag, query_pers, populate_info, update_info, \
+from project.user.models import query_perfil, query_pers_ag, populate_info, update_info, \
     insert_part, populate_poner_ag, populate_poner_pers, update_poner_ag, update_poner_pers, delete_part, \
-    init_comps, init_pistas, init_pers, init_ags, insert_comp, query_comps, insert_pista, query_pista, \
-    populate_ags_form, populate_pais_form, populate_genero_form, populate_tipo_ags_form, \
-    populate_part_id_form, populate_rol_comp_form, populate_idiomas_form, populate_temas_form, populate_comps_form, \
-    populate_instrumento_form, populate_rol_pista_form, populate_gen_mus_form, populate_comp, \
-    populate_comps_pista_form, populate_medio_form, populate_serie_form, populate_pista, delete_comp, \
-    delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam
+    init_comps, init_pistas, init_pers, init_ags, insert_comp,  insert_pista, \
+    populate_pais_form, populate_comps_form, populate_comp, populate_pista, delete_comp, \
+    delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, \
+    add_part_choices, add_comp_choices, add_pista_choices, add_info_choices
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -83,58 +81,24 @@ def upsert_wrapper(fun, con, form, row_id=None):
         flash('Ocurrió un error.', 'danger')
 
 
-def add_pista_choices(con, form):
-    for sub_form in form.gen_mus_form:
-        sub_form.gen_mus_id.choices = populate_gen_mus_form(con)
-    for sub_form in form.interp_form:
-        sub_form.part_id.choices = populate_part_id_form(con)
-        sub_form.rol_pista_son.choices = populate_rol_pista_form(con)
-        sub_form.instrumento_id.choices = populate_instrumento_form(con)
-    form.medio.choices = populate_medio_form(con)
-    form.serie_id.choices = populate_serie_form(con)
-    form.comp_id.choices = populate_comps_pista_form(con)
-    form.pais.choices = populate_pais_form(con)
-
-
-def add_comp_choices(con, form):
-    for sub_form in form.part_id_form:
-        sub_form.part_id.choices = populate_part_id_form(con)
-        sub_form.rol_composicion.choices = populate_rol_comp_form(con)
-    for sub_form in form.idioma_form:
-        sub_form.idioma_id.choices = populate_idiomas_form(con)
-    for sub_form in form.tema_form:
-        sub_form.tema_id.choices = populate_temas_form(con)
-    form.comp_id.choices = populate_comps_form(con)
-
-
-def add_part_choices(con, form):
-    for sub_form in form.org_form:
-        sub_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
-    form.genero.choices = populate_genero_form(con)
-    form.pais.choices = populate_pais_form(con)
-    form.pais_muer.choices = populate_pais_form(con)
-
-
-# The view start here
-
+# The views start here
 
 @user_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
     if request.method == 'POST' and form.validate():
         email = form.email.data.strip(' ')
-        nom_usario = form.nom_usario.data.strip(' ')
+        nom_usuario = form.nom_usuario.data.strip(' ')
         contrasena = bcrypt.using(rounds=13).hash(str(form.contrasena.data))
         con = engine.connect()
         if form.user_type.data == 'persona':
-            user_query = text("""INSERT INTO public.us_pers (email, nom_usario, contrasena) VALUES 
-                          (:email, :nom_usario, :contrasena);""")
-            con.execute(user_query, email=email, nom_usario=nom_usario, contrasena=contrasena)
+            user_query = text("""INSERT INTO public.us_pers (email, nom_usuario, contrasena) VALUES 
+                          (:email, :nom_usuario, :contrasena);""")
+            con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         else:
-            user_query = text("""INSERT INTO public.us_ag (email, nom_usario, contrasena) VALUES 
-                          (:email, :nom_usario, :contrasena);""")
-            con.execute(user_query, email=email, nom_usario=nom_usario, contrasena=contrasena)
+            user_query = text("""INSERT INTO public.us_ag (email, nom_usuario, contrasena) VALUES 
+                          (:email, :nom_usuario, :contrasena);""")
+            con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         # set session data
         init_session(con, email)
         con.close()
@@ -158,16 +122,12 @@ def info():
         # prepopulate
         populate_info(con, form)
     con = engine.connect()
-    for sub_form in form.org_form:
-        sub_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
-    form.genero.choices = populate_genero_form(con)
-    form.pais.choices = populate_pais_form(con)
+    add_info_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         upsert_wrapper(update_info, con, form)
-        return redirect(url_for('user.profile'))
+        return redirect(url_for('user.perfil'))
     return render_template('user/info.html', form=form)
 
 
@@ -183,15 +143,15 @@ def confirm_email(token):
     if session['confirmed']:
         flash('Cuenta ya confirmada. Por favor Iniciar sesión.', 'success')
     else:
-        confirm_user = text("""UPDATE public.usario
+        confirm_user = text("""UPDATE public.usuario
                                   SET confirmado=TRUE
                                     , fecha_confirmado=now() 
-                                  WHERE usario_id=:id""")
+                                  WHERE usuario_id=:id""")
         con.execute(confirm_user, id=session['id'])
         session['confirmed'] = True
         flash('Has confirmado tu cuenta. ¡Gracias!', 'success')
     con.close()
-    return redirect(url_for('user.profile'))
+    return redirect(url_for('user.perfil'))
 
 
 @user_blueprint.route('/reset', methods=["GET", "POST"])
@@ -237,8 +197,8 @@ def reset_with_token(token):
         user = current_user(con, email)
         if user and user.confirmado:
             password = bcrypt.using(rounds=13).hash(str(form.password.data))
-            reset_pass = text("""UPDATE public.usario SET contrasena=:password 
-                                  WHERE usario_id=:id""")
+            reset_pass = text("""UPDATE public.usuario SET contrasena=:password 
+                                  WHERE usuario_id=:id""")
             con.execute(reset_pass, id=user.part_id, password=password)
         con.close()
         flash('Este correo electrónico no está registrado.', 'danger')
@@ -262,7 +222,7 @@ def resend_confirmation():
 @is_logged_in
 def unconfirmed():
     if session['confirmed'] is True:
-        return redirect(url_for('user.profile'))
+        return redirect(url_for('user.perfil'))
     flash('¡Por favor, confirme su cuenta!', 'warning')
     return render_template('user/unconfirmed.html')
 
@@ -275,7 +235,7 @@ def login():
         init_session(con, form.email.data)
         con.close()
         flash('Ahora está conectado', 'success')
-        return redirect(url_for('user.profile'))
+        return redirect(url_for('user.perfil'))
     return render_template('user/login.html', form=form)
 
 
@@ -287,44 +247,38 @@ def logout():
     return redirect(url_for('user.login'))
 
 
-@user_blueprint.route('/profile', methods=['GET', 'POST'])
+@user_blueprint.route('/perfil', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def profile():
+def perfil():
     con = engine.connect()
     if session['is_person']:
         user = current_pers(con, session['email'])
     else:
         user = current_ag(con, session['email'])
     pers_ag = query_pers_ag(con, session['id'])
-    pers = query_pers(con, session['id'])
-    ags = query_ags(con, session['id'])
-    comps = query_comps(con, session['id'])
-    pista = query_pista(con, session['id'])
+    perf = query_perfil(con, session['id'])
     con.close()
     password_form = ChangePasswordForm(request.form)
     if request.method == 'POST' and password_form.validate():
         if user and bcrypt.verify(password_form.old_password.data, user.contrasena):
             con = engine.connect()
             password = bcrypt.using(rounds=13).hash(str(password_form.new_password.data))
-            reset_pass = text("""UPDATE public.usario SET contrasena=:password 
-                                  WHERE usario_id=:id""")
+            reset_pass = text("""UPDATE public.usuario SET contrasena=:password 
+                                  WHERE usuario_id=:id""")
             con.execute(reset_pass, id=user.part_id, password=password)
             con.close()
             flash('Contraseña cambiada correctamente.', 'success')
         else:
             flash('El cambio de contraseña no tuvo éxito.', 'danger')
-        return redirect(url_for('user.profile', _anchor='tab_contrasena'))
-    return render_template('user/profile.html', user=user
+        return redirect(url_for('user.perfil', _anchor='tab_contrasena'))
+    return render_template('user/perfil.html', user=user
+                                              , perf=perf
                                               , pers_ag=pers_ag
-                                              , pers=pers
-                                              , ags=ags
-                                              , comps=comps
-                                              , pista=pista
                                               , password_form=password_form)
 
 
-@user_blueprint.route('/poner_part', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/part', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_part():
@@ -335,82 +289,82 @@ def poner_part():
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         upsert_wrapper(insert_part, con, form)
-        return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner/poner_part.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_part'))
+    return render_template('poner/part.html', form=form)
 
 
-@user_blueprint.route('/poner_pers/<int:part_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/pers/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def poner_pers(part_id):
+def poner_pers(obra_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
-        populate_poner_pers(con, form, part_id)
+        populate_poner_pers(con, form, obra_id)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        upsert_wrapper(update_poner_pers, con, form, part_id)
+        upsert_wrapper(update_poner_pers, con, form, obra_id)
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner/poner_pers.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_part'))
+    return render_template('poner/pers.html', form=form)
 
 
-@user_blueprint.route('/poner_ag/<int:part_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/ag/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def poner_ag(part_id):
+def poner_ag(obra_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
-        populate_poner_ag(con, form, part_id)
+        populate_poner_ag(con, form, obra_id)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        upsert_wrapper(update_poner_ag, con, form, part_id)
-        return redirect(url_for('user.profile', _anchor='tab_part'))
-    return render_template('user/poner/poner_ag.html', form=form)
+        upsert_wrapper(update_poner_ag, con, form, obra_id)
+        return redirect(url_for('user.perfil', _anchor='tab_part'))
+    return render_template('poner/ag.html', form=form)
 
 
-@user_blueprint.route('/remove_part/<int:part_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/remove/part/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def remove_part(part_id):
+def remove_part(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_part, con, part_id)
+    delete_wrapper(delete_part, con, obra_id)
     con.close()
-    return redirect(url_for('user.profile', _anchor='tab_part'))
+    return redirect(url_for('user.perfil', _anchor='tab_part'))
 
 
-@user_blueprint.route('/remove_comp/<int:comp_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/remove/comp/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def remove_comp(comp_id):
+def remove_comp(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_comp, con, comp_id)
+    delete_wrapper(delete_comp, con, obra_id)
     con.close()
-    return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/remove_pista/<int:pista_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/remove/pista/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def remove_pista(pista_id):
+def remove_pista(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_pista, con, pista_id)
+    delete_wrapper(delete_pista, con, obra_id)
     con.close()
-    return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
 
-@user_blueprint.route('/poner_comp', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/comp', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_comp():
@@ -422,11 +376,11 @@ def poner_comp():
         con = engine.connect()
         upsert_wrapper(insert_comp, con, form)
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_comp.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/comp.html', form=form)
 
 
-@user_blueprint.route('/poner_pista', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/pista', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_pista():
@@ -460,46 +414,45 @@ def poner_pista():
                 raise  # Only for development
             flash('Ocurrió un error.', 'danger')
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_pista.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/pista.html', form=form)
 
 
-@user_blueprint.route('/poner_comp/<int:comp_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/comp/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def update_comp(comp_id):
+def update_comp(obra_id):
     form = AddCompForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
-        populate_comp(con, form, comp_id)
+        populate_comp(con, form, obra_id)
     add_comp_choices(con, form)
-    form.comp_id.choices = populate_comps_form(con)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        upsert_wrapper(update_comp, con, form, comp_id)
+        upsert_wrapper(update_comp, con, form, obra_id)
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_comp.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/comp.html', form=form)
 
 
-@user_blueprint.route('/poner_pista/<int:pista_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/pista/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def update_pista(pista_id):
+def update_pista(obra_id):
     form = AddTrackForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
-        populate_pista(con, form, pista_id)
+        populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         trans = con.begin()
         try:
-            update_pista(con, form, pista_id, session['id'])
+            update_pista(con, form, obra_id, session['id'])
             trans.commit()
             flash('La actualización se ha realizado correctamente.', 'success')
             init_session(con, session['email'])
@@ -509,11 +462,11 @@ def update_pista(pista_id):
                 raise  # Only for development
             flash('Ocurrió un error.', 'danger')
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_pista.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/pista.html', form=form)
 
 
-@user_blueprint.route('/poner_serie', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_serie():
@@ -525,11 +478,11 @@ def poner_serie():
         con = engine.connect()
         upsert_wrapper(insert_serie, con, form)
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_serie.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/serie.html', form=form)
 
 
-@user_blueprint.route('/poner_inst', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/inst', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_inst():
@@ -541,25 +494,46 @@ def poner_inst():
         con = engine.connect()
         upsert_wrapper(insert_inst, con, form)
         con.close()
-        return redirect(url_for('user.profile', _anchor='tab_pista'))
-    return render_template('user/poner/poner_inst.html', form=form)
+        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return render_template('poner/inst.html', form=form)
 
 
-@user_blueprint.route('/remove_serie/<int:serie_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/remove/serie/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def remove_serie(serie_id):
+def remove_serie(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_serie, con, serie_id)
+    delete_wrapper(delete_serie, con, obra_id)
     con.close()
-    return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/remove_inst/<int:inst_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/remove/inst/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def remove_inst(inst_id):
+def remove_inst(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_inst, con, inst_id)
+    delete_wrapper(delete_inst, con, obra_id)
     con.close()
-    return redirect(url_for('user.profile', _anchor='tab_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/perfil/admin', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_admin
+def admin():
+    return render_template('user/admin.html')
+
+
+@user_blueprint.route('/mod', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_mod
+def mod():
+    con = engine.connect()
+    perf = query_perfil(con, session['id'], session['permission'])
+    con.close()
+    if request.method == 'POST':
+        return redirect(url_for('user.mod', _anchor='tab_contrasena'))
+    return render_template('user/mod.html', perf=perf)

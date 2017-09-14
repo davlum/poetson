@@ -33,6 +33,28 @@ class Date(object):
             raise ValidationError(self.message)
 
 
+class LessThanDate(object):
+    def __init__(self, other_field_name, *args, **kwargs):
+        self.other_field_name = other_field_name
+
+    def __call__(self, form, field):
+        other_field = form[self.other_field_name]
+        if field.data is not None:
+            if other_field.data.split('/')[::-1] < field.data.split('/')[::-1]:
+                raise ValidationError('Debe ser menos que "%s"' % self.other_field_name)
+
+
+class GreaterThanDate(object):
+    def __init__(self, other_field_name,  *args, **kwargs):
+        self.other_field_name = other_field_name
+
+    def __call__(self, form, field):
+        other_field = form[self.other_field_name]
+        if field.data is not None:
+            if other_field.data.split('/')[::-1] > field.data.split('/')[::-1]:
+                raise ValidationError('Debe ser mayor que "%s"' % self.other_field_name)
+
+
 class RequiredIf(DataRequired):
     """Validator which makes a field required if another field is set and has a truthy value.
 
@@ -96,7 +118,7 @@ class RegisterForm(Form):
                           choices=[('persona', 'Un individuo'), ('agregar', 'Una organización')])
 
     # The minimum required fields to make an account
-    nom_usario = StringField('Nomdre de usuario', validators=[
+    nom_usuario = StringField('Nomdre de usuario', validators=[
         InputRequired(message='Esto es requerido.'),
         Length(min=4, max=25),
         Regexp('^[a-zÀ-ÿ0-9_-]+$', message='nombre de usuario debe ser números, letras, guiones o subrayados')
@@ -117,18 +139,19 @@ class RegisterForm(Form):
         if not initial_validation:
             return False
         con = engine.connect()
-        user_email_query = text("""SELECT usario_id FROM public.usario WHERE LOWER(ag_email) = LOWER(:email)
+        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(ag_email) = LOWER(:email)
                                                                         OR LOWER(pers_email) = LOWER(:email)""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
-        username_query = text("""SELECT nom_usario FROM public.usario WHERE LOWER(nom_usario) = LOWER(:nom_usario)""")
-        username = con.execute(username_query, nom_usario=self.nom_usario.data).first()
+        username_query = text("""SELECT nom_usuario FROM public.usuario 
+                                  WHERE LOWER(nom_usuario) = LOWER(:nom_usuario)""")
+        username = con.execute(username_query, nom_usuario=self.nom_usuario.data).first()
         con.close()
         is_valid = True
         if user_email:
             self.email.errors.append("Este correo electrónico ya está registradod")
             is_valid = False
         if username:
-            self.nom_usario.errors.append("Este nombre de usuario ya está registrado")
+            self.nom_usuario.errors.append("Este nombre de usuario ya está registrado")
             is_valid = False
         return is_valid
 
@@ -139,11 +162,13 @@ class OrgForm(Form):
     fecha_comienzo = StringField('Fecha de afiliación', validators=[
         Optional(),
         Date(),
-        RequiredIf('fecha_finale')
+        RequiredIf('fecha_finale'),
+        LessThanDate('fecha_finale')
     ])
     fecha_finale = StringField('Fecha de salida', validators=[
         Optional(),
         Date(),
+        GreaterThanDate('fecha_comienzo')
     ])
     agregar_id = SelectField('Nom del Organización', validators=[
         InputRequired(message='Esto es requerido.')
@@ -168,7 +193,7 @@ class InfoForm(Form):
     telefono = StringField('Teléfono', validators=[Optional()])
     fecha_comienzo = StringField('Fecha de comenzando', validators=[
         Optional(),
-        Date()
+        Date(),
     ])
 
     genero = SelectField('Género', validators=[Optional()])
@@ -193,46 +218,13 @@ class InfoForm(Form):
         return True
 
 
-class AddEntityForm(InfoForm):
-    # Whether the user is an individual or a Organization affects which fields appear
-    user_type = RadioField('Organización o Individuo'
-                           , validators=[InputRequired(message='Esto es requerido.')]
-                           , choices=[('persona', 'Un individuo'), ('agregar', 'Una organización')])
-    ciudad_muer = StringField('Ciudad', validators=[Optional()])
-    subdivision_muer = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad_muer')])
-    pais_muer = SelectField('País', validators=[RequiredIf('subdivision_muer')])
-    fecha_finale = StringField('Fecha Finale', validators=[
-        Optional(),
-        Date()
-    ])
-
-    email = StringField('Correo electrónico', validators=[
-        Optional(),
-        Email(message='No un correo electrónico adecuado.')
-    ])
-
-    def validate(self):
-        initial_validation = super(InfoForm, self).validate()
-        if not initial_validation:
-            return False
-        con = engine.connect()
-        user_email_query = text("""SELECT usario_id FROM public.usario WHERE LOWER(ag_email) = LOWER(:email)
-                                                                          OR LOWER(pers_email) = LOWER(:email)""")
-        user_email = con.execute(user_email_query, email=self.email.data).first()
-        con.close()
-        if user_email:
-            self.email.errors.append("Este correo electrónico ya está registradod")
-            return False
-        return True
-
-
 class UpdateEntityForm(InfoForm):
     ciudad_muer = StringField('Ciudad', validators=[Optional()])
     subdivision_muer = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad_muer')])
     pais_muer = SelectField('País', validators=[RequiredIf(other_field_name='subdivision_muer')])
     fecha_finale = StringField('Fecha Finale', validators=[
         Optional(),
-        Date()
+        Date(),
     ])
 
     email = StringField('Correo electrónico ', validators=[
@@ -245,7 +237,7 @@ class UpdateEntityForm(InfoForm):
         if not initial_validation:
             return False
         con = engine.connect()
-        user_email_query = text("""SELECT usario_id FROM public.usario WHERE LOWER(ag_email) = LOWER(:email)
+        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(ag_email) = LOWER(:email)
                                                                           OR LOWER(pers_email) = LOWER(:email)""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
         con.close()
@@ -253,6 +245,30 @@ class UpdateEntityForm(InfoForm):
             self.email.errors.append("Este correo electrónico ya está registradod")
             return False
         return True
+
+
+class AddEntityForm(UpdateEntityForm):
+    # Whether the user is an individual or a Organization affects which fields appear
+    user_type = RadioField('Organización o Individuo'
+                           , validators=[InputRequired(message='Esto es requerido.')]
+                           , choices=[('persona', 'Un individuo'), ('agregar', 'Una organización')])
+
+
+class CopyrightForm(Form):
+    cobertura = SelectField('Cobertura', validators=[InputRequired(message='Esto es requerido.')])
+    pais_cob = SelectField('País Cobertura', validators=[InputRequired(message='Esto es requerido.')])
+
+    fecha_comienzo_cob = StringField('Fecha Comienzo', validators=[
+        Optional(),
+        Date(),
+        LessThanDate('fecha_finale_cob')
+    ])
+
+    fecha_finale_cob = StringField('Fecha Finale', validators=[
+        Optional(),
+        Date(),
+        GreaterThanDate('fecha_comienzo_cob')
+    ])
 
 
 class DynamicAuthorForm(Form):
@@ -271,11 +287,11 @@ class DynamicThemeForm(Form):
     tema_id = SelectField('Temas en esta composición')
 
 
-class AddCompForm(Form):
+class AddCompForm(CopyrightForm):
     # Form to add a composicion
     references = BooleanField("Esta compisicion es una traducción o "
                               "una versión diferente de otra composición en esta base de datos.")
-    comp_id = SelectField('Composición de referencia', validators=[RequiredIf('references')])
+    composicion_id = SelectField('Composición de referencia', validators=[RequiredIf('references')])
 
     nom_tit = StringField("Título", validators=[InputRequired(message='Esto es requerido.')])
     nom_alt = StringField("Título Alternativo", validators=[Optional()])
@@ -301,7 +317,7 @@ class DynamicGenMusForm(Form):
     gen_mus_id = SelectField('Género musical en esta pista audio')
 
 
-class AddTrackForm(Form):
+class AddTrackForm(CopyrightForm):
     # Add a pista son to the database
     comp_id = SelectField('Composición de referencia', validators=[InputRequired(message='Esto es requerido.')])
     track_no_arr = [(str(i), str(i)) for i in range(1, 100)]

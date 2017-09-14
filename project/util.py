@@ -7,11 +7,9 @@ from project import app, mail
 from re import compile
 
 
-
-
 def current_user(con, email):
     query = text("""SELECT * 
-                      FROM public.usario 
+                      FROM public.usuario 
                       WHERE LOWER(ag_email)=LOWER(:email)
                          OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()

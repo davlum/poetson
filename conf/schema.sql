@@ -103,22 +103,22 @@ CREATE TABLE IF NOT EXISTS permiso (
 
 
 -- This table will be mutable
-CREATE TABLE IF NOT EXISTS usario (
-    usario_id int REFERENCES participante ON DELETE RESTRICT PRIMARY KEY
+CREATE TABLE IF NOT EXISTS usuario (
+    usuario_id int REFERENCES participante ON DELETE RESTRICT PRIMARY KEY
   , confirmado boolean NOT NULL DEFAULT false
-  , nom_usario text NOT NULL UNIQUE
+  , nom_usuario text NOT NULL UNIQUE
   , contrasena text NOT NULL -- hashed and salted
   , ag_email text UNIQUE REFERENCES agregar(email) ON UPDATE CASCADE
   , pers_email text UNIQUE REFERENCES persona(email) ON UPDATE CASCADE
   , fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT now()
   , fecha_confirmado TIMESTAMP WITH TIME ZONE
   , permiso text NOT NULL DEFAULT 'EDITOR' REFERENCES permiso
-  , CONSTRAINT proper_nom CHECK (nom_usario ~* '^[a-zÀ-ÿ0-9_-]+$')
+  , CONSTRAINT proper_nom CHECK (nom_usuario ~* '^[a-zÀ-ÿ0-9_-]+$')
   , CONSTRAINT tipo_email CHECK ((ag_email IS NULL AND pers_email IS NOT NULL) OR
                                  (ag_email IS NOT NULL AND pers_email IS NULL))
 );
 
-COMMENT ON TABLE usario IS 'Individual who uploaded the data.';
+COMMENT ON TABLE usuario IS 'Individual who uploaded the data.';
 
 CREATE TABLE IF NOT EXISTS genero_musical (
     gen_mus_id serial PRIMARY KEY
@@ -232,28 +232,34 @@ COMMENT ON TABLE archivo IS 'M:1 with pista_son. The different audio codecs that
 
 CREATE TABLE IF NOT EXISTS persona_agregar (
     persona_id int REFERENCES persona ON DELETE CASCADE
-   ,agregar_id int REFERENCES agregar ON DELETE CASCADE
-   ,fecha_comienzo fecha
-   ,fecha_finale fecha
-   ,titulo text
-   ,PRIMARY KEY (persona_id, agregar_id)
+  , agregar_id int REFERENCES agregar ON DELETE CASCADE
+  , fecha_comienzo fecha
+  , fecha_finale fecha
+  , titulo text
+  , PRIMARY KEY (persona_id, agregar_id)
 );
 
 COMMENT ON TABLE persona_agregar IS 'M:M relationship of person and agregars.';
 
+
 CREATE TABLE IF NOT EXISTS cobertura_tipo (
-    cobertura_tipo_id serial PRIMARY KEY
-   ,cobertura_tipo text UNIQUE NOT NULL
-   ,cobertura_comentario text
+    tipo_cob text PRIMARY KEY
+  , coment_cob text
+);
+
+
+CREATE TABLE IF NOT EXISTS cobertura_licencia (
+    cobertura_lic_id serial PRIMARY KEY
+   ,tipo_cob text REFERENCES cobertura_tipo
+   ,licencia_cobertura text
 );
 
 CREATE TABLE IF NOT EXISTS cobertura (
     cobertura_id serial PRIMARY KEY
-   ,cobertura_tipo int NOT NULL REFERENCES cobertura_tipo
+   ,cobertura_lic_id int NOT NULL REFERENCES cobertura_licencia
    ,pista_son_id int REFERENCES pista_son ON DELETE SET NULL
    ,composicion_id int REFERENCES composicion ON DELETE SET NULL
-   ,lugar_cobertura int REFERENCES lugar
-   ,licencia_cobertura text
+   ,pais_cobertura text REFERENCES pais
    ,fecha_comienzo fecha
    ,fecha_final fecha
 );
