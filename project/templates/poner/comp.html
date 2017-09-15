@@ -2,8 +2,7 @@
 
 {% block body %}
 
-{% from "includes/_formhelpers.html" import render_field %}
-
+{% from "includes/_formhelpers.html" import render_field, cob %}
 
 <div>
     <br>
@@ -107,24 +106,11 @@
               {{render_field(form.texto, class ="form-control")}}
             </div>
             <hr>
-            <div class="row">
-                <h3>Cobertura</h3>
-                <div class="form-group col-md-4">
-                    {{render_field(form.pais_cob, class ="form-control" )}}
-                </div>
-                <div class="form-group col-md-4">
-                    {{render_field(form.fecha_comienzo_cob, class ="form-control" )}}
-                </div>
-                <div class="form-group col-md-4">
-                    {{render_field(form.fecha_finale_cob, class ="form-control" )}}
-                </div>
-            </div>
-            <div class="form-group">
-                {{render_field(form.cobertura, class ="form-control" )}}
-            </div>
+            {{ cob(form) }}
             <br>
              <div>
-                <button class="btn btn-success" type="submit">Enviar</button>
+                <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
+                <a data-inline="true" role="button" class="btn btn-info" href="{{ url_for('user.perfil', _anchor='tab_pista') }}">Omitir</a>
             </div>
 
         </div>

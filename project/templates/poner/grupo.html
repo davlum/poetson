@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+{% from "includes/_formhelpers.html" import render_field %}
+{% from "macros.html" import nom, fecha, render_profile %}
+
+<div>
+    <br>
+    <h2>Actualizar una organización</h2>
+    <br>
+    <p>Por favor, rellene el siguiente formulario.</p>
+    <form id="add-entity-form" method='POST' action="">
+        {{ form.csrf_token }}
+        <br>
+        <div class="center-block skinny">
+            <div class="form-group">
+              {{render_field(form.nom_part_gr, class ="form-control")}}
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                  {{render_field(form.sitio_web, class ="form-control"
+                                             , placeholder="https://www.example.com")}}
+                </div>
+                <div class="form-group col-md-6">
+                  {{render_field(form.telefono, class ="form-control"
+                            , placeholder="(55)5555-5555")}}
+                </div>
+            </div>
+            <div class="form-group">
+              {{render_field(form.direccion, class ="form-control")}}
+            </div>
+            <div class="form-group">
+              {{render_field(form.email, class ="form-control")}}
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                {{render_field(form.fecha_comienzo, class ="form-control"
+                                               , placeholder="dd/mm/aaaa")}}
+                </div>
+                <div class="form-group col-md-6">
+                {{render_field(form.fecha_finale, class ="form-control"
+                                            , placeholder="dd/mm/aaaa")}}
+                </div>
+            </div>
+            <div class="row">
+                <h3>Origen</h3>
+                <div class="form-group col-md-4">
+                  {{render_field(form.ciudad, class ="form-control")}}
+                </div>
+                <div class="form-group col-md-4">
+                  {{render_field(form.subdivision, class ="form-control")}}
+                </div>
+                <div class="form-group col-md-4">
+                  {{render_field(form.pais, class ="form-control")}}
+                </div>
+            </div>
+            <div class="form-group">
+              {{render_field(form.tipo_grupo, class ="form-control")}}
+            </div>
+            <div class="form-group">
+              {{render_field(form.coment_part, class ="form-control")}}
+            </div>
+             <div>
+                <input data-inline="true" type="submit" class="btn btn-primary" value="Enviar">
+                 <a data-inline="true" role="button" class="btn btn-info"
+                    href="{{ url_for('user.perfil', _anchor='tab_part') }}">Omitir</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+    {% include 'includes/_footer.html' %}
+{% endblock %}

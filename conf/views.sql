@@ -5,7 +5,7 @@ CREATE OR REPLACE view public.part_view AS
     FROM public.participante pa
     LEFT JOIN public.persona pe
       ON pa.part_id = pe.part_id
-    LEFT JOIN public.agregar a
+    LEFT JOIN public.grupo a
       ON pa.part_id = a.part_id;
 
 
@@ -151,9 +151,9 @@ CREATE TRIGGER pers_trigger
 
 
 ----------------------------------------------------------------
-CREATE OR REPLACE VIEW public.ag_view AS
+CREATE OR REPLACE VIEW public.gr_view AS
   SELECT ag.part_id
-       , ag.tipo_agregar
+       , ag.tipo_grupo
         -- Common attrs
        , ag.nom_part
        , get_fecha(ag.fecha_comienzo) fecha_comienzo
@@ -174,11 +174,11 @@ CREATE OR REPLACE VIEW public.ag_view AS
        , ag.cargador_id
        , ag.mod_id
        , ag.estado
-     FROM public.agregar ag
+     FROM public.grupo ag
      LEFT JOIN public.lugar l1
        ON l1.lugar_id = ag.lugar_id;
 
-CREATE OR REPLACE FUNCTION ag_insert() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION gr_insert() RETURNS TRIGGER AS $body$
 DECLARE
   id_comienzo int;
 BEGIN
@@ -191,7 +191,7 @@ BEGIN
                         , NEW.pais)
                       RETURNING lugar_id INTO id_comienzo;
 
-    INSERT INTO public.agregar(tipo_agregar
+    INSERT INTO public.grupo(tipo_grupo
                               -- Common attrs
                               , nom_part
                               , sitio_web
@@ -204,7 +204,7 @@ BEGIN
                               , coment_part
                               -- Audit attr
                               , cargador_id)
-                            VALUES (NEW.tipo_agregar
+                            VALUES (NEW.tipo_grupo
                                     -- Common attrs
                                   , NEW.nom_part
                                   , NEW.sitio_web
@@ -220,7 +220,7 @@ BEGIN
 
   ELSIF (TG_OP = 'UPDATE') THEN
 
-    UPDATE public.agregar SET tipo_agregar=NEW.tipo_agregar
+    UPDATE public.grupo SET tipo_grupo=NEW.tipo_grupo
                             -- Common attrs
                             , nom_part=NEW.nom_part
                             , sitio_web=NEW.sitio_web
@@ -247,12 +247,12 @@ END;
 $body$
 LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS ag_trigger ON public.ag_view;
+DROP TRIGGER IF EXISTS gr_trigger ON public.gr_view;
 
-CREATE TRIGGER ag_trigger
-  INSTEAD OF INSERT OR UPDATE ON public.ag_view
+CREATE TRIGGER gr_trigger
+  INSTEAD OF INSERT OR UPDATE ON public.gr_view
   FOR EACH ROW
-  EXECUTE PROCEDURE ag_insert();
+  EXECUTE PROCEDURE gr_insert();
 
 
 ----------------------------------------------------------------
@@ -303,24 +303,24 @@ CREATE TRIGGER us_pers_trigger
 
 --------------------------------------------------------------
 
-CREATE OR REPLACE VIEW public.us_ag AS
-  SELECT * FROM public.ag_view a
+CREATE OR REPLACE VIEW public.us_gr AS
+  SELECT * FROM public.gr_view a
   JOIN public.usuario u
   ON a.part_id = u.usuario_id;
 
-CREATE OR REPLACE FUNCTION us_ag_insert() RETURNS TRIGGER AS $body$
+CREATE OR REPLACE FUNCTION us_grupo_insert() RETURNS TRIGGER AS $body$
 DECLARE
   id_comienzo int;
   id int;
 BEGIN
   INSERT INTO public.lugar DEFAULT VALUES RETURNING lugar_id INTO id_comienzo;
 
-  INSERT INTO public.agregar(nom_part, email, lugar_id) VALUES
+  INSERT INTO public.grupo(nom_part, email, lugar_id) VALUES
     (NEW.nom_usuario, NEW.email, id_comienzo) RETURNING part_id INTO id;
 
   INSERT INTO public.usuario (usuario_id
                             , nom_usuario
-                            , ag_email
+                            , gr_email
                             , contrasena)
                           VALUES (id
                                 , NEW.nom_usuario
@@ -332,11 +332,11 @@ END;
 $body$
 LANGUAGE plpgsql;
  
-DROP TRIGGER IF EXISTS us_ag_trigger ON public.us_ag;
+DROP TRIGGER IF EXISTS us_grupo_trigger ON public.us_gr;
 
-CREATE TRIGGER us_ag_trigger
-  INSTEAD OF INSERT ON public.us_ag
+CREATE TRIGGER us_grupo_trigger
+  INSTEAD OF INSERT ON public.us_gr
   FOR EACH ROW
-  EXECUTE PROCEDURE us_ag_insert();
+  EXECUTE PROCEDURE us_grupo_insert();
 
 

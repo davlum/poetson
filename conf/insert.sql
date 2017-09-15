@@ -2,7 +2,7 @@
 \i populate/lookup.sql
 \i populate/pais.sql
 \i populate/lugar_out.sql
-\i populate/tipo_agregar.sql
+\i populate/tipo_grupo.sql
 \i populate/idioma.sql
 \i populate/genero_musical.sql
 \i populate/familia_instrumento.sql

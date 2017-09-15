@@ -2,7 +2,8 @@
 
 {% block body %}
 
-{% from "includes/_formhelpers.html" import render_field %}
+{% from "includes/_formhelpers.html" import render_field, cob %}
+{%  from 'macros.html' import archivo %}
 
 <div>
     <br>
@@ -16,6 +17,7 @@
             <div class="form-group">
                 {{render_field(form.archivo, class ="form-control")}}
             </div>
+            {{ archivo(result) }}
             <div class="form-group">
                 {{render_field(form.comp_id, class ="form-control")}}
             </div>
@@ -107,22 +109,7 @@
               {{render_field(form.coment_pista_son, class ="form-control")}}
             </div>
             <hr>
-            <div class="row">
-                <h3>Cobertura</h3>
-                <div class="form-group col-md-4">
-                    {{render_field(form.pais_cob, class ="form-control" )}}
-                </div>
-                <div class="form-group col-md-4">
-                    {{render_field(form.fecha_comienzo_cob, class ="form-control" )}}
-                </div>
-                <div class="form-group col-md-4">
-                    {{render_field(form.fecha_finale_cob, class ="form-control" )}}
-                </div>
-            </div>
-            <div class="form-group">
-                {{render_field(form.cobertura, class ="form-control" )}}
-            </div>
-
+            {{ cob(form) }}
             <br>
              <div>
                 <button class="btn btn-success" type="submit">Enviar</button>

@@ -15,7 +15,10 @@ $(document).ready(function(){
         $('.individual').hide();
         $('.organization').show();
     }
+
 });
+
+
 
 $('#user-type').on('change', function(){
     if( $('#user_type-0').is(':checked')){
@@ -29,7 +32,10 @@ $('#user-type').on('change', function(){
 });
 
 $(document).on("click", ".open-confirm-modal", function () {
-     var partId = $(this).data('id');
-     var entType = $(this).data('role');
-     $(".modal-body #delete-button").attr('href', '/remove_'+ entType + '/' + partId + '/');
+    var partId = $(this).data('id');
+    var entType = $(this).data('role');
+    $('#confirm-modal').css('top', $(window).scrollTop()+ ($(window).height()*0.4));
+    $(".modal-body #delete-button").attr('href', '/remove/'+ entType + '/' + partId + '/');
 });
+
+

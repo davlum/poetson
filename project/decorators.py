@@ -35,25 +35,29 @@ def is_mod(f):
             return f(*args, **kwargs)
         else:
             flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
-            return redirect(url_for('user.profile'))
+            return redirect(url_for('user.perfil'))
     return wrap
 
 
 def is_author(f):
     @wraps(f)
-    def wrap(obra_id, *args, **kwargs):
+    def wrap(obra_id=None, *args, **kwargs):
+        if obra_id is None:
+            return f(obra_id, *args, **kwargs)
         if 'permission' in session and (session['permission'] == 'MOD' or
                                         session['permission'] == 'ADMIN'):
             return f(obra_id, *args, **kwargs)
-        elif 'comp' in request.url and obra_id in session['comps']:
+        if 'comp' in request.url and obra_id in session['comps']:
             return f(obra_id, *args, **kwargs)
-        elif 'pista' in request.url and obra_id in session['pistas']:
+        if 'pista' in request.url and obra_id in session['pistas']:
             return f(obra_id, *args, **kwargs)
-        elif 'part' in request.url and obra_id in session['parts']:
+        if 'part' in request.url or \
+            'pers' in request.url or \
+            'grupo' in request.url and obra_id in session['parts']:
             return f(obra_id, *args, **kwargs)
         else:
             flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
-            return redirect(url_for('user.profile'))
+            return redirect(url_for('user.perfil'))
     return wrap
 
 
@@ -64,5 +68,5 @@ def is_admin(f):
             return f(*args, **kwargs)
         else:
             flash('No autorizado, No tienes permiso para acceder a esta página', 'danger')
-            return redirect(url_for('user.profile'))
+            return redirect(url_for('user.perfil'))
     return wrap

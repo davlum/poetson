@@ -28,27 +28,6 @@
 {% endmacro %}
 
 
-{% macro part_of(result) -%}
-    {% set lugar %}
-        {% if result.ciudad is not none and result.ciudad is defined %}
-            {{ result.ciudad }},
-        {% endif %}
-        {% if result.subdivision is not none and result.subdivision is defined %}
-           {{ result.subdivision }},
-        {% endif %}
-        {% if result.pais is not none %}
-           {{ result.pais }}
-        {% endif %}
-    {% endset %}
-    {% if lugar|trim == "" %}
-        <div style="display: inline;">Desconocido</div>
-    {% else %}
-        <div style="display: inline;">{{ lugar|safe }}</div>
-    {% endif %}
-{% endmacro %}
-
-
-
 {% macro lugar(result) -%}
     {% set lugar %}
         {% if result.ciudad is not none and result.ciudad is defined %}
@@ -69,8 +48,17 @@
 {% endmacro %}
 
 
-{% macro artista(result) -%}
-    {% if 'artista' in result and result['artista'] is not none and result['artista'].rowcount > 0 %}
+{% macro render_select(value, default) -%}
+    {% if value|lower == default|lower %}
+    <option value="{{ value|lower|safe }}" selected>{{ value|safe }}</option>
+    {% else %}
+    <option value="{{ value|lower|safe }}">{{ value|safe }}</option>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro persona(result) -%}
+    {% if 'pers' in result and result.pers is not none and result.pers.rowcount > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="autor-heading">
                 <h3 class="mb-0">
@@ -82,28 +70,54 @@
             <div id="autor-collapse" class="collapse in">
                 <div class="card-block">
                     <table class="table table-striped">
+                    <thead>
                         <tr>
                             <th>Nom</th>
-                            <th>País</th>
-                            <th></th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                        {% if 'mod' in result and result.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Acción</th>
+                        {% endif %}
                         </tr>
-                    {% for artista in result['artista'] %}
+                    </thead>
+                    <tbody>
+                    {% for entry in result.pers %}
                         <tr>
-                            <td>
-                                <a class="no-underline" href="/autor/{{ artista.autor_id }}/">
-                                    {{ nom(artista) }}
-                                </a>
+                            <td><a class="no-underline" href="/persona/{{ entry.part_id }}/">
+                                    {{ nom(entry) }}</a>
                             </td>
+                            <td>{{ lugar(entry) }}</td>
+                            <td>{{ entry.fecha_comienzo }}</td>
+                            <td>{{ entry.fecha_finale }}</td>
+                            {% if 'mod' in result and result.mod == True %}
+                                <td>
+                                    <select class="form-control ajax-select" data-role="pers"
+                                            data-id="{{ entry.part_id }}">
+                                        {{ render_select('Pendiente', entry.estado) }}
+                                        {{ render_select('Publicado', entry.estado) }}
+                                        {{ render_select('Rechazado', entry.estado) }}
+                                        {{ render_select('Depositar', entry.estado) }}
+                                    </select>
+                                </td>
+                                <td>{{ entry.nom_usuario }}</td>
+                            {% endif %}
+                            {% if 'editor' in result and result.editor == True %}
                             <td>
-                                {{ lugar(artista) }}
+                                <a class="glyphicon glyphicon-pencil"
+                                   href="{{ url_for('user.poner_pers', obra_id=entry.part_id) }}"></a>&nbsp;
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="part" data-id="{{ entry.part_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
                             </td>
-                            <td>
-                                {% if artista.coment_autor is not none %}
-                                    {{ artista.coment_autor }}
-                                {% endif %}
-                            </td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
+                    </tbody>
                     </table>
                 </div>
             </div>
@@ -112,129 +126,67 @@
 {% endmacro %}
 
 
-{% macro colectivo(result) -%}
-   {% if 'colectivo' in result and result['colectivo'] is not none and result['colectivo'].rowcount > 0 %}
-       <div class="card">
-            <div class="card-header" role="tab" id="colectivo-heading">
-                <h3 class="mb-0">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#colectivo-collapse" aria-expanded="true" aria-controls="colectivo-collapse">
-                        Colectivo
-                    </a>
-                </h3>
-            </div>
-            <div id="colectivo-collapse" class="collapse in">
-                <div class="card-block">
-                    <table class="table table-striped">
-                        <tr>
-                            <th>Nom</th>
-                            <th>País</th>
-                            <th></th>
-                        </tr>
-                    {% for col in result['colectivo'] %}
-                        <tr>
-                            <td>
-                                <a class="no-underline"
-                                   href="/colectivo/{{ col.autor_id }}/">{{ col.colectivo_nom }}
-                                </a>
-                            </td>
-                            <td>
-                                {{ col.pais }}
-                            </td>
-                            <td>
-                                {% if col.coment_autor is not none %}
-                                    {{ col.coment_autor }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </table>
-                </div>
-            </div>
-        </div>
-     {% endif %}
-{% endmacro %}
-
-
-{% macro composicion(result) -%}
-    {% if 'composicion' in result and result['composicion'] is not none and result['composicion'].rowcount > 0 %}
-       <div class="card">
-            <div class="card-header" role="tab" id="composicion-heading">
-                <h3 class="mb-0">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#composicion-collapse" aria-expanded="true" aria-controls="composicion-collapse">
-                        Composicion
-                    </a>
-                </h3>
-            </div>
-            <div id="composicion-collapse" class="collapse in">
-                <div class="card-block">
-                    <table class="table table-striped">
-                        <tr>
-                            <th>Título</th>
-                            <th>País</th>
-                            <th>Año</th>
-                        </tr>
-                            {% for comp in result['composicion'] %}
-                            <tr>
-                                <td>
-                                    <a class="no-underline" href="/composicion/{{ comp.composicion_id }}/">{{ comp.nom_tit }}
-                                    {% if comp.tit_alt is not none %}
-                                       | {{ comp.tit_alt }}
-                                    {% endif %}
-
-                                    </a>
-                                </td>
-                                <td>
-                                    {{ comp.pais }}
-                                </td>
-                                <td>
-                                    {% if comp.fecha_pub is not none %}
-                                        {{ comp.fecha_pub }}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                    </table>
-                </div>
-            </div>
-        </div>
-   {% endif %}
-{% endmacro %}
-
-
-{% macro serie(result) -%}
-    {% if 'serie' in result and result['serie'] is not none and result['serie'].rowcount > 0 %}
+{% macro grupo(result) -%}
+    {% if 'grupos' in result and result.grupos is not none and result.grupos.rowcount > 0 %}
         <div class="card">
-            <div class="card-header" role="tab" id="serie-heading">
+            <div class="card-header" role="tab" id="grupo-heading">
                 <h3 class="mb-0">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#serie-collapse" aria-expanded="true" aria-controls="serie-collapse">
-                        Serie
+                    <a data-toggle="collapse" data-parent="#accordion" href="#grupo-collapse" aria-expanded="true" aria-controls="grupo-collapse">
+                        Grupos
                     </a>
                 </h3>
             </div>
-            <div id="serie-collapse" class="collapse in">
+            <div id="grupo-collapse" class="collapse in">
                 <div class="card-block">
                     <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <th>Título</th>
-                            <th>País</th>
-                            <th>Giro</th>
+                            <th>Nom</th>
+                            <th>Origen</th>
+                            <th>Comienzo</th>
+                            <th>Finale</th>
+                        {% if 'mod' in result and result.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Acción</th>
+                        {% endif %}
                         </tr>
-                            {% for serie in result['serie'] %}
-                            <tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.grupos %}
+                        <tr>
+                            <td><a class="no-underline" href="/grupo/{{ entry.part_id }}/">
+                                    {{ entry.nom_part }}</a>
+                            </td>
+                            <td>{{ lugar(entry) }}</td>
+                            <td>{{ entry.fecha_comienzo }}</td>
+                            <td>{{ entry.fecha_finale }}</td>
+                            {% if 'mod' in result and result.mod == True %}
                                 <td>
-                                    <a class="no-underline" href="/serie/{{ serie.serie_id }}/">{{ serie.nom_serie }}
-                                    </a>
+                                    <select class="form-control ajax-select" data-role="grupo"
+                                            data-id="{{ entry.part_id }}">
+                                        {{ render_select('Pendiente', entry.estado) }}
+                                        {{ render_select('Publicado', entry.estado) }}
+                                        {{ render_select('Rechazado', entry.estado) }}
+                                        {{ render_select('Depositar', entry.estado) }}
+                                    </select>
                                 </td>
-                                <td>
-                                    {% if serie.pais is not none %}
-                                        {{ serie.pas }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {{ serie.giro }}
-                                </td>
-                            </tr>
-                            {% endfor %}
+                                <td>{{ entry.nom_usuario }}</td>
+                            {% endif %}
+                            {% if 'editor' in result and result.editor == True %}
+                            <td>
+                                <a class="glyphicon glyphicon-pencil"
+                                   href="{{ url_for('user.poner_grupo', obra_id=entry.part_id) }}"></a>&nbsp;
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="part" data-id="{{ entry.part_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                     </table>
                 </div>
             </div>
@@ -244,46 +196,69 @@
 
 
 {% macro pista(result) -%}
-    {% if 'pista' in result and result['pista'] is not none and result['pista'].rowcount > 0 %}
+    {% if 'pistas' in result and result.pistas is not none and result.pistas.rowcount > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="pista-heading">
                 <h3 class="mb-0">
                     <a data-toggle="collapse" data-parent="#accordion" href="#pista-collapse" aria-expanded="true" aria-controls="pista-collapse">
-                        Pista Son
+                        Pista_son
                     </a>
                 </h3>
             </div>
             <div id="pista-collapse" class="collapse in">
                 <div class="card-block">
                     <table class="table table-striped">
+                    <thead>
                         <tr>
                             <th>Título</th>
-                            <th>Origin</th>
-                            <th>Giro</th>
+                            <th>Origen</th>
                             <th>Serie</th>
+                        {% if 'mod' in result and result.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Acción</th>
+                        {% endif %}
                         </tr>
-                            {% for pista in result['pista'] %}
-                            <tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.pistas %}
+                        <tr>
+                            <td><a class="no-underline" href="/pistason/{{ entry.pista_son_id }}/">
+                                {{ entry.nom_tit }}
+                                </a>
+                            </td>
+                            <td>{{ lugar(entry) }}</td>
+                            <td>
+                                {% if pista.serie_id is not none %}
+                                    <a href="/serie/{{ pista.serie_id }}/">{{ pista.nom_serie }}</a>
+                                {% endif %}
+                            </td>
+                            {% if 'mod' in result and result.mod == True %}
                                 <td>
-                                    <a class="no-underline" href="/pistason/{{ pista.pista_son_id }}/">{{ pista.nom_tit }}
-                                        {% if pista.tit_alt is not none %}
-                                            | {{ pista.tit_alt }}
-                                        {% endif %}
-                                    </a>
+                                    <select class="form-control ajax-select" data-role="pista"
+                                            data-id="{{ entry.pista_son_id }}">
+                                        {{ render_select('Pendiente', entry.estado) }}
+                                        {{ render_select('Publicado', entry.estado) }}
+                                        {{ render_select('Rechazado', entry.estado) }}
+                                        {{ render_select('Depositar', entry.estado) }}
+                                    </select>
                                 </td>
-                                <td>
-                                    {{ lugar(pista) }}
-                                </td>
-                                <td>
-                                    {{ pista.giro }}
-                                </td>
-                                <td>
-                                    {% if pista.serie_id is not none %}
-                                        <a href="/serie/{{ pista.serie_id }}/">{{ pista.nom_serie }}</a>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
+                                <td>{{ entry.nom_usuario }}</td>
+                            {% endif %}
+                            {% if 'editor' in result and result.editor == True %}
+                            <td>
+                                <a class="glyphicon glyphicon-pencil"
+                                   href="{{ url_for('user.poner_pista', obra_id=entry.pista_son_id) }}"></a>&nbsp;
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="pista" data-id="{{ entry.pista_son_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                     </table>
                 </div>
             </div>
@@ -292,3 +267,125 @@
 {% endmacro %}
 
 
+{% macro composicion(result) -%}
+    {% if 'comps' in result and result.comps is not none and result.comps.rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="composicion-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#composicion-collapse" aria-expanded="true" aria-controls="composicion-collapse">
+                        Composición
+                    </a>
+                </h3>
+            </div>
+            <div id="composicion-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Fecha publication</th>
+                        {% if 'mod' in result and result.mod == True %}
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                        {% endif %}
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Acción</th>
+                        {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.comps %}
+                        <tr>
+                            <td><a class="no-underline" href="/composicion/{{ entry.composicion_id }}/">
+                                {{ entry.nom_tit }}
+                                    {% if entry.nom_alt is not none %}
+                                        | {{ entry.nom_alt }}
+                                    {% endif %}
+                                </a>
+                            </td>
+                            <td>{{ entry.fecha_pub }}</td>
+                            {% if 'mod' in result and result.mod == True %}
+                                <td>
+                                    <select class="form-control ajax-select" data-role="comp"
+                                            data-id="{{ entry.composicion_id }}">
+                                        {{ render_select('Pendiente', entry.estado) }}
+                                        {{ render_select('Publicado', entry.estado) }}
+                                        {{ render_select('Rechazado', entry.estado) }}
+                                        {{ render_select('Depositar', entry.estado) }}
+                                    </select>
+                                </td>
+                                <td>{{ entry.nom_usuario }}</td>
+                            {% endif %}
+                            {% if 'editor' in result and result.editor == True %}
+                            <td>
+                                <a class="glyphicon glyphicon-pencil"
+                                   href="{{ url_for('user.poner_comp', obra_id=entry.composicion_id) }}"></a>&nbsp;
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="comp" data-id="{{ entry.composicion_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro archivo(result) -%}
+    {% if 'archivos' in result and result.archivos is not none and result.archivos.rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="archivo-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#archivo-collapse" aria-expanded="true" aria-controls="archivo-collapse">
+                        Archivos de audio con esta interpretación
+                    </a>
+                </h3>
+            </div>
+            <div id="archivo-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nombre del Archivo</th>
+                            <th>Archivo</th>
+                            <th>Duración (segundos)</th>
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Acción</th>
+                        {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.archivos %}
+                        <tr>
+                            <td>{{ entry.nom_archivo }}</td>
+                            <td>
+                                <audio controls="controls">
+                                    Su navegador no admite reproducción de<code>audio</code>
+                                    <source src="{{ url_for('static',
+                                    filename='audio/'+entry.pista_son_id|string+'/'+entry.archivo_id|string+'/'+entry.nom_archivo) }}"
+                                    type="audio/{{ entry.codec|lower|safe }}">
+                                </audio>
+                            </td>
+                            <td>{{ entry.duracion }}</td>
+                            {% if 'editor' in result and result.editor == True %}
+                            <td>
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="archivo" data-id="{{ entry.archivo_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal">
+                                </a>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}

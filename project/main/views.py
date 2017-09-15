@@ -210,10 +210,10 @@ def autor(autorid):
                                      , l.subdivision
                                      , l.ciudad 
                                   FROM public.persona pers
-                                  LEFT JOIN public.persona_agregar pa
+                                  LEFT JOIN public.persona_grupo pa
                                     ON pers.part_id = pa.persona_id
                                   JOIN public.participante_composicion pc
-                                    ON pc.part_id = pa.agregar_id
+                                    ON pc.part_id = pa.grupo_id
                                     OR pc.part_id = pers.part_id
                                   JOIN public.composicion c
                                     ON c.composicion_id = pc.composicion_id
@@ -232,7 +232,7 @@ def colectivo(colid):
     # _query colectivo
     con = engine.connect()
     colectivo_query = text("""SELECT *
-                                   FROM part_ag 
+                                   FROM part_gr 
                                    WHERE part_id=:id;""")
     colectivo = con.execute(colectivo_query, id=colid).first()
 
@@ -241,9 +241,9 @@ def colectivo(colid):
                                 , p.nom_paterno
                                 , p.seudonimo
                                 , p.pais 
-                                FROM public.agregar a
-                                JOIN public.persona_agregar pa
-                                  ON a.part_id = pa.agregar_id
+                                FROM public.grupo a
+                                JOIN public.persona_grupo pa
+                                  ON a.part_id = pa.grupo_id
                                 JOIN public.pers_view p
                                   ON p.part_id = pa.persona_id 
                                 AND a.part_id=:id""")
@@ -319,7 +319,7 @@ def composicion(compoid):
                                        ON c.composicion_id = pc.composicion_id
                                      LEFT JOIN part_pers pp
                                        ON pp.part_id = pc.part_id
-                                     LEFT JOIN part_ag pa
+                                     LEFT JOIN part_gr pa
                                        ON pa.part_id = pc.part_id
                                      LEFT JOIN public.lugar l 
                                        ON l.lugar_id = c.lugar_comp

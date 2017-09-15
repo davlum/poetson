@@ -1,32 +1,33 @@
 from sqlalchemy import text
 from flask import session
-from project.util import current_pers, current_ag, parse_fecha
+from project.util import current_pers, current_gr, parse_fecha
 from project.user.forms import OrgForm, DynamicGenMusForm, DynamicAuthorForm, DynamicInterpForm, \
     DynamicLangForm, DynamicThemeForm
 
 
 # Queries for admin view
 def get_users(con, usuario_id):
-    query = text("""SELECT nom_usuario, coalesce(ag_email, pers_email), permiso FROM public.usuario 
+    query = text("""SELECT nom_usuario, coalesce(gr_email, pers_email), permiso FROM public.usuario 
                       WHERE permiso <> 'ADMIN'""")
     return con.execute(query)
 
+
 # Queries for InfoForm
-def populate_ags_form(con):
+def populate_grupos_form(con):
     # List of all agregates
-    ag_query = text("""SELECT part_id, nom_part FROM public.agregar;""")
-    ag_result = con.execute(ag_query)
-    ag_arr = [(str(res.part_id), res.nom_part) for res in ag_result]
-    ag_arr.insert(0, ("0", 'Ninguno'))
-    return ag_arr
+    gr_query = text("""SELECT part_id, nom_part FROM public.grupo;""")
+    gr_result = con.execute(gr_query)
+    gr_arr = [(str(res.part_id), res.nom_part) for res in gr_result]
+    gr_arr.insert(0, ("0", 'Ninguno'))
+    return gr_arr
 
 
-def populate_tipo_ags_form(con):
+def populate_tipo_grupos_form(con):
     # Get List of possible agregate types
-    tipo_ag_query = text("""SELECT nom_tipo_agregar nom FROM public.tipo_agregar;""")
-    tipo_ag_result = con.execute(tipo_ag_query)
-    tipo_ag_arr = [(res.nom, res.nom) for res in tipo_ag_result]
-    return tipo_ag_arr
+    tipo_grupo_query = text("""SELECT nom_tipo_grupo nom FROM public.tipo_grupo;""")
+    tipo_grupo_result = con.execute(tipo_grupo_query)
+    tipo_grupo_arr = [(res.nom, res.nom) for res in tipo_grupo_result]
+    return tipo_grupo_arr
 
 
 def populate_genero_form(con):
@@ -166,7 +167,7 @@ def insert_lugar(con, form):
 
 def update_lugar(con, form, lugar_id):
     query_lugar = text("""UPDATE public.lugar SET ciudad=strip(:ciudad)
-                                                , subdivision=strip(:subdivsion)
+                                                , subdivision=strip(:subdivision)
                                                 , pais=:pais
                                              WHERE lugar_id=:lugar_id""")
     con.execute(query_lugar, ciudad=form.ciudad.data, subdivision=form.subdivision.data
@@ -175,8 +176,8 @@ def update_lugar(con, form, lugar_id):
 
 def add_info_choices(con, form):
     for sub_form in form.org_form:
-        sub_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+        sub_form.grupo_id.choices = populate_grupos_form(con)
+    form.tipo_grupo.choices = populate_tipo_grupos_form(con)
     form.genero.choices = populate_genero_form(con)
     form.pais.choices = populate_pais_form(con)
 
@@ -195,7 +196,6 @@ def add_pista_choices(con, form):
     form.comp_id.choices = populate_comps_pista_form(con)
     form.pais.choices = populate_pais_form(con)
     form.pais_cob.choices = populate_pais_form(con)
-    form.comp_id.choices = populate_comps_form(con)
     form.cobertura.choices = populate_cob_form(con)
 
 
@@ -215,11 +215,56 @@ def add_comp_choices(con, form):
 
 def add_part_choices(con, form):
     for sub_form in form.org_form:
-        sub_form.agregar_id.choices = populate_ags_form(con)
-    form.tipo_agregar.choices = populate_tipo_ags_form(con)
+        sub_form.grupo_id.choices = populate_grupos_form(con)
+    form.tipo_grupo.choices = populate_tipo_grupos_form(con)
     form.genero.choices = populate_genero_form(con)
     form.pais.choices = populate_pais_form(con)
     form.pais_muer.choices = populate_pais_form(con)
+
+
+def populate_pers_grupo(form, result):
+    for res in result:
+        org_form = OrgForm()
+        org_form.grupo_id = str(res.grupo_id)
+        org_form.titulo = res.titulo
+        org_form.fecha_comienzo = res.fecha_comienzo
+        org_form.fecha_finale = res.fecha_finale
+
+        form.org_form.append_entry(org_form)
+
+
+def insert_archivo(con, audio_file, filename, pista_id):
+    query = text("""INSERT into public.archivo(nom_archivo
+                                             , pista_son_id
+                                             , duracion
+                                             , abr
+                                             , canales
+                                             , codec
+                                             , frecuencia) 
+                                         VALUES(:nom_archivo
+                                              , :pista_son_id
+                                              , :duracion
+                                              , :abr
+                                              , :canales
+                                              , :codec
+                                              , :frecuencia)
+                                              RETURNING archivo_id""")
+    result = con.execute(query, nom_archivo=filename
+                              , pista_son_id=pista_id
+                              , duracion=int(audio_file.info.length)
+                              , abr=audio_file.info.bitrate
+                              , canales=audio_file.info.channels
+                              , codec=audio_file.__class__.__name__
+                              , frecuencia=audio_file.info.sample_rate).first()[0]
+    return result
+
+
+def populate_lugar(con, form, lugar_id):
+    query = text("""SELECT * from public.lugar WHERE lugar_id=:lugar_id""")
+    lugar = con.execute(query, lugar_id=lugar_id).first()
+    form.ciudad.data = lugar.ciudad
+    form.subdivision.data = lugar.subdivision
+    form.pais.data = lugar.pais
 
 
 # Queries for the info view
@@ -227,22 +272,14 @@ def populate_info(con, form):
     # populate the form
     if session['is_person']:
         user = current_pers(con, session['email'])
-        pers_org_query = text("""SELECT pa.agregar_id
+        pers_org_query = text("""SELECT pa.grupo_id
                                       , public.get_fecha(pa.fecha_comienzo) fecha_comienzo
                                       , public.get_fecha(pa.fecha_finale) fecha_finale
                                       , pa.titulo
-                                      FROM public.persona_agregar pa
+                                      FROM public.persona_grupo pa
                                       WHERE pa.persona_id=:id""")
         pers_org_result = con.execute(pers_org_query, id=session['id'])
-
-        for res in pers_org_result:
-            org_form = OrgForm()
-            org_form.agregar_id = str(res.agregar_id)
-            org_form.titulo = res.titulo
-            org_form.fecha_comienzo = res.fecha_comienzo
-            org_form.fecha_finale = res.fecha_finale
-
-            form.org_form.append_entry(org_form)
+        populate_pers_grupo(form, pers_org_result)
 
         form.nom_part.data = user.nom_part
         form.seudonimo.data = user.seudonimo
@@ -251,10 +288,10 @@ def populate_info(con, form):
         form.nom_materno.data = user.nom_materno
         form.genero.data = user.genero
     else:
-        user = current_ag(con, session['email'])
-        form.nom_part_ag.data = user.nom_part
+        user = current_gr(con, session['email'])
+        form.nom_part_gr.data = user.nom_part
         form.fecha_comienzo.data = user.fecha_comienzo
-        form.tipo_agregar.data = user.tipo_agregar
+        form.tipo_grupo.data = user.tipo_grupo
     form.coment_part.data = user.coment_part
     form.sitio_web.data = user.sitio_web
     form.direccion.data = user.direccion
@@ -264,40 +301,64 @@ def populate_info(con, form):
     form.pais.data = user.pais
 
 
-def upsert_pers_ags(con, form, usuario_id, pers_id, update=False):
+def estado_comp(con, obra_id, estado):
+    query = text("""UPDATE public.composicion SET estado=:estado WHERE composicion_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+    query = text("""UPDATE public.participante_composicion SET estado=:estado WHERE composicion_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+
+
+def estado_pista(con, obra_id, estado):
+    query = text("""UPDATE public.pista_son SET estado=:estado WHERE pista_son_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+    query = text("""UPDATE public.participante_pista_son SET estado=:estado WHERE pista_son_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+
+
+def estado_pers(con, obra_id, estado):
+    query = text("""UPDATE public.persona SET estado=:estado WHERE part_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+
+
+def estado_grupo(con, obra_id, estado):
+    query = text("""UPDATE public.grupo SET estado=:estado WHERE part_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado)
+
+
+def upsert_pers_grupos(con, form, usuario_id, pers_id, update=False):
         used_ids = []
         for entry in form.org_form.entries:
-            ag_id = int(entry.data['agregar_id'])
-            if ag_id != 0 and ag_id not in used_ids:
-                used_ids.append(ag_id)
-                pers_ag_insert = text("""INSERT INTO public.persona_agregar(persona_id
-                                                                          , agregar_id
+            gr_id = int(entry.data['grupo_id'])
+            if gr_id != 0 and gr_id not in used_ids:
+                used_ids.append(gr_id)
+                pers_grupo_insert = text("""INSERT INTO public.persona_grupo(persona_id
+                                                                          , grupo_id
                                                                           , fecha_comienzo
                                                                           , fecha_finale
                                                                           , titulo
                                                                           , cargador_id) 
                                                                       VALUES (:pers_id
-                                                                            , :agregar_id
+                                                                            , :grupo_id
                                                                             , :fecha_comienzo
                                                                             , :fecha_finale
                                                                             , strip(:titulo)
                                                                             , :us_id)
-                                          ON CONFLICT (persona_id, agregar_id) DO UPDATE
+                                          ON CONFLICT (persona_id, grupo_id) DO UPDATE
                                           SET fecha_comienzo=EXCLUDED.fecha_comienzo,
                                               fecha_finale=EXCLUDED.fecha_finale,
                                               titulo=EXCLUDED.titulo,
                                               mod_id=EXCLUDED.cargador_id""")
-                con.execute(pers_ag_insert, pers_id=pers_id
-                            , agregar_id=ag_id
+                con.execute(pers_grupo_insert, pers_id=pers_id
+                            , grupo_id=gr_id
                             , fecha_comienzo=parse_fecha(entry.data['fecha_comienzo'])
                             , fecha_finale=parse_fecha(entry.data['fecha_finale'])
                             , titulo=entry.data['titulo']
                             , us_id=usuario_id)
         if update:
-            pers_ags_delete = text("""DELETE FROM public.persona_agregar WHERE persona_id=:id AND
-                                      agregar_id NOT IN :used""")
+            pers_grupos_delete = text("""DELETE FROM public.persona_grupo WHERE persona_id=:id AND
+                                      grupo_id NOT IN :used""")
             used_ids.append(0)
-            con.execute(pers_ags_delete, id=usuario_id, used=tuple(used_ids))
+            con.execute(pers_grupos_delete, id=usuario_id, used=tuple(used_ids))
 
 
 def update_info(con, form, usuario_id):
@@ -332,9 +393,9 @@ def update_info(con, form, usuario_id):
                     , genero=form.genero.data
                     , coment_part=form.coment_part.data
                     , id=usuario_id)
-        upsert_pers_ags(con, form, usuario_id, usuario_id, update=True)
+        upsert_pers_grupos(con, form, usuario_id, usuario_id, update=True)
     else:
-        user_query = text("""UPDATE public.ag_view SET nom_part=strip(:nom_part_ag)
+        user_query = text("""UPDATE public.gr_view SET nom_part=strip(:nom_part_gr)
                                                  , ciudad=strip(:ciudad)
                                                  , subdivision=strip(:subdivision)
                                                  , pais=strip(:pais)
@@ -343,10 +404,10 @@ def update_info(con, form, usuario_id):
                                                  , direccion=strip(:direccion)
                                                  , telefono=strip(:telefono)
                                                  , coment_part=strip(:coment_part)
-                                                 , tipo_agregar=strip(:tipo_agregar)
+                                                 , tipo_grupo=strip(:tipo_grupo)
                                                  , mod_id=:id
                                                  WHERE part_id=:id;""")
-        con.execute(user_query, nom_part_ag=form.nom_part_ag.data
+        con.execute(user_query, nom_part_gr=form.nom_part_gr.data
                     , ciudad=form.ciudad.data
                     , subdivision=form.subdivision.data
                     , pais=form.pais.data
@@ -355,24 +416,29 @@ def update_info(con, form, usuario_id):
                     , direccion=form.direccion.data
                     , telefono=form.telefono.data
                     , coment_part=form.coment_part.data
-                    , tipo_agregar=form.tipo_agregar.data
+                    , tipo_grupo=form.tipo_grupo.data
                     , id=usuario_id)
 
 
+def query_archivos(con, pista_id):
+    query = text("""SELECT * FROM public.archivo WHERE pista_son_id=:pista_id""")
+    return con.execute(query, pista_id=pista_id)
+
+
 # Queries for the profile view
-def query_pers_ag(con, part_id):
+def query_pers_gr(con, part_id):
     query = text("""SELECT a.nom_part
                              , public.get_fecha(pa.fecha_comienzo) fecha_comienzo
                              , public.get_fecha(pa.fecha_finale) fecha_finale
                              , pa.titulo
-                            FROM public.persona_agregar pa
-                            JOIN public.agregar a
-                              ON pa.agregar_id = a.part_id
+                            FROM public.persona_grupo pa
+                            JOIN public.grupo a
+                              ON pa.grupo_id = a.part_id
                               WHERE pa.persona_id=:id""")
     return con.execute(query, id=part_id)
 
 
-def query_ags(con, part_id, permission='EDITOR'):
+def query_grupos(con, part_id, permission='EDITOR'):
     if permission == 'EDITOR':
         query = text("""SELECT part_id
                              , nom_part
@@ -381,7 +447,7 @@ def query_ags(con, part_id, permission='EDITOR'):
                              , ciudad
                              , subdivision
                              , pais
-                             FROM public.ag_view
+                             FROM public.gr_view
                              WHERE cargador_id=:id
                              AND cargador_id <> part_id
                              AND estado = 'PENDIENTE'
@@ -398,7 +464,7 @@ def query_ags(con, part_id, permission='EDITOR'):
                              , a.estado
                              , a.cargador_id
                              , u.nom_usuario
-                             FROM public.ag_view a
+                             FROM public.gr_view a
                              JOIN public.usuario u
                                ON u.usuario_id = a.cargador_id 
                              WHERE a.part_id NOT IN (SELECT usuario_id FROM public.usuario)""")
@@ -499,15 +565,33 @@ def query_pista(con, part_id, permission='EDITOR'):
         return con.execute(query, id=part_id)
 
 
+def update_permiso(con, usuario_id, permiso):
+    query = text("""UPDATE public.usuario SET permiso=:permiso WHERE usuario_id=:usuario_id""")
+    con.execute(query, permiso=permiso, usuario_id=usuario_id)
+
+
+def update_prohibido(con, usuario_id, prohibido):
+    query = text("""UPDATE public.usuario SET prohibido=:prohibido WHERE usuario_id=:usuario_id""")
+    con.execute(query, prohibido=prohibido, usuario_id=usuario_id)
+
+
 def query_perfil(con, part_id, permission='EDITOR'):
     perfil_dict = {
         'pistas': query_pista(con, part_id, permission),
         'comps': query_comps(con, part_id, permission),
-        'ags': query_ags(con, part_id, permission),
+        'grupos': query_grupos(con, part_id, permission),
         'pers': query_pers(con, part_id, permission)
     }
-    if permission != 'EDITOR':
+    if permission == 'EDITOR':
+        perfil_dict['editor'] = True
+    if permission == 'MOD':
         perfil_dict['mod'] = True
+        perfil_dict['editor'] = True
+    if permission == 'ADMIN':
+        query = text("""SELECT * from public.usuario WHERE permiso <> 'ADMIN'""")
+        perfil_dict['usuarios'] = con.execute(query)
+        perfil_dict['mod'] = True
+        perfil_dict['editor'] = True
     return perfil_dict
 
 
@@ -566,9 +650,9 @@ def insert_part(con, form, usuario_id):
                     , coment_part=form.coment_part.data
                     , cargador_id=usuario_id).first()[0]
 
-        upsert_pers_ags(con, form, usuario_id, user_result)
+        upsert_pers_grupos(con, form, usuario_id, user_result)
     else:
-        user_query = text("""INSERT INTO public.ag_view(nom_part
+        user_query = text("""INSERT INTO public.gr_view(nom_part
                                                            , ciudad
                                                            , subdivision
                                                            , pais
@@ -578,7 +662,7 @@ def insert_part(con, form, usuario_id):
                                                            , direccion
                                                            , telefono
                                                            , email
-                                                           , tipo_agregar
+                                                           , tipo_grupo
                                                            , coment_part
                                                            , cargador_id)
                                                          VALUES (strip(:nom_part)
@@ -591,10 +675,10 @@ def insert_part(con, form, usuario_id):
                                                                , strip(:direccion)
                                                                , strip(:telefono)
                                                                , strip(:email)
-                                                               , strip(:tipo_agregar)
+                                                               , strip(:tipo_grupo)
                                                                , strip(:coment_part)
                                                                , :cargador_id)""")
-        con.execute(user_query, nom_part=form.nom_part_ag.data
+        con.execute(user_query, nom_part=form.nom_part_gr.data
                     , ciudad=form.ciudad.data
                     , subdivision=form.subdivision.data
                     , pais=form.pais.data
@@ -605,50 +689,45 @@ def insert_part(con, form, usuario_id):
                     , telefono=form.telefono.data
                     , email=form.email.data
                     , coment_part=form.coment_part.data
-                    , tipo_agregar=form.tipo_agregar.data
+                    , tipo_grupo=form.tipo_grupo.data
                     , cargador_id=usuario_id)
+
+
+def populate_part(form, user):
+    form.email.data = user.email
+    form.direccion.data = user.direccion
+    form.telefono.data = user.telefono
+    form.sitio_web.data = user.sitio_web
+    form.ciudad.data = user.ciudad
+    form.subdivision.data = user.subdivision
+    form.pais.data = user.pais
+    form.fecha_comienzo.data = user.fecha_comienzo
+    form.fecha_finale.data = user.fecha_finale
+    form.coment_part.data = user.coment_part
 
 
 # Queries for the poner_pers view
 def populate_poner_pers(con, form, part_id):
     query = text("""SELECT * FROM public.pers_view WHERE part_id=:part_id""")
     user = con.execute(query, part_id=part_id).first()
-    pers_org_query = text("""SELECT pa.agregar_id
+    pers_org_query = text("""SELECT pa.grupo_id
                                   , public.get_fecha(pa.fecha_comienzo) fecha_comienzo
                                   , public.get_fecha(pa.fecha_finale) fecha_finale
                                   , pa.titulo
-                                  FROM public.persona_agregar pa
+                                  FROM public.persona_grupo pa
                                   WHERE pa.persona_id=:part_id""")
     pers_org_result = con.execute(pers_org_query, part_id=part_id)
 
-    for res in pers_org_result:
-        org_form = OrgForm()
-        org_form.agregar_id = str(res.agregar_id)
-        org_form.titulo = res.titulo
-        org_form.fecha_comienzo = res.fecha_comienzo
-        org_form.fecha_finale = res.fecha_finale
-
-        form.org_form.append_entry(org_form)
-
+    populate_pers_grupo(form, pers_org_result)
     form.nom_part.data = user.nom_part
-    form.seudonimo.data = user.seudonimo
-    form.fecha_comienzo.data = user.fecha_comienzo
-    form.fecha_comienzo.data = user.fecha_finale
     form.nom_paterno.data = user.nom_paterno
     form.nom_materno.data = user.nom_materno
+    form.seudonimo.data = user.seudonimo
     form.genero.data = user.genero
     form.ciudad_muer.data = user.ciudad_muer
     form.subdivision_muer.data = user.subdivision_muer
     form.pais_muer.data = user.pais_muer
-
-    form.email.data = user.email
-    form.coment_part.data = user.coment_part
-    form.sitio_web.data = user.sitio_web
-    form.direccion.data = user.direccion
-    form.telefono.data = user.telefono
-    form.ciudad.data = user.ciudad
-    form.subdivision.data = user.subdivision
-    form.pais.data = user.pais
+    populate_part(form, user)
 
 
 def update_poner_pers(con, form, usuario_id, part_id):
@@ -688,30 +767,20 @@ def update_poner_pers(con, form, usuario_id, part_id):
                 , coment_part=form.coment_part.data
                 , mod_id=usuario_id
                 , part_id=part_id)
-    upsert_pers_ags(con, form, usuario_id, part_id, update=True)
+    upsert_pers_grupos(con, form, usuario_id, part_id, update=True)
 
 
-# Queries for the poner_ag view
-def populate_poner_ag(con, form, part_id):
-    query = text("""SELECT * FROM public.ag_view WHERE part_id=:part_id""")
+# Queries for the poner_gr view
+def populate_poner_grupo(con, form, part_id):
+    query = text("""SELECT * FROM public.gr_view WHERE part_id=:part_id""")
     user = con.execute(query, part_id=part_id).first()
-    form.tipo_agregar.data = user.tipo_agregar
-    form.nom_part_ag.data = user.nom_part
-
-    form.fecha_comienzo.data = user.fecha_comienzo
-    form.fecha_finale.data = user.fecha_finale
-    form.coment_part.data = user.coment_part
-    form.sitio_web.data = user.sitio_web
-    form.direccion.data = user.direccion
-    form.email.data = user.email
-    form.telefono.data = user.telefono
-    form.ciudad.data = user.ciudad
-    form.subdivision.data = user.subdivision
-    form.pais.data = user.pais
+    form.tipo_grupo.data = user.tipo_grupo
+    form.nom_part_gr.data = user.nom_part
+    populate_part(form, user)
 
 
-def update_poner_ag(con, form, usuario_id, part_id):
-    user_query = text("""UPDATE public.ag_view SET nom_part=strip(:nom_part_ag)
+def update_poner_grupo(con, form, usuario_id, part_id):
+    user_query = text("""UPDATE public.gr_view SET nom_part=strip(:nom_part_gr)
                                              , ciudad=strip(:ciudad)
                                              , subdivision=strip(:nom_sudivision)
                                              , pais=strip(:pais)
@@ -721,10 +790,10 @@ def update_poner_ag(con, form, usuario_id, part_id):
                                              , direccion=strip(:direccion)
                                              , telefono=strip(:telefono)
                                              , coment_part=strip(:coment_part)
-                                             , tipo_agregar=strip(:tipo_agregar)
+                                             , tipo_grupo=strip(:tipo_grupo)
                                              , mod_id=:mod_id
                                              WHERE part_id=:part_id;""")
-    con.execute(user_query, nom_part_ag=form.nom_part_ag.data
+    con.execute(user_query, nom_part_gr=form.nom_part_gr.data
                 , ciudad=form.ciudad.data
                 , subdivision=form.subdivision.data
                 , pais=form.pais.data
@@ -733,7 +802,7 @@ def update_poner_ag(con, form, usuario_id, part_id):
                 , direccion=form.direccion.data
                 , telefono=form.telefono.data
                 , coment_part=form.coment_part.data
-                , tipo_agregar=form.tipo_agregar.data
+                , tipo_grupo=form.tipo_grupo.data
                 , mod_id=usuario_id
                 , part_i=part_id)
 
@@ -743,13 +812,13 @@ def populate_cob(con, form, ent_id, is_pista=True):
     if is_pista:
         query = text("""SELECT cobertura_lic_id
                              , public.get_fecha(fecha_comienzo) fecha_comienzo
-                             , public.get_fecha(fecha_final) fecha_finale
+                             , public.get_fecha(fecha_finale) fecha_finale
                              , pais_cobertura 
                          FROM public.cobertura WHERE pista_son_id=:ent_id""")
     else:
         query = text("""SELECT cobertura_lic_id
                              , public.get_fecha(fecha_comienzo) fecha_comienzo
-                             , public.get_fecha(fecha_final) fecha_finale
+                             , public.get_fecha(fecha_finale) fecha_finale
                              , pais_cobertura  FROM public.cobertura WHERE composicion_id=:ent_id""")
     cob_result = con.execute(query, ent_id=ent_id).first()
     form.cobertura.data = cob_result.cobertura_lic_id
@@ -773,16 +842,17 @@ def populate_comp(con, form, comp_id):
     for res in comps_result:
         lang_form = DynamicLangForm()
         lang_form.idioma_id = res.idioma_id
-        form.part_id_form.append_entry(lang_form)
+        form.idioma_form.append_entry(lang_form)
 
     query = text("""SELECT * FROM public.tema_composicion WHERE composicion_id=:comp_id""")
     comps_result = con.execute(query, comp_id=comp_id)
     for res in comps_result:
         theme_form = DynamicThemeForm()
         theme_form.tema_id = res.tema_id
-        form.part_id_form.append_entry(theme_form)
+        form.tema_form.append_entry(theme_form)
 
-    query = text("""SELECT * FROM public.composicion WHERE composicion_id=:comp_id""")
+    query = text("""SELECT nom_tit, nom_alt, public.get_fecha(fecha_pub) fecha_pub, 
+                          composicion_orig, texto FROM public.composicion WHERE composicion_id=:comp_id""")
     comp = con.execute(query, comp_id=comp_id).first()
     form.nom_tit.data = comp.nom_tit
     form.nom_alt.data = comp.nom_alt
@@ -798,18 +868,18 @@ def insert_cob(con, form, ent_id, is_pista=True):
                                                     , pista_son_id
                                                     , pais_cobertura
                                                     , fecha_comienzo
-                                                    , fecha_final)
+                                                    , fecha_finale)
                                               VALUES (:cobertura
                                                     , :ent_id
                                                     , :pais_cob
                                                     , :fecha_comienzo
-                                                    , :fecha_final)""")
+                                                    , :fecha_finale)""")
     else:
         query = text("""INSERT INTO public.cobertura (cobertura_lic_id
                                                             , composicion_id
                                                             , pais_cobertura
                                                             , fecha_comienzo
-                                                            , fecha_final)
+                                                            , fecha_finale)
                                                       VALUES (:cobertura
                                                             , :ent_id
                                                             , :pais_cob
@@ -827,13 +897,13 @@ def update_cob(con, form, ent_id, is_pista=True):
         query = text("""UPDATE public.cobertura SET cobertura_lic_id=:cobertura
                                                     , pais_cobertura=:pais_cob
                                                     , fecha_comienzo=:fecha_comienzo
-                                                    , fecha_final=:fecha_finale
+                                                    , fecha_finale=:fecha_finale
                                               WHERE pista_son_id=:ent_id""")
     else:
         query = text("""UPDATE public.cobertura SET cobertura_lic_id=:cobertura
                                                     , pais_cobertura=:pais_cob
                                                     , fecha_comienzo=:fecha_comienzo
-                                                    , fecha_final=:fecha_finale
+                                                    , fecha_finale=:fecha_finale
                                               WHERE composicion_id=:ent_id""")
     con.execute(query, cobertura=form.cobertura.data
                      , ent_id=ent_id
@@ -846,13 +916,13 @@ def update_comp(con, form, usuario_id, comp_id):
     query = text("""UPDATE public.composicion SET nom_tit=:nom_tit
                                                , nom_alt=:nom_alt
                                                , fecha_pub=:fecha_pub
-                                               , composicion_orig=:composicion_org
+                                               , composicion_orig=NULLIf(:composicion_orig, 0)
                                                , texto=:texto 
                                                WHERE composicion_id=:comp_id""")
     con.execute(query, nom_tit=form.nom_tit.data
                      , nom_alt=form.nom_alt.data
                      , fecha_pub=parse_fecha(form.fecha_pub.data)
-                     , composicion_org=form.composicion_org.data
+                     , composicion_orig=form.composicion_id.data
                      , texto=form.texto.data
                      , comp_id=comp_id)
 
@@ -866,6 +936,7 @@ def update_comp(con, form, usuario_id, comp_id):
             con.execute(insert_tema_comp, comp_id=comp_id, tema_id=tema_id)
     delete_tema_comp = text("""DELETE FROM public.tema_composicion WHERE composicion_id=:comp_id
                                AND tema_id NOT IN :used""")
+    used_ids.append(0)
     con.execute(delete_tema_comp, used=tuple(used_ids), comp_id=comp_id)
 
     used_ids = []
@@ -878,6 +949,7 @@ def update_comp(con, form, usuario_id, comp_id):
             con.execute(idioma_comp_insert, comp_id=comp_id, idioma_id=idioma_id)
     delete_idioma_comp = text("""DELETE FROM public.idioma_composicion WHERE composicion_id=:comp_id
                                AND idioma_id NOT IN :used""")
+    used_ids.append(0)
     con.execute(delete_idioma_comp, used=tuple(used_ids), comp_id=comp_id)
 
     used_ids = []
@@ -893,16 +965,15 @@ def update_comp(con, form, usuario_id, comp_id):
                                                                                    , :part_id
                                                                                    , :rol_composicion
                                                                                    , :cargador_id)
-                                                                               ON CONFLICT(part_id, composicion_id) 
-                                                                               DO UPDATE SET
-                                                                               rol_composicion=EXCLUDED.rol_composicion,
-                                                                               mod_id=EXCLUDED.cargador_id""")
+                                                                               ON CONFLICT DO NOTHING""")
             con.execute(part_comp_insert, comp_id=comp_id
                                         , part_id=tuple_id[0]
                                         , rol_composicion=tuple_id[1]
                                         , cargador_id=usuario_id)
     delete_part_comp = text("""DELETE FROM public.participante_composicion WHERE composicion_id=:comp_id
                                 AND (part_id, rol_composicion) NOT IN :used""")
+
+    used_ids.append((0,0))
     con.execute(delete_part_comp, comp_id=comp_id, used=tuple(used_ids))
     update_cob(con, form, comp_id, is_pista=False)
 
@@ -991,14 +1062,10 @@ def populate_pista(con, form, pista_id):
     form.serie_id.data = pista.serie_id
     form.fecha_grab.data = pista.fecha_grab
     form.fecha_dig.data = pista.fecha_dig
-    form.fecha_cont.data = pista.fecha_cont.data
+    form.fecha_cont.data = pista.fecha_cont
     form.coment_pista_son.data = pista.coment_pista_son
-    # Populate lugar section
-    query = text("""SELECT * from public.lugar WHERE lugar_id=:lugar_id""")
-    lugar = con.execute(query, lugar_id=pista.lugar_id)
-    form.ciudad.data = lugar.ciudad
-    form.subdivision.data = lugar.subdivision
-    form.pais.data = lugar.pais
+
+    populate_lugar(con, form, pista.lugar_interp)
     populate_cob(con, form, pista_id)
 
 
@@ -1037,6 +1104,7 @@ def update_pista(con, form, usuario_id, pista_id):
             con.execute(insert_gen_mus, pista_son_id=pista_son_result, gen_mus_id=gen_mus_id)
     delete_gen_mus = text("""DELETE FROM public.genero_pista WHERE pista_son_id=:pista_id 
                               AND gen_mus_id NOT IN :used""")
+    used_ids.append(0)
     con.execute(delete_gen_mus, pista_id=pista_id, used=tuple(used_ids))
 
     used_ids = []
@@ -1053,17 +1121,22 @@ def update_pista(con, form, usuario_id, pista_id):
                                                                                    , :part_id
                                                                                    , :rol_pista_son
                                                                                    , :instrumento_id
-                                                                                   , :cargador_id) ON CONFLICT
+                                                                                   , :cargador_id) ON CONFLICT (
+                                                                                   pista_son_id
+                                                                                  ,part_id
+                                                                                  ,rol_pista_son
+                                                                                  ,instrumento_id)
                                                                                    DO UPDATE SET 
                                                                                   mod_id=EXCLUDED.cargador_id""")
-            con.execute(insert_part_insert, pista_son_id=pista_son_result
+            con.execute(insert_part_insert, pista_son_id=pista_id
                         , part_id=tuple_id[0]
                         , rol_pista_son=tuple_id[1]
                         , instrumento_id=tuple_id[2]
                         , cargador_id=usuario_id)
-    delete_part_comp = text("""DELETE FROM public.genero_pista WHERE pista_son_id=:pista_id 
-                              AND gen_mus_id NOT IN :used""")
-    con.execute(delete_part_comp, pista_id=pista_id, used=tuple(used_ids))
+    delete_part_pista = text("""DELETE FROM public.participante_pista_son WHERE pista_son_id=:pista_id 
+                              AND (part_id, rol_pista_son, instrumento_id) NOT IN :used""")
+    con.execute(delete_part_pista, pista_id=pista_id, used=tuple(used_ids))
+    used_ids.append((0,0,0))
     update_cob(con, form, pista_id)
 
 
@@ -1131,6 +1204,7 @@ def insert_pista(con, form, usuario_id):
                         , instrumento_id=tuple_id[2]
                         , cargador_id=usuario_id)
     insert_cob(con, form, pista_son_result)
+    return pista_son_result
 
 
 # Query to add an instrument
@@ -1221,11 +1295,11 @@ def init_pers(con, part_id):
     return [pers[0] for pers in pers_result]
 
 
-def init_ags(con, part_id):
-    ag_query = text("""SELECT part_id 
-                           FROM public.agregar
+def init_grupos(con, part_id):
+    gr_query = text("""SELECT part_id 
+                           FROM public.grupo
                            WHERE cargador_id=:id
                              AND estado='PENDIENTE'
                              OR estado='PUBLICADO'""")
-    ag_result = con.execute(ag_query, id=part_id)
-    return [ag[0] for ag in ag_result]
+    gr_result = con.execute(gr_query, id=part_id)
+    return [ag[0] for ag in gr_result]

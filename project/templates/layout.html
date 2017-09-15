@@ -29,6 +29,7 @@
         <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
         <meta http-equiv="pragma" content="no-cache" />
 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
         <link href="{{ url_for('static', filename='css/stylesheet.css') }}" id="member_stylesheet" rel="stylesheet" type="text/css" />
@@ -102,6 +103,8 @@
         <script src="{{ url_for('static', filename='js/form-toggle.js') }}"></script>
         <script src="{{ url_for('static', filename='js/tab-url.js') }}"></script>
         <script src="{{ url_for('static', filename='js/dynamic-forms.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/ajax-change-state.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/ajax-change-permission.js') }}"></script>
         <script src="{{ url_for('static', filename='js/data-tables.js') }}"></script>
         {% block js %}{% endblock %}
     </body>

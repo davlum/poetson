@@ -14,8 +14,8 @@ CREATE TRIGGER persona_insert
   FOR EACH ROW
   EXECUTE PROCEDURE participante_insert();
 
-CREATE TRIGGER agregar_insert
-  BEFORE INSERT ON public.agregar
+CREATE TRIGGER grupo_insert
+  BEFORE INSERT ON public.grupo
   FOR EACH ROW
   EXECUTE PROCEDURE participante_insert();
 
@@ -114,7 +114,7 @@ CREATE TRIGGER usuario_id_trig
   EXECUTE PROCEDURE usuario_id_insert();
 
 CREATE TRIGGER usuario_id_trig
-  BEFORE INSERT ON public.agregar
+  BEFORE INSERT ON public.grupo
   FOR EACH ROW
   EXECUTE PROCEDURE usuario_id_insert();
 

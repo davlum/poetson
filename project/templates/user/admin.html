@@ -3,258 +3,94 @@
 {% block resultbody %}
 
 {% from "includes/_formhelpers.html" import render_field %}
-{% from "macros.html" import nom, fecha, render_profile %}
+{% from "macros.html" import nom, fecha, render_profile, render_select %}
 
 <div id="tabs" class="container" style="width: 80%;">
 
-    <h2>Bienvenido {{ user.nom_usuario }}</h2>
-    <br>
-    <h3>Tu perfil</h3>
-    <p>Algo que explica lo que está pasando</p>
+    <h3>El panel Mod</h3>
+    <a class="right underline" href="{{ url_for('user.perfil') }}">Volver al perfil</a>
+    <p> Desde aquí puede cambiar el estado de
+        cualquier inserto y ponerlo a disposición del público, o retractarlo.<br>
+        También tiene la posibilidad de editar cualquiera de las
+        entradas actuales en la base de datos.</p>
     <ul class="nav nav-tabs nav-justified">
-        <li class="active"><a data-toggle="tab" href="#entradas">Entradas</a></li>
-        <li><a data-toggle="tab" href="#usuarios">Usuarios</a></li>
+        <li class="active"><a data-toggle="tab" href="#part">Añadir artistas</a></li>
+        <li><a data-toggle="tab" href="#pista">Añadir composición</a></li>
+        <li><a data-toggle="tab" href="#vario">Añadir varios</a></li>
+        <li><a data-toggle="tab" href="#usuario">Usuarios</a></li>
     </ul>
 
     <div class="tab-content">
 
-        <div id="inicio" class="tab-pane fade in active">
-            <br>
-            <h2>Inicio</h2>
-            <br>
-            <span>Todos los detalles sobre este perfil;
-            </span>
-            <a class="right underline" href="{{ url_for('user.info') }}">Actualizar información</a>
-            <div class="center-block skinny">
-                <br>
-                <table class="table">
-                    <tbody>
-                        {% if session['is_person'] %}
-                         <tr><th scope="row">Nom: </th><td> {{ nom(user) }}</td></tr>
-                            {{ render_profile('Genéro: ', user.genero) }}
-                            {{ render_profile('Nombre del Padre: ', user.nom_paterno) }}
-                            {{ render_profile('Nombre del Madre: ', user.nom_materno) }}
-                        {% else %}
-                            {{ render_profile('Nom: ', user.nom_part) }}
-                        {% endif %}
-                            <tr><th scope="row">Origen: </th><td>{{ lugar(user) }}</td></tr>
-                            {{ render_profile('Email: ', user.email) }}
-                            {{ render_profile('Sitio Web: ', user.sitio_web) }}
-                            {{ render_profile('Telefono: ', user.telefono) }}
-                            {{ render_profile('Dirección: ', user.direccion) }}
-                            {{ render_profile('Fecha inicial: ', user.fecha_comienzo) }}
-                            {{ render_profile('Comentario Adicional: ', user.coment_participante) }}
-                    </tbody>
-                </table>
-                {% if pers_ag.rowcount > 0 %}
-                <table class="table">
-                    <h3>Parte de</h3>
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Título</th>
-                            <th>Comienzo</th>
-                            <th>Finale</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in pers_ag %}
-                            <tr>
-                                <td>{{ entry.nom_part }}</td>
-                                <td>{{ entry.titulo }}</td>
-                                <td>{{ entry.fecha_comienzo }}</td>
-                                <td>{{ entry.fecha_finale }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-            </div>
-        </div>
+        {% include 'includes/_profile.html' %}
 
-        <div id="part" class="tab-pane fade">
-            <br>
-            <h2>Añadido por usted</h2>
-            <br>
-            <span>Estos son los que ha agregado;</span>
-            <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
-            <div class="skinny center-block">
-            {% if pers is not none and pers is defined %}
-                <table class="table">
-                    <h3>Persona</h3>
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Origen</th>
-                            <th>Comienzo</th>
-                            <th>Finale</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in pers %}
+
+
+        <div class="tab-pane fade" id="usuario">
+
+            <div class="card">
+                <div class="card-header" role="tab" id="usuario-heading">
+                    <h3 class="mb-0">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#usuario-collapse" aria-expanded="true" aria-controls="usuario-collapse">
+                            Usuarios
+                        </a>
+                    </h3>
+                </div>
+                <div id="usuario-collapse" class="collapse in">
+                    <div class="card-block">
+                        <table class="table table-striped">
+                        <thead>
                             <tr>
-                                <td>{{ nom(entry) }}</td>
-                                <td>{{ lugar(entry) }}</td>
-                                <td>{{ entry.fecha_comienzo }}</td>
-                                <td>{{ entry.fecha_finale }}</td>
+                                <th>Nom usuario</th>
+                                <th>Correo electrónico</th>
+                                <th>Fecha registrado</th>
+                                <th>Permiso</th>
+                                <th>Prohibido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for entry in result.usuarios %}
+                            <tr>
+                                <td>{{ entry.nom_usuario }}</td>
+                                {% if entry.pers_email is not none %}
+                                    <td>{{ entry.pers_email }}</td>
+                                {% else %}
+                                    <td>{{ entry.gr_email }}</td>
+                                {% endif %}
+                                <td>{{ entry.fecha_registro }}</td>
                                 <td>
-                                    <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.poner_pers', obra_id=entry.part_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
-                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                    <select class="form-control ajax-permission"
+                                            data-id="{{ entry.usuario_id }}">
+                                        {{ render_select('Editor', entry.permiso) }}
+                                        {{ render_select('Mod', entry.permiso) }}
+                                    </select>
                                 </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-                {% if ags is not none and ags is defined %}
-                <table class="table">
-                    <h3>Agregar</h3>
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Origen</th>
-                            <th>Comienzo</th>
-                            <th>Finale</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in ags %}
-                            <tr>
-                                <td>{{ entry.nom_part }}</td>
-                                <td>{{ lugar(entry) }}</td>
-                                <td>{{ entry.fecha_comienzo }}</td>
-                                <td>{{ entry.fecha_finale }}</td>
                                 <td>
-                                    <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.poner_ag', obra_id=entry.part_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="part" data-id="{{ entry.part_id }}"
-                                        data-toggle="modal" data-target="#confirm-modal"></a>
+                                    <select class="form-control ajax-banned"
+                                            data-id="{{ entry.usuario_id }}">
+                                        {% if entry.prohibido %}
+                                            <option value="True" selected>Prohibido</option>
+                                            <option value="False">Activo</option>
+                                        {% else %}
+                                            <option value="True">Prohibido</option>
+                                            <option value="False" selected>Activo</option>
+                                        {% endif %}
+                                    </select>
                                 </td>
+
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-            </div>
-        </div>
-
-        <div id="pista" class="tab-pane fade">
-            <br>
-            <h2>Añadido por usted</h2>
-            <br>
-            <span>Estos son los que ha agregado;</span>
-            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a><br>
-            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
-            <div class="skinny center-block">
-                {% if comps is not none and comps is defined %}
-                <table class="table">
-                    <h3>Composición</h3>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Título Alternativo</th>
-                            <th>Fecha publication</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in comps %}
-                            <tr>
-                                <td>{{ entry.nom_tit }}</td>
-                                <td>{{ entry.nom_alt }}</td>
-                                <td>{{ entry.fecha_pub }}</td>
-                                <td>
-                                    <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.update_comp', obra_id=entry.composicion_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="comp" data-id="{{ entry.composicion_id }}"
-                                        data-toggle="modal" data-target="#confirm-modal"></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-                {% if pista is not none and pista is defined %}
-                <table class="table">
-                    <h3>Pista son</h3>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>lugar de interpretación</th>
-                            <th>fecha de grabación</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for entry in pista %}
-                            <tr>
-                                <td>{{ entry.nom_tit }}</td>
-                                <td>{{ lugar(entry) }}</td>
-                                <td>{{ entry.fecha_grab }}</td>
-                                <td>
-                                    <a class="glyphicon glyphicon-pencil"
-                                       href="{{ url_for('user.update_pista', obra_id=entry.pista_son_id) }}"></a>&nbsp;
-                                    <a class="open-confirm-modal glyphicon glyphicon-remove" data-role="pista" data-id="{{ entry.pista_son_id }}"
-                                        data-toggle="modal" data-target="#confirm-modal"></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-            </div>
-        </div>
-
-        <div id="vario" class="tab-pane fade">
-            <br>
-            <h2>Añadir varios</h2>
-            <br>
-
-            <div class="skinny center-block">
-                <a class="underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
-                <a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a>
-                <a class="underline" href="">Nuevo idioma</a>
-                <a class="underline" href="">Nuevo Genero musical</a>
-                <a class="underline" href="">Nuevo tema</a>
-            </div>
-        </div>
-
-        <div id="contrasena" class="tab-pane fade">
-            <br>
-            <h2>Cambia la contraseña</h2>
-            <br>
-            <div class="center-block skinny">
-                <form class="form-reset" role="form" method="post" action="">
-                  {{ password_form.csrf_token }}
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                              {{render_field(password_form.old_password, class ="form-control")}}
-                        </div>
+                        </tbody>
+                        </table>
                     </div>
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                              {{render_field(password_form.new_password, class ="form-control")}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                              {{render_field(password_form.confirm, class ="form-control")}}
-                        </div>
-                    </div>
-                    <input type="hidden" style="display: none;" name="password_form">
-                  <button class="btn btn-success" type="submit">Actualizar</button>
-                </form>
+                </div>
             </div>
+
         </div>
 
     </div>
 
 </div>
-
 
 
 {% endblock %}

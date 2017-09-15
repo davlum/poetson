@@ -12,7 +12,6 @@ from project import app
 
 app.config.from_object(os.environ['APP_SETTINGS'])
 
-#migrate = Migrate(app)
 manager = Manager(app)
 
 # migrations

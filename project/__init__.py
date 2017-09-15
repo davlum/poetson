@@ -11,6 +11,7 @@ from flask import Flask, render_template, session, app, url_for, redirect, reque
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import text, create_engine
 from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect
 from datetime import timedelta
 
 ################
@@ -25,6 +26,7 @@ app.config.from_object(os.environ['APP_SETTINGS'])
 #### extensions ####
 ####################
 
+csrf = CSRFProtect(app)
 mail = Mail(app)
 toolbar = DebugToolbarExtension(app)
 engine = create_engine('postgresql:///postgres')
@@ -42,7 +44,7 @@ app.register_blueprint(user_blueprint)
 def current_user(con, email):
     query = text("""SELECT * 
                       FROM public.usuario 
-                      WHERE LOWER(ag_email)=LOWER(:email)
+                      WHERE LOWER(gr_email)=LOWER(:email)
                          OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result

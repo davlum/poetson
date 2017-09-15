@@ -6,7 +6,7 @@
 #################
 
 
-import os
+import os, errno
 from project import app
 from flask import render_template, Blueprint, url_for, \
     redirect, flash, request, session, abort
@@ -14,19 +14,20 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import text
 from project.token import generate_confirmation_token, confirm_token, ts
 from project import engine
+from mutagen import File
 from passlib.hash import bcrypt
 from .forms import LoginForm, RegisterForm, \
     ChangePasswordForm, EmailForm, PasswordForm, InstrForm, \
     InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
-from project.util import current_user, current_ag, current_pers, send_email, allowed_file
+from project.util import current_user, current_gr, current_pers, send_email, allowed_file
 
-from project.user.models import query_perfil, query_pers_ag, populate_info, update_info, \
-    insert_part, populate_poner_ag, populate_poner_pers, update_poner_ag, update_poner_pers, delete_part, \
-    init_comps, init_pistas, init_pers, init_ags, insert_comp,  insert_pista, \
-    populate_pais_form, populate_comps_form, populate_comp, populate_pista, delete_comp, \
-    delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, \
-    add_part_choices, add_comp_choices, add_pista_choices, add_info_choices
+from project.user.models import query_perfil, query_pers_gr, populate_info, update_info, update_permiso, \
+    insert_part, populate_poner_grupo, populate_poner_pers, update_poner_grupo, update_poner_pers, delete_part, \
+    init_comps, init_pistas, init_pers, init_grupos, insert_comp,  insert_pista, query_archivos, update_prohibido, \
+    populate_pais_form, populate_comp, populate_pista, delete_comp, insert_archivo, estado_comp, estado_grupo, \
+    delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, estado_pers, estado_pista, \
+    add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -34,7 +35,7 @@ user_blueprint = Blueprint('user', __name__,)
 
 # a few utility functions that reside in views due to circular dependency
 def init_session(con, email):
-    user = current_ag(con, email)
+    user = current_gr(con, email)
     if user is None:
         user = current_pers(con, email)
         session['is_person'] = True
@@ -49,7 +50,7 @@ def init_session(con, email):
     # get a list of composicions by this user
     session['comps'] = init_comps(con, user.part_id)
     # list of persona added
-    session['parts'] = init_pers(con, user.part_id) + init_ags(con, user.part_id)
+    session['parts'] = init_pers(con, user.part_id) + init_grupos(con, user.part_id)
     # list of pista_son added
     session['pistas'] = init_pistas(con, user.part_id)
 
@@ -59,10 +60,10 @@ def delete_wrapper(fun, con, row_id):
         fun(con, row_id)
         init_session(con, session['email'])
         flash('la eliminación se ha realizado correctamente.', 'success')
-    except:
+    except Exception as ex:
         if app.config['DEBUG']:
             raise  # Only for development
-        flash('Ocurrió un error.', 'danger')
+        flash('Ocurrió un error;' + str(ex), 'danger')
 
 
 def upsert_wrapper(fun, con, form, row_id=None):
@@ -73,12 +74,46 @@ def upsert_wrapper(fun, con, form, row_id=None):
         else:
             fun(con, form, session['id'])
         trans.commit()
+        init_session(con, session['email'])
         flash('La actualización se ha realizado correctamente.', 'success')
-    except:
+    except Exception as ex:
         trans.rollback()
         if app.config['DEBUG']:
             raise  # Only for development
-        flash('Ocurrió un error.', 'danger')
+        flash('Ocurrió un error; ' + str(ex), 'danger')
+
+
+def validate_file():
+    if 'archivo' not in request.files:
+        return False, 'Ninguna parte del archivo'
+    file = request.files['archivo']
+    if file.filename == '':
+        return False, 'Ningún archivo seleccionado'
+    if not file or not allowed_file(file.filename):
+        return False, 'Este tipo de archivo no es aceptado'
+    return True, file
+
+
+def upload_file(con, pista_id, file):
+    audio = File(file)
+    if audio is not None:
+        filename = secure_filename(file.filename)
+        archivo_id = str(insert_archivo(con, audio, filename, pista_id))
+        path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_id) + '/' + archivo_id
+        file.seek(0)
+        os.makedirs(path, exist_ok=True)
+        file.save(os.path.join(path, filename))
+        file.close()
+    else:
+        flash('Is not an audio file', 'danger')
+
+
+#def upload_file(con, pista_id, file):
+#    filename = secure_filename(file.filename)
+#    path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_id)
+#    os.makedirs(path, exist_ok=True)
+#    file.save(os.path.join(path, filename))
+#    file.close()
 
 
 # The views start here
@@ -96,7 +131,7 @@ def register():
                           (:email, :nom_usuario, :contrasena);""")
             con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         else:
-            user_query = text("""INSERT INTO public.us_ag (email, nom_usuario, contrasena) VALUES 
+            user_query = text("""INSERT INTO public.us_gr (email, nom_usuario, contrasena) VALUES 
                           (:email, :nom_usuario, :contrasena);""")
             con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         # set session data
@@ -255,9 +290,9 @@ def perfil():
     if session['is_person']:
         user = current_pers(con, session['email'])
     else:
-        user = current_ag(con, session['email'])
-    pers_ag = query_pers_ag(con, session['id'])
-    perf = query_perfil(con, session['id'])
+        user = current_gr(con, session['email'])
+    pers_gr = query_pers_gr(con, session['id'])
+    result = query_perfil(con, session['id'])
     con.close()
     password_form = ChangePasswordForm(request.form)
     if request.method == 'POST' and password_form.validate():
@@ -273,8 +308,8 @@ def perfil():
             flash('El cambio de contraseña no tuvo éxito.', 'danger')
         return redirect(url_for('user.perfil', _anchor='tab_contrasena'))
     return render_template('user/perfil.html', user=user
-                                              , perf=perf
-                                              , pers_ag=pers_ag
+                                              , result=result
+                                              , pers_gr=pers_gr
                                               , password_form=password_form)
 
 
@@ -312,22 +347,22 @@ def poner_pers(obra_id):
     return render_template('poner/pers.html', form=form)
 
 
-@user_blueprint.route('/poner/ag/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/grupo/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def poner_ag(obra_id):
+def poner_grupo(obra_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
-        populate_poner_ag(con, form, obra_id)
+        populate_poner_grupo(con, form, obra_id)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        upsert_wrapper(update_poner_ag, con, form, obra_id)
+        upsert_wrapper(update_poner_grupo, con, form, obra_id)
         return redirect(url_for('user.perfil', _anchor='tab_part'))
-    return render_template('poner/ag.html', form=form)
+    return render_template('poner/grupo.html', form=form)
 
 
 @user_blueprint.route('/remove/part/<int:obra_id>/', methods=['GET', 'POST'])
@@ -338,7 +373,7 @@ def remove_part(obra_id):
     con = engine.connect()
     delete_wrapper(delete_part, con, obra_id)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_part'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/remove/comp/<int:obra_id>/', methods=['GET', 'POST'])
@@ -363,107 +398,82 @@ def remove_pista(obra_id):
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-
+@user_blueprint.route('/poner/comp/<int:obra_id>/', methods=['GET', 'POST'])
 @user_blueprint.route('/poner/comp', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def poner_comp():
-    form = AddCompForm(request.form)
-    con = engine.connect()
-    add_comp_choices(con, form)
-    con.close()
-    if request.method == 'POST' and form.validate():
-        con = engine.connect()
-        upsert_wrapper(insert_comp, con, form)
-        con.close()
-        return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/comp.html', form=form)
-
-
-@user_blueprint.route('/poner/pista', methods=['GET', 'POST'])
-@is_logged_in
-@check_confirmed
-def poner_pista():
-    form = AddTrackForm(request.form)
-    con = engine.connect()
-    add_pista_choices(con, form)
-    con.close()
-    if request.method == 'POST' and form.validate():
-        if 'archivo' not in request.files:
-            flash('Ninguna parte del archivo', 'danger')
-            return redirect(request.url)
-        file = request.files['archivo']
-        if file.filename == '':
-            flash('Ningún archivo seleccionado', 'danger')
-            return redirect(request.url)
-        if not file or not allowed_file(file.filename):
-            flash('Este tipo de archivo no es aceptado', 'danger')
-            return redirect(request.url)
-        con = engine.connect()
-        trans = con.begin()
-        try:
-            insert_pista(con, form, session['id'])
-            trans.commit()
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            flash('La actualización se ha realizado correctamente.', 'success')
-            init_session(con, session['email'])
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
-        con.close()
-        return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/pista.html', form=form)
-
-
-@user_blueprint.route('/poner/comp/<int:obra_id>/', methods=['GET', 'POST'])
-@is_logged_in
-@check_confirmed
 @is_author
-def update_comp(obra_id):
+def poner_comp(obra_id=None):
     form = AddCompForm(request.form)
     con = engine.connect()
-    if request.method == 'GET':
+    if request.method == 'GET' and obra_id is not None:
         populate_comp(con, form, obra_id)
     add_comp_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
-        upsert_wrapper(update_comp, con, form, obra_id)
+        if obra_id is None:
+            upsert_wrapper(insert_comp, con, form)
+        else:
+            upsert_wrapper(update_comp, con, form, obra_id)
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_pista'))
     return render_template('poner/comp.html', form=form)
 
 
+def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
+    trans = con.begin()
+    try:
+        if pista_id is None:
+            pista_id = str(fun(con, form, session['id']))
+        else:
+            fun(con, form, session['id'], pista_id)
+        if file is not None:
+            upload_file(con, pista_id, file)
+        trans.commit()
+        init_session(con, session['email'])
+        flash('La actualización se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        trans.rollback()
+        if app.config['DEBUG']:
+            raise   # Only for development
+        flash('Ocurrió un error; ' + str(ex), 'danger')
+
+
 @user_blueprint.route('/poner/pista/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/pista', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def update_pista(obra_id):
+def poner_pista(obra_id=None):
+    result = {}
     form = AddTrackForm(request.form)
     con = engine.connect()
-    if request.method == 'GET':
+    if request.method == 'GET' and obra_id is not None:
         populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
+    result['archivos'] = query_archivos(con, obra_id)
+    result['editor'] = True
     con.close()
     if request.method == 'POST' and form.validate():
+        validated, file = validate_file()
         con = engine.connect()
-        trans = con.begin()
-        try:
-            update_pista(con, form, obra_id, session['id'])
-            trans.commit()
-            flash('La actualización se ha realizado correctamente.', 'success')
-            init_session(con, session['email'])
-        except:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error.', 'danger')
+        if obra_id is None:
+            # When inserting for the first time there must be a file
+            if not validated:
+                flash(file, 'danger')
+                return redirect(url_for('user.poner_pista'))
+            upsert_pista_wrapper(insert_pista, con, form, file)
+        else:
+            if not validated:
+                # On update a file need not be uploaded
+                flash(file, 'warning')
+                upsert_pista_wrapper(update_pista, con, form, file=None, pista_id=obra_id)
+            else:
+                upsert_pista_wrapper(update_pista, con, form, file, obra_id)
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/pista.html', form=form)
+    return render_template('poner/pista.html', form=form, result=result)
 
 
 @user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
@@ -498,6 +508,62 @@ def poner_inst():
     return render_template('poner/inst.html', form=form)
 
 
+@user_blueprint.route('/estado/<obra>/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_mod
+def estado(obra, obra_id):
+    con = engine.connect()
+    json = request.get_json(force=True)
+    estado = json['estado'].upper()
+    if 'comp' in obra:
+        estado_comp(con, obra_id, estado)
+    elif 'pista' in obra:
+        estado_pista(con, obra_id, estado)
+    elif 'pers' in obra:
+        estado_pers(con, obra_id, estado)
+    elif 'grupo' in obra:
+        estado_grupo(con, obra_id, estado)
+    con.close()
+    return '', 204
+
+
+@user_blueprint.route('/permiso/<int:usuario_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_admin
+def permiso(usuario_id):
+    con = engine.connect()
+    json = request.get_json(force=True)
+    permiso = json['permiso'].upper()
+    update_permiso(con, usuario_id, permiso)
+    con.close()
+    return redirect(url_for('user.admin', _anchor='tab_usario'))
+
+
+@user_blueprint.route('/prohibido/<int:usuario_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_admin
+def prohibido(usuario_id):
+    con = engine.connect()
+    json = request.get_json(force=True)
+    prohibido = (json['prohibido'] == 'True')
+    update_prohibido(con, usuario_id, prohibido)
+    con.close()
+    return redirect(url_for('user.admin', _anchor='tab_usuario'))
+
+
+@user_blueprint.route('/remove/archivo/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def remove_archivo(obra_id):
+    con = engine.connect()
+    delete_wrapper(delete_inst, con, obra_id)
+    con.close()
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
 @user_blueprint.route('/remove/serie/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
@@ -518,12 +584,16 @@ def remove_inst(obra_id):
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
+
 @user_blueprint.route('/perfil/admin', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_admin
 def admin():
-    return render_template('user/admin.html')
+    con = engine.connect()
+    result = query_perfil(con, session['id'], session['permission'])
+    con.close()
+    return render_template('user/admin.html', result=result)
 
 
 @user_blueprint.route('/mod', methods=['GET', 'POST'])
@@ -532,8 +602,6 @@ def admin():
 @is_mod
 def mod():
     con = engine.connect()
-    perf = query_perfil(con, session['id'], session['permission'])
+    result = query_perfil(con, session['id'], session['permission'])
     con.close()
-    if request.method == 'POST':
-        return redirect(url_for('user.mod', _anchor='tab_contrasena'))
-    return render_template('user/mod.html', perf=perf)
+    return render_template('user/mod.html', result=result)

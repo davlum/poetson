@@ -38,9 +38,9 @@ class LessThanDate(object):
         self.other_field_name = other_field_name
 
     def __call__(self, form, field):
-        other_field = form[self.other_field_name]
-        if field.data is not None:
-            if other_field.data.split('/')[::-1] < field.data.split('/')[::-1]:
+        other_field = form[self.other_field_name].data.strip()
+        if other_field is not None and other_field != "":
+            if other_field.split('/')[::-1] < field.data.split('/')[::-1]:
                 raise ValidationError('Debe ser menos que "%s"' % self.other_field_name)
 
 
@@ -49,9 +49,9 @@ class GreaterThanDate(object):
         self.other_field_name = other_field_name
 
     def __call__(self, form, field):
-        other_field = form[self.other_field_name]
-        if field.data is not None:
-            if other_field.data.split('/')[::-1] > field.data.split('/')[::-1]:
+        other_field = form[self.other_field_name].data.strip()
+        if field.data is not None and field.data != "":
+            if other_field.split('/')[::-1] > field.data.split('/')[::-1]:
                 raise ValidationError('Debe ser mayor que "%s"' % self.other_field_name)
 
 
@@ -105,6 +105,9 @@ class LoginForm(Form):
         if user is None:
             self.email.errors.append("Este correo electrónico no está registrado")
             return False
+        if user.prohibido:
+            self.email.errors.append("Esta cuenta ha sido prohibida.")
+            return False
         if not bcrypt.verify(str(self.password.data), user.contrasena):
             self.password.errors.append("Contraseña invalida")
             return False
@@ -115,7 +118,7 @@ class RegisterForm(Form):
     # Whether the user is an individual or a Organization affects which fields appear
     user_type = RadioField('Organización o Individuo',
                           validators=[InputRequired(message='Esto es requerido.')],
-                          choices=[('persona', 'Un individuo'), ('agregar', 'Una organización')])
+                          choices=[('persona', 'Un individuo'), ('grupo', 'Una organización')])
 
     # The minimum required fields to make an account
     nom_usuario = StringField('Nomdre de usuario', validators=[
@@ -139,7 +142,7 @@ class RegisterForm(Form):
         if not initial_validation:
             return False
         con = engine.connect()
-        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(ag_email) = LOWER(:email)
+        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(gr_email) = LOWER(:email)
                                                                         OR LOWER(pers_email) = LOWER(:email)""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
         username_query = text("""SELECT nom_usuario FROM public.usuario 
@@ -170,20 +173,18 @@ class OrgForm(Form):
         Date(),
         GreaterThanDate('fecha_comienzo')
     ])
-    agregar_id = SelectField('Nom del Organización', validators=[
+    grupo_id = SelectField('Nom del Organización', validators=[
         InputRequired(message='Esto es requerido.')
     ])
 
 
 class InfoForm(Form):
-
     # The optional fields to add additional information to a user
     nom_part = StringField('Nombre', validators=[Optional()])
     nom_paterno = StringField('Apellido paterno', validators=[Optional()])
     nom_materno = StringField('Apellido materno', validators=[Optional()])
     seudonimo = StringField('Seudónimo', validators=[Optional()])
-    nom_part_ag = StringField('Nom del Organización',
-                              validators=[Optional()])
+    nom_part_gr = StringField('Nom del Organización', validators=[Optional()])
     sitio_web = StringField('Sitio web', validators=[
         URL(),
         Optional()
@@ -207,15 +208,9 @@ class InfoForm(Form):
     pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
 
     # if organization just specify type
-    tipo_agregar = SelectField('Tipo del Organización', validators=[Optional()])
+    tipo_grupo = SelectField('Tipo del Organización', validators=[Optional()])
 
     coment_part = TextAreaField('Comentarios', validators=[Optional()])
-
-    def validate(self):
-        initial_validation = super(InfoForm, self).validate()
-        if not initial_validation:
-            return False
-        return True
 
 
 class UpdateEntityForm(InfoForm):
@@ -237,7 +232,7 @@ class UpdateEntityForm(InfoForm):
         if not initial_validation:
             return False
         con = engine.connect()
-        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(ag_email) = LOWER(:email)
+        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(gr_email) = LOWER(:email)
                                                                           OR LOWER(pers_email) = LOWER(:email)""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
         con.close()
@@ -251,7 +246,7 @@ class AddEntityForm(UpdateEntityForm):
     # Whether the user is an individual or a Organization affects which fields appear
     user_type = RadioField('Organización o Individuo'
                            , validators=[InputRequired(message='Esto es requerido.')]
-                           , choices=[('persona', 'Un individuo'), ('agregar', 'Una organización')])
+                           , choices=[('persona', 'Un individuo'), ('grupo', 'Una organización')])
 
 
 class CopyrightForm(Form):

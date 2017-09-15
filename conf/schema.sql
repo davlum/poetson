@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS participante (
     part_id serial PRIMARY KEY
 );
 
-COMMENT ON TABLE participante IS 'The author superclass which persona, agregar, and agregar inherit from.';
+COMMENT ON TABLE participante IS 'The author superclass which persona, grupo, and grupo inherit from.';
 
 
 CREATE TABLE IF NOT EXISTS genero_persona (
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS persona (
   , lugar_muer int REFERENCES lugar
   , genero text REFERENCES genero_persona
 
-    -- Common attributes between persona and agregar
+    -- Common attributes between persona and grupo
   , email text UNIQUE
   , nom_part text
   , sitio_web text
@@ -70,17 +70,17 @@ CREATE TABLE IF NOT EXISTS persona (
 
 COMMENT ON TABLE persona IS 'A singular person.';
 
-CREATE TABLE IF NOT EXISTS tipo_agregar (
-    nom_tipo_agregar text PRIMARY KEY
+CREATE TABLE IF NOT EXISTS tipo_grupo (
+    nom_tipo_grupo text PRIMARY KEY
 );
 
-COMMENT ON TABLE tipo_agregar IS 'Look up table of abstract agregate type, e.g. streaming service, festival, university.';
+COMMENT ON TABLE tipo_grupo IS 'Look up table of abstract agregate type, e.g. streaming service, festival, university.';
 
-CREATE TABLE IF NOT EXISTS agregar (
+CREATE TABLE IF NOT EXISTS grupo (
     part_id int REFERENCES participante ON DELETE CASCADE PRIMARY KEY
-  , tipo_agregar text REFERENCES tipo_agregar
+  , tipo_grupo text REFERENCES tipo_grupo
 
-    -- Common attributes between persona and agregar
+    -- Common attributes between persona and grupo
   , email text UNIQUE
   , nom_part text
   , sitio_web text
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS agregar (
   , CONSTRAINT proper_email CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$')
 );
 
-COMMENT ON TABLE agregar IS 'An agregate of people.';
+COMMENT ON TABLE grupo IS 'An agregate of people.';
 
 
 CREATE TABLE IF NOT EXISTS permiso (
@@ -108,14 +108,15 @@ CREATE TABLE IF NOT EXISTS usuario (
   , confirmado boolean NOT NULL DEFAULT false
   , nom_usuario text NOT NULL UNIQUE
   , contrasena text NOT NULL -- hashed and salted
-  , ag_email text UNIQUE REFERENCES agregar(email) ON UPDATE CASCADE
+  , gr_email text UNIQUE REFERENCES grupo(email) ON UPDATE CASCADE
   , pers_email text UNIQUE REFERENCES persona(email) ON UPDATE CASCADE
   , fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT now()
   , fecha_confirmado TIMESTAMP WITH TIME ZONE
   , permiso text NOT NULL DEFAULT 'EDITOR' REFERENCES permiso
+  , prohibido boolean NOT NULL DEFAULT FALSE
   , CONSTRAINT proper_nom CHECK (nom_usuario ~* '^[a-zÀ-ÿ0-9_-]+$')
-  , CONSTRAINT tipo_email CHECK ((ag_email IS NULL AND pers_email IS NOT NULL) OR
-                                 (ag_email IS NOT NULL AND pers_email IS NULL))
+  , CONSTRAINT tipo_email CHECK ((gr_email IS NULL AND pers_email IS NOT NULL) OR
+                                 (gr_email IS NOT NULL AND pers_email IS NULL))
 );
 
 COMMENT ON TABLE usuario IS 'Individual who uploaded the data.';
@@ -199,10 +200,10 @@ COMMENT ON TABLE composicion IS 'The physical representation of the performed wo
 CREATE TABLE IF NOT EXISTS pista_son (
     pista_son_id serial PRIMARY KEY
    ,numero_de_pista int CHECK (numero_de_pista > 0)
-   ,composicion_id int REFERENCES composicion
+   ,composicion_id int REFERENCES composicion ON DELETE CASCADE
    ,medio text REFERENCES medio
    ,lugar_interp int REFERENCES lugar
-   ,serie_id int REFERENCES serie
+   ,serie_id int REFERENCES serie ON DELETE SET NULL
    ,coment_pista_son text
    ,fecha_grab fecha -- fecha recorded
    ,fecha_dig fecha -- fecha digitized
@@ -213,14 +214,15 @@ COMMENT ON TABLE pista_son IS 'The audio track. Domain Constraint will be put on
                                  
 CREATE TABLE IF NOT EXISTS archivo (
     archivo_id serial PRIMARY KEY
-   ,etiqueta text
+   ,etiqueta text  -- What is this one more time
    ,nom_archivo text NOT NULL
-   ,pista_son_id int REFERENCES pista_son NOT NULL
-   ,ruta text NOT NULL -- path of the file /<first letter of artist name>/<artist name>/audio/
-   ,duracion TIME NOT NULL
-   ,abr int NOT NULL DEFAULT 128000 CHECK (abr > 700)
-   ,profundidad_de_bits int
-   ,canales int CHECK (canales > 0 AND canales < 12) NOT NULL DEFAULT 2
+   ,pista_son_id int NOT NULL -- REFERENCES pista_son
+    -- but this row can be present if the
+    -- referenced row is not publicly available,
+    -- As it may reside in the audit table
+   ,duracion int NOT NULL -- in seconds
+   ,abr int NOT NULL
+   ,canales int NOT NULL
    ,codec text
    ,frecuencia int
 );
@@ -230,16 +232,16 @@ COMMENT ON TABLE archivo IS 'M:1 with pista_son. The different audio codecs that
 -----------------------------------------------------
 ---------- Relations relating to author -------------
 
-CREATE TABLE IF NOT EXISTS persona_agregar (
+CREATE TABLE IF NOT EXISTS persona_grupo (
     persona_id int REFERENCES persona ON DELETE CASCADE
-  , agregar_id int REFERENCES agregar ON DELETE CASCADE
+  , grupo_id int REFERENCES grupo ON DELETE CASCADE
   , fecha_comienzo fecha
   , fecha_finale fecha
   , titulo text
-  , PRIMARY KEY (persona_id, agregar_id)
+  , PRIMARY KEY (persona_id, grupo_id)
 );
 
-COMMENT ON TABLE persona_agregar IS 'M:M relationship of person and agregars.';
+COMMENT ON TABLE persona_grupo IS 'M:M relationship of person and grupos.';
 
 
 CREATE TABLE IF NOT EXISTS cobertura_tipo (
@@ -261,7 +263,7 @@ CREATE TABLE IF NOT EXISTS cobertura (
    ,composicion_id int REFERENCES composicion ON DELETE SET NULL
    ,pais_cobertura text REFERENCES pais
    ,fecha_comienzo fecha
-   ,fecha_final fecha
+   ,fecha_finale fecha
 );
 
 COMMENT ON TABLE cobertura IS 'The copyright associated with a single track.';

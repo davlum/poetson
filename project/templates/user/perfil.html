@@ -3,7 +3,7 @@
 {% block resultbody %}
 
 {% from "includes/_formhelpers.html" import render_field %}
-{% from "macros.html" import nom,  render_profile %}
+{% from 'macros.html' import nom, lugar, render_profile %}
 
 <div id="tabs" class="container" style="width: 80%;">
 
@@ -14,7 +14,6 @@
     {% if session.permission == 'MOD' %}
         <a class="right underline" href="{{ url_for('user.mod') }}">Perfil mod</a>
     {% elif session.permission =='ADMIN' %}
-        <a class="right underline" href="{{ url_for('user.mod') }}">Perfil mod</a><br>
         <a class="right underline" href="{{ url_for('user.admin') }}">Perfil admin</a>
     {% endif %}
     <br>
@@ -58,7 +57,7 @@
                             {{ render_profile('Comentario Adicional: ', user.coment_participante) }}
                     </tbody>
                 </table>
-                {% if pers_ag.rowcount > 0 %}
+                {% if pers_gr.rowcount > 0 %}
                 <table class="table">
                     <h3>Parte de</h3>
                     <thead>
@@ -70,7 +69,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for entry in pers_ag %}
+                        {% for entry in pers_gr %}
                             <tr>
                                 <td>{{ entry.nom_part }}</td>
                                 <td>{{ entry.titulo }}</td>
@@ -118,6 +117,5 @@
 
 </div>
 
-    {% include 'includes/_footer.html' %}
 
 {% endblock %}

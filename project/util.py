@@ -10,15 +10,15 @@ from re import compile
 def current_user(con, email):
     query = text("""SELECT * 
                       FROM public.usuario 
-                      WHERE LOWER(ag_email)=LOWER(:email)
+                      WHERE LOWER(gr_email)=LOWER(:email)
                          OR LOWER(pers_email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    ext = filename.rsplit('.', 1)[1].lower()
+    return '.' in filename and ext in app.config['ALLOWED_EXTENSIONS']
 
 
 def send_email(to, subject, template):
@@ -50,8 +50,8 @@ def parse_fecha(d):
         return ("'" + d + "'", 'FULL')
 
 
-def current_ag(con, email):
-    query = text("""SELECT * FROM public.us_ag WHERE LOWER(email)=LOWER(:email)""")
+def current_gr(con, email):
+    query = text("""SELECT * FROM public.us_gr WHERE LOWER(email)=LOWER(:email)""")
     result = con.execute(query, email=email).first()
     return result
 
