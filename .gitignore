@@ -9,7 +9,7 @@
 *.pyc
 bin/
 include/
-project/audio/
+project/static/audio/
 lib/
 lib64/
 share/
