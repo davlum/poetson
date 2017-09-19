@@ -41,3 +41,8 @@ INSERT INTO public.cobertura_licencia (licencia_cobertura, tipo_cob) VALUES
 ('Por confirmar', 'Desconocido'),
 ('Copyleft', 'Copyleft débil');
 
+\i populate/pais.sql;
+\i populate/lugar.sql;
+\i populate/genero_persona.sql;
+\i populate/tipo_grupo.sql
+

@@ -1,12 +1,8 @@
-\i populate/pais.sql
-\i populate/lugar.sql
-\i populate/tipo_grupo.sql
 \i populate/idioma.sql
 \i populate/genero_musical.sql
 \i populate/familia_instrumento.sql
 \i populate/instrumento.sql
 \i populate/tema.sql
-\i populate/genero_persona.sql
 \i populate/serie.sql
 \i populate/persona.sql
 \i populate/grupo.sql
