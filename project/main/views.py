@@ -106,7 +106,7 @@ def autor(part_id):
     author = con.execute(author_query, part_id=part_id).first()
     if author is None:
         abort(404)
-    result['compos'] = comp_autor_view(con, part_id)
+    result['comps'] = comp_autor_view(con, part_id)
     con.close()
     return render_template('main/autor.html', autor=author, result=result)
 

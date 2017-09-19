@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import composicion, lugar, nom %}
+{% from 'macros.html' import composicion, lugar, nom, render_none %}
 
 {% block resultbody %}
     <div class="center-block skinny">
@@ -13,13 +13,12 @@
         <div>
             <h4>Nac</h4>
             <h3 class="indented">
-                {{ autor.fecha_comienzo }}
+                {{ render_none(autor.fecha_comienzo) }}
             </h3>
             <h3 class="indented">
                 {{ lugar(autor) }}
             </h3>
             <br>
-        {% endif %}
         </div>
         <div>
         {% if autor.fecha_finale is not none %}
@@ -34,9 +33,9 @@
         {% endif %}
         </div>
         <div>
-            {% if autor.coment_autor is not none %}
+            {% if autor.coment_part is not none and au %}
                 <h4>Sobre el Autor</h4>
-                <h3 class="indented"> {{ autor.coment_autor }}</h3>
+                <h3 class="indented">{{ autor.coment_part }}</h3>
                 <br>
             {% endif %}
         </div>

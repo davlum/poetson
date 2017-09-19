@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import lugar, persona, composicion %}
+{% from 'macros.html' import lugar, persona, composicion, render_none %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -14,20 +14,14 @@
          <br>
         <div>
         <h4>Origin</h4>
-            <h3 class="indented">
-                {{ lugar(autor) }}
-            </h3>
-            <h3 class="indented">
-                {% if autor.fecha_comienzo is not none %}
-                    {{ autor.fecha_comienzo }},
-                {% endif %}
-            </h3>
+            <h3 class="indented">{{ render_none(autor.fecha_comienzo) }}</h3>
+            <h3 class="indented">{{ lugar(autor) }}</h3>
         </div>
         <br>
         <div>
-            {% if autor.coment_autor is not none %}
+            {% if autor.coment_part is not none %}
                 <h4>Sobre el Autor</h4>
-                <h3 class="indented"> {{ autor.coment_autor }}</h3>
+                <h3 class="indented"> {{ autor.coment_part }}</h3>
                 <br>
             {% endif %}
         </div>

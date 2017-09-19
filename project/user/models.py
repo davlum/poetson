@@ -468,8 +468,8 @@ def query_grupos(con, part_id, permission='EDITOR'):
                              FROM public.gr_view
                              WHERE cargador_id=:id
                              AND cargador_id <> part_id
-                             AND estado = 'PENDIENTE'
-                              OR estado = 'PUBLICADO'""")
+                             AND (estado = 'PENDIENTE'
+                              OR estado = 'PUBLICADO') """)
         return con.execute(query, id=part_id)
     else:
         query = text("""SELECT a.part_id
@@ -502,8 +502,8 @@ def query_pers(con, part_id, permission='EDITOR'):
                              FROM public.pers_view
                              WHERE cargador_id=:id
                              AND cargador_id <> part_id
-                             AND estado = 'PENDIENTE'
-                              OR estado = 'PUBLICADO'""")
+                             AND (estado = 'PENDIENTE'
+                              OR estado = 'PUBLICADO') """)
         return con.execute(query, id=part_id)
     else:
         query = text("""SELECT p.part_id
@@ -544,8 +544,8 @@ def query_comps(con, part_id, permission='EDITOR'):
                              , public.get_fecha(fecha_pub) fecha_pub
                              FROM public.composicion c
                              WHERE c.cargador_id=:id
-                             AND c.estado = 'PENDIENTE'
-                              OR c.estado = 'PUBLICADO'""")
+                             AND (c.estado = 'PENDIENTE'
+                              OR c.estado = 'PUBLICADO') """)
         comps = con.execute(query, id=part_id)
     else:
         query = text("""SELECT c.composicion_id
@@ -576,8 +576,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                              LEFT JOIN public.lugar l
                                ON l.lugar_id = p.lugar_interp
                              WHERE p.cargador_id=:id
-                             AND p.estado = 'PENDIENTE'
-                              OR p.estado = 'PUBLICADO'""")
+                             AND (p.estado = 'PENDIENTE'
+                              OR p.estado = 'PUBLICADO') """)
         return con.execute(query, id=part_id)
     else:
         query = text("""SELECT p.pista_son_id

@@ -360,7 +360,7 @@ def poner_part():
 @is_logged_in
 @check_confirmed
 @is_author
-def poner_pers(obra_id):
+def poner_persona(obra_id):
     form = UpdateEntityForm(request.form)
     con = engine.connect()
     if request.method == 'GET':

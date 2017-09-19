@@ -2,6 +2,23 @@ from sqlalchemy import text
 import time
 
 
+def autors_comps_query():
+    autors_query = text("""SELECT p.part_id pers_id
+                                , g.part_id gr_id
+                                , g.nom_part nom_part_ag
+                                , p.nom_part
+                                , p.seudonimo
+                                , p.nom_paterno
+                                , p.nom_paterno
+                                FROM public.participante_composicion pc
+                                LEFT JOIN public.grupo g
+                                  ON g.part_id = pc.part_id
+                                LEFT JOIN public.persona p
+                                  ON p.part_id = pc.part_id
+                                  WHERE pc.composicion_id=:comp_id""")
+    return autors_query
+
+
 def set_years(binds_params, year_from, year_to):
     if year_from is None:
         year_from = '500'
@@ -20,8 +37,10 @@ def autor_query(con, nom, year_from, year_to, contains):
                           , p.ciudad
                           , p.subdivision
                           , p.pais
+                          , p.fecha_comienzo
+                          , p.fecha_finale
                           FROM public.pers_view p 
-                          JOIN public.participante_composicion pc
+                          LEFT JOIN public.participante_composicion pc
                             ON pc.part_id = p.part_id   
                           WHERE p.nom_part ~* :nom
                             OR p.seudonimo ~* :nom
@@ -47,8 +66,10 @@ def colectivo_query(con, nom, year_from, year_to, contains):
                            , g.ciudad
                            , g.subdivision
                            , g.pais
+                           , g.fecha_comienzo
+                           , g.fecha_finale
                           FROM public.gr_view g 
-                          WHERE g.tipo_grupo = 'colectivo'
+                          WHERE g.tipo_grupo = 'Colectivo'
                             AND g.nom_part ~* :nom 
                             AND g.estado = 'PUBLICADO' """
     if year_from is not None or year_to is not None:
@@ -82,7 +103,7 @@ def composicion_query(con, nom, year_from, year_to, contains):
     query_string = """SELECT * FROM public.composicion
                           WHERE nom_tit ~* :nom 
                           OR nom_alt ~* :nom 
-                          and estado = 'PUBLICADO'"""
+                          and estado = 'PUBLICADO' """
     if year_from is not None or year_to is not None:
         query_string += """AND EXTRACT(YEAR FROM DATE fecha_pub.d)
                             BETWEEN :year_from AND :year_to """
@@ -234,8 +255,10 @@ def comp_autor_view(con, part_id):
                                   JOIN public.composicion c
                                     ON c.composicion_id = pc.composicion_id
                                   WHERE pers.part_id=:part_id
-                                  AND c.composicion_id = 'PUBLICADO'""")
-    return con.execute(composicion_query, part_id=part_id)
+                                  AND c.estado = 'PUBLICADO'""")
+    comps = con.execute(composicion_query, part_id=part_id)
+    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
+    return comps_arr
 
 
 def pers_grupo_view(con, part_id):
@@ -266,24 +289,13 @@ def comp_grupo_view(con, part_id):
                                   ON pc.composicion_id = c.composicion_id
                                   WHERE pc.part_id=:part_id
                                     AND c.estado = 'PUBLICADO' """)
-    return con.execute(composicion_query, part_id=part_id)
+    comps = con.execute(composicion_query, part_id=part_id)
+    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
+    return comps_arr
 
 
 def comp_view_query(con, comp_id):
-    autors_query = text("""SELECT p.part_id pers_id
-                                , g.part_id gr_id
-                                , g.nom_part nom_part_ag
-                                , p.nom_part
-                                , p.seudonimo
-                                , p.nom_paterno
-                                , p.nom_paterno
-                                FROM public.participante_composicion pc
-                                LEFT JOIN public.grupo g
-                                  ON g.part_id = pc.part_id
-                                LEFT JOIN public.persona p
-                                  ON p.part_id = pc.part_id
-                                  WHERE pc.composicion_id=:comp_id""")
-    autors = con.execute(autors_query, comp_id=comp_id)
+    autors = con.execute(autors_comps_query(), comp_id=comp_id)
     composicion_query = text("""SELECT c.nom_tit
                                      , c.nom_alt
                                      , public.get_fecha(fecha_pub) fecha_pub
@@ -366,19 +378,6 @@ def serie_view(con, serie_id):
 
 
 def comp_serie_view(con, serie_id):
-        autors_query = text("""SELECT p.part_id pers_id
-                                    , g.part_id gr_id
-                                    , g.nom_part nom_part_ag
-                                    , p.nom_part
-                                    , p.seudonimo
-                                    , p.nom_paterno
-                                    , p.nom_paterno
-                                    FROM public.participante_composicion pc
-                                    LEFT JOIN public.grupo g
-                                      ON g.part_id = pc.part_id
-                                    LEFT JOIN public.persona p
-                                      ON p.part_id = pc.part_id
-                                      WHERE pc.composicion_id=:comp_id""")
         query = text("""SELECT c.composicion_id
                                , c.nom_tit
                                , c.nom_alt
@@ -389,5 +388,5 @@ def comp_serie_view(con, serie_id):
                               WHERE ps.serie_id = :serie_id
                               AND ps.estado = 'PUBLICADO'""")
         comps = con.execute(query, serie_id=serie_id)
-        comps_arr = [(res, con.execute(autors_query, comp_id=res.composicion_id)) for res in comps]
+        comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
         return comps_arr

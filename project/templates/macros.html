@@ -81,6 +81,12 @@
 {% endmacro %}
 
 
+{% macro render_none(value) -%}
+    {% if value is not none %}
+        {{ value|safe }}
+    {% endif %}
+{% endmacro %}
+
 {% macro persona(result) -%}
     {% if 'pers' in result and result.pers is not none and result.pers.rowcount > 0 %}
         <div class="card">
@@ -116,8 +122,8 @@
                                     {{ nom(entry) }}</a>
                             </td>
                             <td>{{ lugar(entry) }}</td>
-                            <td>{{ entry.fecha_comienzo }}</td>
-                            <td>{{ entry.fecha_finale }}</td>
+                            <td>{{ render_none(entry.fecha_comienzo) }}</td>
+                            <td>{{ render_none(entry.fecha_finale) }}</td>
                             {% if 'mod' in result and result.mod == True %}
                                 <td>
                                     <select class="form-control ajax-select" data-role="pers"
@@ -185,8 +191,8 @@
                                     {{ entry.nom_part }}</a>
                             </td>
                             <td>{{ lugar(entry) }}</td>
-                            <td>{{ entry.fecha_comienzo }}</td>
-                            <td>{{ entry.fecha_finale }}</td>
+                            <td>{{ render_none(entry.fecha_comienzo) }}</td>
+                            <td>{{ render_none(entry.fecha_finale) }}</td>
                             {% if 'mod' in result and result.mod == True %}
                                 <td>
                                     <select class="form-control ajax-select" data-role="grupo"
