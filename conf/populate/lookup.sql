@@ -4,7 +4,7 @@ INSERT INTO public.permiso VALUES ('EDITOR'), ('MOD'), ('ADMIN');
 
 INSERT INTO public.rol_composicion (nom_rol_comp) VALUES
 ('Composición'),
-('Traducción')
+('Traducción');
 
 INSERT INTO public.rol_pista_son (nom_rol_pista) VALUES
 ('Lectura en voz alta'),
@@ -17,7 +17,7 @@ INSERT INTO public.rol_pista_son (nom_rol_pista) VALUES
 ('Contribuidor'),
 ('Publicador');
 
-INSERT INTO public.cobertura_tipo  VALUES
+INSERT INTO public.cobertura_tipo VALUES
 ('Dominio público', 'Sin licencia'),
 ('Copyleft débil', 'Permisos liberados sin limitaciones hasta donde la legislación de cada país lo permita'),
 ('Copyleft fuerte', 'Permisos liberados pero con ciertas limitaciones'),

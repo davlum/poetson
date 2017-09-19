@@ -1,4 +1,4 @@
-﻿INSERT into album (nom_album) VALUES
+﻿INSERT into public.album (nom_album) VALUES
 ('Frágil'),
 ('eSLAMex: primera antología de espoken word mexicano'),
 ('Celebración'),

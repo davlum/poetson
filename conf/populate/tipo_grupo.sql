@@ -9,4 +9,5 @@
 ('Editorial'),
 ('Sello discográfico'),
 ('Festival'),
-('Centro cultural');
+('Centro cultural'),
+('Banda musical');

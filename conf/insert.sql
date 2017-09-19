@@ -1,5 +1,3 @@
-
-\i populate/lookup.sql
 \i populate/pais.sql
 \i populate/lugar.sql
 \i populate/tipo_grupo.sql
@@ -12,11 +10,7 @@
 \i populate/serie.sql
 \i populate/persona.sql
 \i populate/grupo.sql
---\i populate/colectivo.sql
---\i populate/institucion.sql
---\i populate/editor.sql
---\i populate/artista.sql
---\i populate/album.sql
+\i populate/album.sql
 --\i populate/composicion.sql
 --\i populate/pista_son.sql
 --\i populate/composicion_autor.sql

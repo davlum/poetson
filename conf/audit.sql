@@ -55,7 +55,7 @@ BEGIN
 
   EXECUTE format('ALTER TABLE %I ' ||
                  'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL ' ||
-                 'REFERENCES public.participante ON DELETE CASCADE, '
+                 'REFERENCES public.participante ON DELETE RESTRICT, '
                  'ADD COLUMN IF NOT EXISTS mod_id int REFERENCES usuario, ' ||
                  'ADD COLUMN IF NOT EXISTS estado text NOT NULL DEFAULT ''PENDIENTE''' ||
                  'CHECK (estado IN (''DEPOSITAR'', ''RECHAZADO'', ''PENDIENTE'', ''PUBLICADO''))'
