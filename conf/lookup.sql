@@ -8,7 +8,7 @@ INSERT INTO public.rol_composicion (nom_rol_comp) VALUES
 
 INSERT INTO public.rol_pista_son (nom_rol_pista) VALUES
 ('Lectura en voz alta'),
-('Interpretación musical)'),
+('Interpretación musical'),
 ('Ingeniería de sonido'),
 ('Producción'),
 ('Dirección'),
