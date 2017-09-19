@@ -201,7 +201,7 @@ class InfoForm(Form):
     genero = SelectField('Género', validators=[Optional()])
 
     # Dynamic form for institutions.
-    org_form = FieldList(FormField(OrgForm), min_entries=1)
+    org_form = FieldList(FormField(OrgForm), min_entries=0)
 
     # If a sublocation is entered, its parent location is required
     ciudad = StringField('Ciudad', validators=[Optional()])
@@ -296,9 +296,9 @@ class AddCompForm(CopyrightForm):
         Optional(),
         Date()
     ])
-    part_id_form = FieldList(FormField(DynamicAuthorForm), min_entries=1)
-    idioma_form = FieldList(FormField(DynamicLangForm), min_entries=1, validators=[Optional()])
-    tema_form = FieldList(FormField(DynamicThemeForm), min_entries=1, validators=[Optional()])
+    part_id_form = FieldList(FormField(DynamicAuthorForm), min_entries=0)
+    idioma_form = FieldList(FormField(DynamicLangForm), min_entries=0, validators=[Optional()])
+    tema_form = FieldList(FormField(DynamicThemeForm), min_entries=0, validators=[Optional()])
 
 
 class DynamicInterpForm(Form):
@@ -340,8 +340,8 @@ class AddTrackForm(CopyrightForm):
     pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
 
     archivo = FileField("Subir un archivo")
-    gen_mus_form = FieldList(FormField(DynamicGenMusForm), min_entries=1, validators=[Optional()])
-    interp_form = FieldList(FormField(DynamicInterpForm), min_entries=1)
+    gen_mus_form = FieldList(FormField(DynamicGenMusForm), min_entries=0, validators=[Optional()])
+    interp_form = FieldList(FormField(DynamicInterpForm), min_entries=0)
     coment_pista_son = TextAreaField("Comentario", validators=[Optional()])
 
 

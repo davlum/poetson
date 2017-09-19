@@ -3,7 +3,7 @@
 
 from functools import wraps
 
-from flask import flash, redirect, url_for, session, request
+from flask import flash, redirect, url_for, session, request, abort
 
 
 def check_confirmed(func):

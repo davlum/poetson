@@ -241,6 +241,15 @@ def add_part_choices(con, form):
 
 
 def populate_pers_grupo(form, result):
+    if result.rowcount == 0:
+        org_form = OrgForm()
+        org_form.grupo_id = "0"
+        org_form.titulo = None
+        org_form.fecha_comienzo = None
+        org_form.fecha_finale = None
+
+        form.org_form.append_entry(org_form)
+
     for res in result:
         org_form = OrgForm()
         org_form.grupo_id = str(res.grupo_id)
@@ -862,6 +871,11 @@ def populate_cob(con, form, ent_id, is_pista=True):
 def populate_comp(con, form, comp_id):
     query = text("""SELECT * FROM public.participante_composicion WHERE composicion_id=:comp_id""")
     comps_result = con.execute(query, comp_id=comp_id)
+    if comps_result.rowcount == 0:
+        aut_form = DynamicAuthorForm()
+        aut_form.part_id = "1"
+        aut_form.rol_composicion = "Composición"
+        form.part_id_form.append_entry(aut_form)
     for res in comps_result:
         aut_form = DynamicAuthorForm()
         aut_form.part_id = res.part_id
@@ -870,6 +884,10 @@ def populate_comp(con, form, comp_id):
 
     query = text("""SELECT * FROM public.idioma_composicion WHERE composicion_id=:comp_id""")
     comps_result = con.execute(query, comp_id=comp_id)
+    if comps_result.rowcount == 0:
+        lang_form = DynamicLangForm()
+        lang_form.idioma_id = "0"
+        form.idioma_form.append_entry(lang_form)
     for res in comps_result:
         lang_form = DynamicLangForm()
         lang_form.idioma_id = res.idioma_id
@@ -877,11 +895,14 @@ def populate_comp(con, form, comp_id):
 
     query = text("""SELECT * FROM public.tema_composicion WHERE composicion_id=:comp_id""")
     comps_result = con.execute(query, comp_id=comp_id)
+    if comps_result.rowcount == 0:
+        theme_form = DynamicThemeForm()
+        theme_form.tema_id = "0"
+        form.tema_form.append_entry(theme_form)
     for res in comps_result:
         theme_form = DynamicThemeForm()
         theme_form.tema_id = res.tema_id
         form.tema_form.append_entry(theme_form)
-
     query = text("""SELECT nom_tit, nom_alt, public.get_fecha(fecha_pub) fecha_pub, 
                           composicion_orig, texto FROM public.composicion WHERE composicion_id=:comp_id""")
     comp = con.execute(query, comp_id=comp_id).first()
@@ -1072,6 +1093,12 @@ def insert_comp(con, form, usuario_id):
 def populate_pista(con, form, pista_id):
     query = text("""SELECT * FROM public.participante_pista_son WHERE pista_son_id=:pista_id""")
     pista_result = con.execute(query, pista_id=pista_id)
+    if pista_result.rowcount == 0:
+        interp_form = DynamicInterpForm()
+        interp_form.part_id = "1"
+        interp_form.rol_pista_son = "Lectura en voz alta"
+        interp_form.instrumento_id = "1"
+        form.interp_form.append_entry(interp_form)
     for res in pista_result:
         interp_form = DynamicInterpForm()
         interp_form.part_id = res.part_id
@@ -1081,6 +1108,10 @@ def populate_pista(con, form, pista_id):
 
     query = text("""SELECT * FROM public.genero_pista WHERE pista_son_id=:pista_id""")
     pista_result = con.execute(query, pista_id=pista_id)
+    if pista_result.rowcount == 0:
+        gen_mus_form = DynamicGenMusForm()
+        gen_mus_form.gen_mus_id = "0"
+        form.gen_mus_form.append_entry(gen_mus_form)
     for res in pista_result:
         gen_mus_form = DynamicGenMusForm()
         gen_mus_form.gen_mus_id = res.gen_mus_id
@@ -1335,8 +1366,8 @@ def init_comps(con, part_id):
     comps_query = text("""SELECT composicion_id 
                             FROM public.composicion
                             WHERE cargador_id=:id 
-                              AND estado='PENDIENTE'
-                              OR estado='PUBLICADO'""")
+                              AND (estado='PENDIENTE'
+                              OR estado='PUBLICADO')""")
     comps_result = con.execute(comps_query, id=part_id)
     return [comp[0] for comp in comps_result]
 
@@ -1345,8 +1376,8 @@ def init_pistas(con, part_id):
     pista_query = text("""SELECT pista_son_id 
                                 FROM public.pista_son
                                 WHERE cargador_id=:id
-                                  AND estado='PENDIENTE'
-                                  OR estado='PUBLICADO'""")
+                                  AND (estado='PENDIENTE'
+                                  OR estado='PUBLICADO')""")
     pista_result = con.execute(pista_query, id=part_id)
     return [pista[0] for pista in pista_result]
 
@@ -1355,8 +1386,8 @@ def init_pers(con, part_id):
     pers_query = text("""SELECT part_id 
                            FROM public.persona
                            WHERE cargador_id=:id
-                             AND estado='PENDIENTE'
-                             OR estado='PUBLICADO'""")
+                             AND (estado='PENDIENTE'
+                             OR estado='PUBLICADO') """)
     pers_result = con.execute(pers_query, id=part_id)
     return [pers[0] for pers in pers_result]
 
@@ -1365,7 +1396,7 @@ def init_grupos(con, part_id):
     gr_query = text("""SELECT part_id 
                            FROM public.grupo
                            WHERE cargador_id=:id
-                             AND estado='PENDIENTE'
-                             OR estado='PUBLICADO'""")
+                             AND (estado='PENDIENTE'
+                             OR estado='PUBLICADO') """)
     gr_result = con.execute(gr_query, id=part_id)
     return [ag[0] for ag in gr_result]

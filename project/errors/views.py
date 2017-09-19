@@ -17,3 +17,7 @@ errors_blueprint = Blueprint('errors', __name__,)
 def page_not_found(e):
     return render_template('errors/404.html'), 404
 
+@errors_blueprint.errorhandler(401)
+def unauthorized(e):
+    return render_template('errors/401.html'), 401
+
