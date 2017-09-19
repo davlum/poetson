@@ -323,11 +323,13 @@ class AddTrackForm(CopyrightForm):
 
     fecha_grab = StringField("Fecha de grabación", validators=[
         Optional(),
-        Date()
+        Date(),
+        LessThanDate('fecha_dig')
     ])
     fecha_dig = StringField("Fecha de digitalización", validators=[
         Optional(),
-        Date()
+        Date(),
+        LessThanDate('fecha_cont')
     ])
     fecha_cont = StringField("Fecha de la donación", validators=[
         Optional(),
@@ -343,13 +345,44 @@ class AddTrackForm(CopyrightForm):
     coment_pista_son = TextAreaField("Comentario", validators=[Optional()])
 
 
+# Forms for the varios tab
 class SerieForm(Form):
     # Add a serie to the database
     nom_serie = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
     giro = StringField("Giro", validators=[Optional()])
-    ciudad = StringField('Ciudad', validators=[Optional()])
-    subdivision = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad')])
-    pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
+    delete_serie = SelectField("Serie actualmente en la base de datos", validators=[Optional()])
+
+
+class IdiomaForm(Form):
+    # Add a language to the database
+    nom_idioma = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    delete_idioma = SelectField("Idioma actualmente en la base de datos", validators=[Optional()])
+
+
+class GenMusForm(Form):
+    # Add a musical genre to the database
+    nom_gen_mus = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    delete_gen_mus = SelectField("Genero musical actualmente en la base de datos", validators=[Optional()])
+    coment_gen_mus = TextAreaField("Comentario", validators=[Optional()])
+
+
+class AlbumForm(Form):
+    # Add an album to the database
+    nom_album = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    serie_id = SelectField("Parte de esta serie", validators=[Optional()])
+    delete_album = SelectField("Album actualmente en la base de datos", validators=[Optional()])
+
+
+class TemaForm(Form):
+    # Add a serie to the database
+    nom_tema = StringField("Nom", validators=[
+        InputRequired(message='Esto es requerido.'),
+        Length(min=4, max=25, message='debe tener entre 4 y 25 caracteres'),
+        Regexp('^[a-zÀ-ÿ0-9_-]+$', message='Tema debe ser números, letras, guiones o subrayados')
+    ])
+    delete_tema = SelectField("Tema actualmente en la base de datos", validators=[
+        Optional(),
+    ])
 
 
 class InstrForm(Form):
@@ -357,6 +390,7 @@ class InstrForm(Form):
     familia_instr_id = SelectField("Familia Instrumento", validators=[InputRequired(message='Esto es requerido.')])
     electronico = BooleanField("Es un instrumento eléctrico")
     instrumento_comentario = TextAreaField("Comentario", validators=[Optional()])
+    delete_inst = SelectField("Instrumento actualmente en la base de datos", validators=[Optional()])
 
 
 class ChangePasswordForm(Form):

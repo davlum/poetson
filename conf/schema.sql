@@ -142,7 +142,6 @@ CREATE TABLE IF NOT EXISTS serie (
     serie_id serial PRIMARY KEY
    ,nom_serie text NOT NULL
    ,giro text
-   ,lugar_id int REFERENCES lugar ON DELETE CASCADE
 );
 
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
@@ -150,7 +149,7 @@ COMMENT ON TABLE serie IS 'A compilation of pista_son';
 
 CREATE TABLE IF NOT EXISTS album (
     album_id serial PRIMARY KEY
-   ,serie_id int REFERENCES serie
+   ,serie_id int REFERENCES serie ON DELETE CASCADE
    ,nom_album text
    ,ruta_foto text
 );
@@ -200,7 +199,7 @@ COMMENT ON TABLE composicion IS 'The physical representation of the performed wo
 CREATE TABLE IF NOT EXISTS pista_son (
     pista_son_id serial PRIMARY KEY
    ,numero_de_pista int CHECK (numero_de_pista > 0)
-   ,composicion_id int REFERENCES composicion ON DELETE CASCADE
+   ,composicion_id int REFERENCES composicion ON DELETE RESTRICT
    ,medio text REFERENCES medio
    ,lugar_interp int REFERENCES lugar
    ,serie_id int REFERENCES serie ON DELETE SET NULL

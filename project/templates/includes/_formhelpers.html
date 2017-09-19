@@ -11,6 +11,25 @@
     </dd>
 {% endmacro %}
 
+
+{% macro render_delete_field(field, role) %}
+<div class="dropdown">
+    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        {{ field.label }} <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu wider-dropdown">
+        {% for subfield in field %}
+            <li class="row"><div class="col-sm-6">{{ subfield|safe }}</div><div class="col-sm-6"><a class="pull-right open-confirm-modal glyphicon glyphicon-remove"
+                                       data-role="{{ role }}"
+                                        data-toggle="modal" data-target="#confirm-modal"></a>
+            </div></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endmacro %}
+
+
+
 {% macro cob(form) -%}
     <div class="row">
         <h3>Cobertura</h3>

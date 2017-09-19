@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% import 'macros.html' as query %}
+{% from 'macros.html' import nom_link, lugar, pista_archivo %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -18,20 +18,25 @@
         <div>
             <h4>Autor</h4>
             <h3 class="indented">
-                {{ query.nom(comp) }}
+                {% for autor in autors %}
+                    {{ nom_link(autor) }}
+                {% endfor %}
             </h3>
         </div>
         <br>
         <div>
-            <h4>Origen</h4>
-            {% if comp.fecha_pub is not none%}
+            {% if comp.fecha_pub is not none %}
+                <h4>Fecha</h4>
                 <h3 class="indented">{{ comp.fecha_pub }}</h3>
             {% endif %}
-            <h3 class="indented">
-                {{ query.lugar(comp) }}
-            </h3>
         </div>
         <br>
+         <div>
+            {% if comp.serie_id is not none %}
+                <h4>Fecha</h4>
+                <h3 class="indented"><a href="{{ url_fur("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
+            {% endif %}
+        </div>
         <div>
             {% if comp.texto is not none %}
                 <h4>Texto</h4>
@@ -40,6 +45,6 @@
             {% endif %}
         </div>
         <hr>
-        {{ query.pista(result) }}
+        {{ pista_archivo(result) }}
     </div>
 {% endblock %}

@@ -48,3 +48,11 @@ h4.indented {
         min-width: 500px;
     }
 }
+
+.wider-dropdown {
+    overflow: visible;
+}
+
+.iwt{
+display:block;
+}

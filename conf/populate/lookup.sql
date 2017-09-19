@@ -2,18 +2,20 @@ INSERT INTO public.medio VALUES ('Digital'), ('CD'), ('Cinta'),('Vinilo');
 
 INSERT INTO public.permiso VALUES ('EDITOR'), ('MOD'), ('ADMIN');
 
-INSERT INTO public.rol_composicion VALUES
-('Compositor'),
-('Traductor');
+INSERT INTO public.rol_composicion (nom_rol_comp) VALUES
+('Composición'),
+('Traducción')
 
-INSERT INTO public.rol_pista_son VALUES
+INSERT INTO public.rol_pista_son (nom_rol_pista) VALUES
 ('Lectura en voz alta'),
-('Interpretación musical'),
+('Interpretación musical)'),
 ('Ingeniería de sonido'),
 ('Producción'),
 ('Dirección'),
 ('Post-producción'),
-('Auxiliar de sonido');
+('Auxiliar de sonido'),
+('Contribuidor'),
+('Publicador');
 
 INSERT INTO public.cobertura_tipo  VALUES
 ('Dominio público', 'Sin licencia'),
@@ -24,6 +26,7 @@ INSERT INTO public.cobertura_tipo  VALUES
 ('Desconocido', 'Tipo de licencia no identificado');
 
 INSERT INTO public.cobertura_licencia (licencia_cobertura, tipo_cob) VALUES
+('(C) Copyright', 'Licencia propietaria'),
 ('(CC BY) Creative Commons Atribución', 'Copyleft fuerte'),
 ('(CC BY-SA) Creative Commons Atribución-CompartirIgual', 'Copyleft fuerte'),
 ('(CC BY-ND)Creative Commons Atribución-SinDerivadas', 'Copyleft fuerte'),
@@ -32,8 +35,9 @@ INSERT INTO public.cobertura_licencia (licencia_cobertura, tipo_cob) VALUES
 ('(CC BY-NC-ND) Creative Commons Atribución-NoComercial-SinDerivadas', 'Copyleft fuerte'),
 ('(CC0) Sin derechos reservados', 'Copyleft débil'),
 ('(GPL) Licencia pública general GNU', 'Copyleft fuerte'),
-('(C) Copyright', 'Licencia propietaria'),
 ('(LGPL) Licencia pública menos general GNU', 'Copyleft débil'),
 ('Dominio público', 'Dominio público'),
 ('Patente', 'Secreto comercial'),
-('Por confirmar', 'Desconocido');
+('Por confirmar', 'Desconocido'),
+('Copyleft', 'Copyleft débil');
+

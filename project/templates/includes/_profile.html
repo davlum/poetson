@@ -22,7 +22,7 @@
             <h2>Añadido por usted</h2>
             <br>
             <span>Estos son los que ha agregado;</span>
-            <a class="right underline" href="{{ url_for('user.poner_comp') }}">Nuevo Composición</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_composicion') }}">Nuevo Composición</a><br>
             <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
             <div class="skinny center-block">
                 {{ composicion(result) }}
@@ -36,10 +36,13 @@
             <br>
 
             <div class="skinny center-block">
-                <a class="underline" href="{{ url_for('user.poner_inst') }}">Nuevo Instrumento</a><br>
-                <a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo Serie</a><br>
-                <a class="underline" href="">Nuevo idioma</a><br>
-                <a class="underline" href="">Nuevo Genero musical</a><br>
-                <a class="underline" href="">Nuevo tema</a>
+                <ul>
+                    <li><a class="underline" href="{{ url_for('user.poner_instrumento') }}">Nuevo instrumento</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo serie</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_idioma') }}">Nuevo idioma</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_genero') }}">Nuevo genero musical</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_tema') }}">Nuevo tema</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_album') }}">Nuevo album</a></li>
+                </ul>
             </div>
         </div>

@@ -36,6 +36,7 @@
         <link href="{{ url_for('static', filename='css/global.css') }}" id="" rel="stylesheet" type="text/css" />
         <link href="{{ url_for('static', filename='css/searchbar.css') }}" id="" rel="stylesheet" type="text/css" />
         <link href="{{ url_for('static', filename='css/dynamic-form.css') }}" id="" rel="stylesheet" type="text/css" />
+        <link href="{{ url_for('static', filename='css/sidebar.css') }}" id="" rel="stylesheet" type="text/css" />
         {% block css %}{% endblock %}
     </head>
     <body data-bodyview="index" class="default">
@@ -100,6 +101,7 @@
         <script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
         <script src ="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src ="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/form-toggle.js') }}"></script>
         <script src="{{ url_for('static', filename='js/tab-url.js') }}"></script>
         <script src="{{ url_for('static', filename='js/dynamic-forms.js') }}"></script>

@@ -1,10 +1,6 @@
 # project/user/views.py
 # coding=utf-8
 
-#################
-#### imports ####
-#################
-
 
 import os, errno
 from project import app
@@ -17,7 +13,7 @@ from project import engine
 from mutagen import File
 from passlib.hash import bcrypt
 from .forms import LoginForm, RegisterForm, \
-    ChangePasswordForm, EmailForm, PasswordForm, InstrForm, \
+    ChangePasswordForm, EmailForm, PasswordForm, InstrForm, GenMusForm, IdiomaForm, TemaForm, AlbumForm, \
     InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
 from project.util import current_user, current_gr, current_pers, send_email, allowed_file
@@ -27,11 +23,13 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     init_comps, init_pistas, init_pers, init_grupos, insert_comp,  insert_pista, query_archivos, update_prohibido, \
     populate_pais_form, populate_comp, populate_pista, delete_comp, insert_archivo, estado_comp, estado_grupo, \
     delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, estado_pers, estado_pista, \
-    add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista
+    add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
+    populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
+    populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
+    delete_genero, delete_album, populate_serie_album_form
 
 
 user_blueprint = Blueprint('user', __name__,)
-
 
 # a few utility functions that reside in views due to circular dependency
 def init_session(con, email):
@@ -83,6 +81,19 @@ def upsert_wrapper(fun, con, form, row_id=None):
         flash('Ocurrió un error; ' + str(ex), 'danger')
 
 
+def insert_wrapper(fun, con, form):
+    trans = con.begin()
+    try:
+        fun(con, form)
+        trans.commit()
+        flash('La actualización se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        trans.rollback()
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error; ' + str(ex), 'danger')
+
+
 def validate_file():
     if 'archivo' not in request.files:
         return False, 'Ninguna parte del archivo'
@@ -108,15 +119,28 @@ def upload_file(con, pista_id, file):
         flash('Is not an audio file', 'danger')
 
 
-#def upload_file(con, pista_id, file):
-#    filename = secure_filename(file.filename)
-#    path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_id)
-#    os.makedirs(path, exist_ok=True)
-#    file.save(os.path.join(path, filename))
-#    file.close()
+def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
+    trans = con.begin()
+    try:
+        if pista_id is None:
+            pista_id = str(fun(con, form, session['id']))
+        else:
+            fun(con, form, session['id'], pista_id)
+        if file is not None:
+            upload_file(con, pista_id, file)
+        trans.commit()
+        init_session(con, session['email'])
+        flash('La actualización se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        trans.rollback()
+        if app.config['DEBUG']:
+            raise   # Only for development
+        flash('Ocurrió un error; ' + str(ex), 'danger')
 
 
-# The views start here
+    #########################
+    # Views for registering #
+    #########################
 
 @user_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
@@ -292,7 +316,7 @@ def perfil():
     else:
         user = current_gr(con, session['email'])
     pers_gr = query_pers_gr(con, session['id'])
-    result = query_perfil(con, session['id'])
+    result = query_perfil(con, session['id'], session['permission'])
     con.close()
     password_form = ChangePasswordForm(request.form)
     if request.method == 'POST' and password_form.validate():
@@ -312,6 +336,10 @@ def perfil():
                                               , pers_gr=pers_gr
                                               , password_form=password_form)
 
+    ##################################
+    # Views for adding participantes #
+    ##################################
+
 
 @user_blueprint.route('/poner/part', methods=['GET', 'POST'])
 @is_logged_in
@@ -328,7 +356,7 @@ def poner_part():
     return render_template('poner/part.html', form=form)
 
 
-@user_blueprint.route('/poner/pers/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/persona/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
@@ -344,7 +372,7 @@ def poner_pers(obra_id):
         upsert_wrapper(update_poner_pers, con, form, obra_id)
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_part'))
-    return render_template('poner/pers.html', form=form)
+    return render_template('poner/persona.html', form=form)
 
 
 @user_blueprint.route('/poner/grupo/<int:obra_id>/', methods=['GET', 'POST'])
@@ -365,45 +393,27 @@ def poner_grupo(obra_id):
     return render_template('poner/grupo.html', form=form)
 
 
-@user_blueprint.route('/remove/part/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/part/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def remove_part(obra_id):
+def retirar_part(obra_id):
     con = engine.connect()
     delete_wrapper(delete_part, con, obra_id)
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/remove/comp/<int:obra_id>/', methods=['GET', 'POST'])
+    ############################################
+    # Views for adding composicions and tracks #
+    ############################################
+
+@user_blueprint.route('/poner/composicion/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/composicion', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def remove_comp(obra_id):
-    con = engine.connect()
-    delete_wrapper(delete_comp, con, obra_id)
-    con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
-
-
-@user_blueprint.route('/remove/pista/<int:obra_id>/', methods=['GET', 'POST'])
-@is_logged_in
-@check_confirmed
-@is_author
-def remove_pista(obra_id):
-    con = engine.connect()
-    delete_wrapper(delete_pista, con, obra_id)
-    con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
-
-
-@user_blueprint.route('/poner/comp/<int:obra_id>/', methods=['GET', 'POST'])
-@user_blueprint.route('/poner/comp', methods=['GET', 'POST'])
-@is_logged_in
-@check_confirmed
-@is_author
-def poner_comp(obra_id=None):
+def poner_composicion(obra_id=None):
     form = AddCompForm(request.form)
     con = engine.connect()
     if request.method == 'GET' and obra_id is not None:
@@ -418,26 +428,7 @@ def poner_comp(obra_id=None):
             upsert_wrapper(update_comp, con, form, obra_id)
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/comp.html', form=form)
-
-
-def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
-    trans = con.begin()
-    try:
-        if pista_id is None:
-            pista_id = str(fun(con, form, session['id']))
-        else:
-            fun(con, form, session['id'], pista_id)
-        if file is not None:
-            upload_file(con, pista_id, file)
-        trans.commit()
-        init_session(con, session['email'])
-        flash('La actualización se ha realizado correctamente.', 'success')
-    except Exception as ex:
-        trans.rollback()
-        if app.config['DEBUG']:
-            raise   # Only for development
-        flash('Ocurrió un error; ' + str(ex), 'danger')
+    return render_template('poner/composicion.html', form=form)
 
 
 @user_blueprint.route('/poner/pista/<int:obra_id>/', methods=['GET', 'POST'])
@@ -476,36 +467,65 @@ def poner_pista(obra_id=None):
     return render_template('poner/pista.html', form=form, result=result)
 
 
-@user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/comp/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def poner_serie():
-    form = SerieForm(request.form)
+@is_author
+def retirar_comp(obra_id):
     con = engine.connect()
-    form.pais.choices = populate_pais_form(con)
+    delete_wrapper(delete_comp, con, obra_id)
     con.close()
-    if request.method == 'POST' and form.validate():
-        con = engine.connect()
-        upsert_wrapper(insert_serie, con, form)
-        con.close()
-        return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/serie.html', form=form)
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/poner/inst', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/pista/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def poner_inst():
-    form = InstrForm(request.form)
+@is_author
+def retirar_pista(obra_id):
     con = engine.connect()
-    form.familia_instr_id.choices = populate_inst_fam(con)
+    delete_wrapper(delete_pista, con, obra_id)
     con.close()
-    if request.method == 'POST' and form.validate():
-        con = engine.connect()
-        upsert_wrapper(insert_inst, con, form)
-        con.close()
-        return redirect(url_for('user.perfil', _anchor='tab_pista'))
-    return render_template('poner/inst.html', form=form)
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+
+
+@user_blueprint.route('/retirar/archivo/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def retirar_archivo(obra_id):
+    # This needs to actually delete the album in memory
+    con = engine.connect()
+    delete_wrapper(delete_inst, con, obra_id)
+    con.close()
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+    #####################################
+    # Views for the mod and admin pages #
+    #####################################
+
+@user_blueprint.route('/perfil/admin', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_admin
+def admin():
+    con = engine.connect()
+    result = query_perfil(con, session['id'], session['permission'])
+    con.close()
+    return render_template('user/admin.html', result=result)
+
+
+@user_blueprint.route('/mod', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_mod
+def mod():
+    con = engine.connect()
+    result = query_perfil(con, session['id'], session['permission'])
+    con.close()
+    return render_template('user/mod.html', result=result)
 
 
 @user_blueprint.route('/estado/<obra>/<int:obra_id>/', methods=['GET', 'POST'])
@@ -517,13 +537,13 @@ def estado(obra, obra_id):
     json = request.get_json(force=True)
     estado = json['estado'].upper()
     if 'comp' in obra:
-        estado_comp(con, obra_id, estado)
+        estado_comp(con, obra_id, estado, session['id'])
     elif 'pista' in obra:
-        estado_pista(con, obra_id, estado)
+        estado_pista(con, obra_id, estado, session['id'])
     elif 'pers' in obra:
-        estado_pers(con, obra_id, estado)
+        estado_pers(con, obra_id, estado, session['id'])
     elif 'grupo' in obra:
-        estado_grupo(con, obra_id, estado)
+        estado_grupo(con, obra_id, estado, session['id'])
     con.close()
     return '', 204
 
@@ -554,54 +574,164 @@ def prohibido(usuario_id):
     return redirect(url_for('user.admin', _anchor='tab_usuario'))
 
 
-@user_blueprint.route('/remove/archivo/<int:obra_id>/', methods=['GET', 'POST'])
+    #######################################
+    # Views for varios tab in perfil.html #
+    #######################################
+
+@user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def remove_archivo(obra_id):
+def poner_serie():
+    form = SerieForm(request.form)
     con = engine.connect()
-    delete_wrapper(delete_inst, con, obra_id)
+    form.delete_serie.choices = populate_serie_form(con)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_serie, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/serie.html', form=form)
 
 
-@user_blueprint.route('/remove/serie/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/poner/genero', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def remove_serie(obra_id):
+def poner_genero():
+    form = GenMusForm(request.form)
+    con = engine.connect()
+    form.delete_gen_mus.choices = populate_gen_mus_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_genero, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/genero.html', form=form)
+
+
+@user_blueprint.route('/poner/idioma', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_idioma():
+    form = IdiomaForm(request.form)
+    con = engine.connect()
+    form.delete_idioma.choices = populate_idiomas_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_idioma, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/idioma.html', form=form)
+
+
+@user_blueprint.route('/poner/tema', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_tema():
+    form = TemaForm(request.form)
+    con = engine.connect()
+    form.delete_tema.choices = populate_temas_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_tema, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/tema.html', form=form)
+
+
+@user_blueprint.route('/poner/album', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_album():
+    form = AlbumForm(request.form)
+    con = engine.connect()
+    form.delete_album.choices = populate_album_form(con)
+    form.serie_id.choices = populate_serie_album_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_album, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/album.html', form=form)
+
+
+@user_blueprint.route('/poner/instrumento', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def poner_instrumento():
+    form = InstrForm(request.form)
+    con = engine.connect()
+    form.familia_instr_id.choices = populate_inst_fam(con)
+    form.delete_inst.choices = populate_instrumento_form(con)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        insert_wrapper(insert_inst, con, form)
+        con.close()
+        return redirect(url_for('user.perfil', _anchor='tab_varios'))
+    return render_template('poner/instrumento.html', form=form)
+
+
+@user_blueprint.route('/retirar/serie/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def retirar_serie(obra_id):
     con = engine.connect()
     delete_wrapper(delete_serie, con, obra_id)
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/remove/inst/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/inst/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def remove_inst(obra_id):
+def retirar_inst(obra_id):
     con = engine.connect()
     delete_wrapper(delete_inst, con, obra_id)
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-
-@user_blueprint.route('/perfil/admin', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/tema/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-@is_admin
-def admin():
+def retirar_tema(obra_id):
     con = engine.connect()
-    result = query_perfil(con, session['id'], session['permission'])
+    delete_wrapper(delete_tema, con, obra_id)
     con.close()
-    return render_template('user/admin.html', result=result)
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-@user_blueprint.route('/mod', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/idioma/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-@is_mod
-def mod():
+def retirar_idioma(obra_id):
     con = engine.connect()
-    result = query_perfil(con, session['id'], session['permission'])
+    delete_wrapper(delete_idioma, con, obra_id)
     con.close()
-    return render_template('user/mod.html', result=result)
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/retirar/genero/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def retirar_genero(obra_id):
+    con = engine.connect()
+    delete_wrapper(delete_genero, con, obra_id)
+    con.close()
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/retirar/album/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+def retirar_album(obra_id):
+    con = engine.connect()
+    delete_wrapper(delete_album, con, obra_id)
+    con.close()
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+

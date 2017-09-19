@@ -1,4 +1,4 @@
 $(function()
 {
-    $('table').dataTable();
+    $('.mod-tables').dataTable();
 });

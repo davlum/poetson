@@ -35,7 +35,7 @@ $(document).on("click", ".open-confirm-modal", function () {
     var partId = $(this).data('id');
     var entType = $(this).data('role');
     $('#confirm-modal').css('top', $(window).scrollTop()+ ($(window).height()*0.4));
-    $(".modal-body #delete-button").attr('href', '/remove/'+ entType + '/' + partId + '/');
+    $(".modal-body #delete-button").attr('href', '/retirar/'+ entType + '/' + partId + '/');
 });
 
 

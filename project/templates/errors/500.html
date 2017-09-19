@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
-{% block content %}
-<h1>500</h1>
-<p>Something's wrong! We are on the job.</p>
-<p><em>Return <a href="{{url_for('main.home')}}">Home</a>?</em></p>
+{% block body %}
+<div class="text-center">
+    <br><br><br>
+    <h1>500</h1>
+    <p>Algo salió mal</p>
+    <p><em>Vuelve a <a class="underline" href="{{url_for('main.searchhome')}}">inicio</a></em></p>
+</div>
 {% endblock %}

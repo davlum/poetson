@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% import 'macros.html' as query %}
+{% from 'macros.html' import lugar, persona, composicion %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -8,19 +8,17 @@
         <div>
             <h4>Nom</h4>
             <h3 class="indented">
-                {{ autor.colectivo_nom }}
+                {{ autor.nom_part }}
             </h3>
         </div>
          <br>
         <div>
         <h4>Origin</h4>
             <h3 class="indented">
-                {% if autor.pais != "desconocido" %}
-                    {{ autor.pais }}
-                {% endif %}
+                {{ lugar(autor) }}
             </h3>
             <h3 class="indented">
-                {% if autor.fecha_comienzo != "desconocido" %}
+                {% if autor.fecha_comienzo is not none %}
                     {{ autor.fecha_comienzo }},
                 {% endif %}
             </h3>
@@ -34,8 +32,8 @@
             {% endif %}
         </div>
         <hr>
-        {{ query.artista(result) }}
+        {{ persona(result) }}
         <hr>
-        {{ query.composicion(result) }}
+        {{ composicion(result) }}
     </div>
 {% endblock %}

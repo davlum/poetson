@@ -52,11 +52,7 @@
                         {% for entry in result.usuarios %}
                             <tr>
                                 <td>{{ entry.nom_usuario }}</td>
-                                {% if entry.pers_email is not none %}
-                                    <td>{{ entry.pers_email }}</td>
-                                {% else %}
-                                    <td>{{ entry.gr_email }}</td>
-                                {% endif %}
+                                <td>{{ entry.email }}</td>
                                 <td>{{ entry.fecha_registro }}</td>
                                 <td>
                                     <select class="form-control ajax-permission"

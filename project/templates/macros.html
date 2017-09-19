@@ -1,22 +1,34 @@
 {% macro nom(result) -%}
     {% set name %}
-            {% if result.nom_part is not none and result.nom_part != 'Desconocido' %}
-                {{ result.nom_part }}
-            {% endif %}
-            {% if result.seudonimo is not none and result is defined %}
-               '{{ result.seudonimo }}'
-            {% endif %}
-            {% if result.nom_materno is not none and result is defined %}
-               {{ result.nom_materno }}
-            {% endif %}
-            {% if result.nom_paterno is not none %}
-               {{ result.nom_paterno }}
+            {% if result.nom_part_ag is defined and result.nom_part_ag is not none %}
+                {{ result.nom_part_ag }}
+            {% else %}
+                {% if result.nom_part is not none and result.nom_part != 'Desconocido' %}
+                    {{ result.nom_part }}
+                {% endif %}
+                {% if result.seudonimo is not none and result is defined %}
+                   '{{ result.seudonimo }}'
+                {% endif %}
+                {% if result.nom_materno is not none and result is defined %}
+                   {{ result.nom_materno }}
+                {% endif %}
+                {% if result.nom_paterno is not none %}
+                   {{ result.nom_paterno }}
+                {% endif %}
             {% endif %}
     {% endset %}
     {% if name|trim == "" %}
         <div style="display: inline;">Desconocido</div>
     {% else %}
         <div style="display: inline;">{{ name|safe }}</div>
+    {% endif %}
+{% endmacro %}
+
+{%  macro nom_link(result) -%}
+    {% if result.pers_id is not none %}
+        <a href="{{ url_for("main.autor", part_id=result.pers_id) }}"> {{ nom(result) }}</a>,
+    {% else %}
+        <a href="{{ url_for("main.colectivo", part_id=result.gr_id) }}"> {{ nom(result) }}</a>,
     {% endif %}
 {% endmacro %}
 
@@ -28,16 +40,28 @@
 {% endmacro %}
 
 
-{% macro lugar(result) -%}
+{% macro lugar(result, muer=False) -%}
     {% set lugar %}
-        {% if result.ciudad is not none and result.ciudad is defined %}
-            {{ result.ciudad }},
-        {% endif %}
-        {% if result.subdivision is not none and result.subdivision is defined %}
-           {{ result.subdivision }},
-        {% endif %}
-        {% if result.pais is not none %}
-           {{ result.pais }}
+        {% if muer %}
+            {% if result.ciudad is not none and result.ciudad is defined %}
+                {{ result.ciudad }},
+            {% endif %}
+            {% if result.subdivision is not none and result.subdivision is defined %}
+               {{ result.subdivision }},
+            {% endif %}
+            {% if result.pais is not none %}
+               {{ result.pais }}
+            {% endif %}
+        {% else %}
+            {% if result.ciudad is not none and result.ciudad is defined %}
+                {{ result.ciudad }},
+            {% endif %}
+            {% if result.subdivision is not none and result.subdivision is defined %}
+               {{ result.subdivision }},
+            {% endif %}
+            {% if result.pais is not none %}
+               {{ result.pais }}
+            {% endif %}
         {% endif %}
     {% endset %}
     {% if lugar|trim == "" %}
@@ -88,7 +112,7 @@
                     <tbody>
                     {% for entry in result.pers %}
                         <tr>
-                            <td><a class="no-underline" href="/persona/{{ entry.part_id }}/">
+                            <td><a class="no-underline" href="{{ url_for("main.autor", part_id=entry.part_id) }}">
                                     {{ nom(entry) }}</a>
                             </td>
                             <td>{{ lugar(entry) }}</td>
@@ -109,7 +133,7 @@
                             {% if 'editor' in result and result.editor == True %}
                             <td>
                                 <a class="glyphicon glyphicon-pencil"
-                                   href="{{ url_for('user.poner_pers', obra_id=entry.part_id) }}"></a>&nbsp;
+                                   href="{{ url_for('user.poner_persona', obra_id=entry.part_id) }}"></a>&nbsp;
                                 <a class="open-confirm-modal glyphicon glyphicon-remove"
                                    data-role="part" data-id="{{ entry.part_id }}"
                                     data-toggle="modal" data-target="#confirm-modal"></a>
@@ -157,7 +181,7 @@
                     <tbody>
                     {% for entry in result.grupos %}
                         <tr>
-                            <td><a class="no-underline" href="/grupo/{{ entry.part_id }}/">
+                            <td><a class="no-underline" href="{{ url_for("main.colectivo", part_id=entry.part_id) }}">
                                     {{ entry.nom_part }}</a>
                             </td>
                             <td>{{ lugar(entry) }}</td>
@@ -268,7 +292,7 @@
 
 
 {% macro composicion(result) -%}
-    {% if 'comps' in result and result.comps is not none and result.comps.rowcount > 0 %}
+    {% if 'comps' in result and result.comps|length > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="composicion-heading">
                 <h3 class="mb-0">
@@ -284,6 +308,7 @@
                         <tr>
                             <th>Título</th>
                             <th>Fecha publication</th>
+                            <th>Autor(s)</th>
                         {% if 'mod' in result and result.mod == True %}
                             <th>Estado</th>
                             <th>Usuario</th>
@@ -296,32 +321,91 @@
                     <tbody>
                     {% for entry in result.comps %}
                         <tr>
-                            <td><a class="no-underline" href="/composicion/{{ entry.composicion_id }}/">
-                                {{ entry.nom_tit }}
-                                    {% if entry.nom_alt is not none %}
-                                        | {{ entry.nom_alt }}
+                            <td><a class="no-underline" href="{{ url_for("main.composicion", comp_id=entry.0.composicion_id) }}">
+                                {{ entry.0.nom_tit }}
+                                    {% if entry.0.nom_alt is not none %}
+                                        | {{ entry.0.nom_alt }}
                                     {% endif %}
                                 </a>
                             </td>
-                            <td>{{ entry.fecha_pub }}</td>
+                            <td>
+                                {% for autor in result.1 %}
+                                    {{ nom_link(autor) }}
+                                {% endfor %}
+                            </td>
+                            <td>{{ entry.0.fecha_pub }}</td>
                             {% if 'mod' in result and result.mod == True %}
                                 <td>
                                     <select class="form-control ajax-select" data-role="comp"
-                                            data-id="{{ entry.composicion_id }}">
-                                        {{ render_select('Pendiente', entry.estado) }}
-                                        {{ render_select('Publicado', entry.estado) }}
-                                        {{ render_select('Rechazado', entry.estado) }}
-                                        {{ render_select('Depositar', entry.estado) }}
+                                            data-id="{{ entry.0.composicion_id }}">
+                                        {{ render_select('Pendiente', entry.0.estado) }}
+                                        {{ render_select('Publicado', entry.0.estado) }}
+                                        {{ render_select('Rechazado', entry.0.estado) }}
+                                        {{ render_select('Depositar', entry.0.estado) }}
                                     </select>
                                 </td>
-                                <td>{{ entry.nom_usuario }}</td>
+                                <td>{{ entry.0.nom_usuario }}</td>
                             {% endif %}
                             {% if 'editor' in result and result.editor == True %}
                             <td>
                                 <a class="glyphicon glyphicon-pencil"
-                                   href="{{ url_for('user.poner_comp', obra_id=entry.composicion_id) }}"></a>&nbsp;
+                                   href="{{ url_for('user.poner_composicion', obra_id=entry.0.composicion_id) }}"></a>&nbsp;
                                 <a class="open-confirm-modal glyphicon glyphicon-remove"
-                                   data-role="comp" data-id="{{ entry.composicion_id }}"
+                                   data-role="comp" data-id="{{ entry.0.composicion_id }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
+                            </td>
+                            {% else %}
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro serie(result) -%}
+    {% if 'serie' in result and result.serie is not none and result.serie.rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="composicion-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#composicion-collapse" aria-expanded="true" aria-controls="composicion-collapse">
+                        Serie
+                    </a>
+                </h3>
+            </div>
+            <div id="composicion-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>giro</th>
+                        {% if 'mod' in result and result.mod == True %}
+                            <th>Acción</th>
+                        {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.serie %}
+                        <tr>
+                            <td><a class="no-underline" href="{{ url_for("main.serie", serie_id=entry.serie_id) }}">
+                                {{ entry.nom_serie }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if entry.giro is not none %}
+                                    {{ entry.giro }}
+                                {% endif %}
+                            </td>
+
+                            {% if 'mod' in result and result.mod == True %}
+                            <td>
+                                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="comp" data-id="{{ entry.serie_id }}"
                                     data-toggle="modal" data-target="#confirm-modal"></a>
                             </td>
                             {% endif %}
@@ -334,6 +418,7 @@
         </div>
    {% endif %}
 {% endmacro %}
+
 
 
 {% macro archivo(result) -%}
@@ -389,3 +474,42 @@
         </div>
    {% endif %}
 {% endmacro %}
+
+
+{% macro archivo_inst(result) -%}
+    <div class="render-audiofile container">
+        <div class="row">
+            <div class="col-md-6">
+                <audio controls="controls">
+                    Su navegador no admite reproducción de<code>audio</code>
+                    <source src="{{ url_for('static',
+                    filename='audio/'+result.0.pista_son_id|string+'/'+result.0.archivo_id|string+'/'+result.0.nom_archivo) }}"
+                    type="audio/{{ result.0.codec|lower|safe }}">
+                </audio>
+            </div>
+            <div class="col-md-3">
+               {{ lugar(result.0) }}
+            </div>
+            <div class="col-md-3">
+              {{ result.0.fecha_grab }}
+            </div>
+        </div>
+        {% for entry in result.1 %}
+        <div class="row">
+            <div class="col-md-4">
+                {{ nom_link(entry) }}
+            </div>
+            <div class="col-md-4">
+                {{ entry.rol_pista_son }}
+            </div>
+            <div class="col-md-4">
+                {% if entry.nom_inst != 'Ninguno' %}
+                   {{ entry.nom_inst }}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+

@@ -5,7 +5,7 @@ from flask_mail import Message
 from sqlalchemy import text
 from project import app, mail
 from re import compile
-
+from flask import session
 
 def current_user(con, email):
     query = text("""SELECT * 
@@ -31,6 +31,21 @@ def send_email(to, subject, template):
         sender=app.config['MAIL_DEFAULT_SENDER']
     )
     mail.send(msg)
+
+
+# Return a pretty printed date from
+# the fecha UDT
+def get_fecha(fecha):
+    if fecha is None:
+        return None
+    fecha, type = tuple(fecha[1:-1].split(','))
+    fecha = fecha.split('-')
+    if type == 'YEAR':
+        return fecha[0]
+    if type == 'MONTH':
+        return fecha[1]+'/'+fecha[0]
+    if type == 'FULL':
+        return fecha[2]+'/'+fecha[1]+'/'+fecha[0]
 
 
 # Properly parses a date-like string

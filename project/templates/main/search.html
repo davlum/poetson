@@ -1,13 +1,18 @@
 {% extends 'searchlayout.html' %}
 {% import 'macros.html' as query %}
 {% block resultbody %}
+    <div class="container">
+        <div class="row">
+           <div class="col-md-9">
+               {{ query.persona(result) }}
+               {{ query.grupo(result) }}
+               {{ query.composicion(result) }}
+               {{ query.serie(result) }}
+           </div>
 
-   <div class="center-block skinny">
-       {{ query.artista(result) }}
-       {{ query.colectivo(result) }}
-       {{ query.composicion(result) }}
-       {{ query.serie(result) }}
-       {{ query.pista(result) }}
-   </div>
+            {% include 'includes/_sidebar.html' %}
+        </div>
+    </div>
+
 
 {% endblock %}

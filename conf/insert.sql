@@ -1,7 +1,7 @@
 
 \i populate/lookup.sql
 \i populate/pais.sql
-\i populate/lugar_out.sql
+\i populate/lugar.sql
 \i populate/tipo_grupo.sql
 \i populate/idioma.sql
 \i populate/genero_musical.sql
@@ -10,6 +10,8 @@
 \i populate/tema.sql
 \i populate/genero_persona.sql
 \i populate/serie.sql
+\i populate/persona.sql
+\i populate/grupo.sql
 --\i populate/colectivo.sql
 --\i populate/institucion.sql
 --\i populate/editor.sql

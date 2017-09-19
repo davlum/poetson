@@ -6,7 +6,7 @@
 
 <div>
     <br>
-    <h2>Añadir una instrumento</h2>
+    <h2>Añadir una Genero Musicale</h2>
     <br>
     <p>Por favor, agregue información adicional sobre este trabajo.</p>
     <form id="add-entity-form" method='POST' action="">
@@ -14,17 +14,10 @@
         <br>
         <div class="center-block skinny">
             <div class="form-group">
-                {{render_field(form.nom_inst, class ="form-control")}}
+                {{render_field(form.delete_tema, class ="form-control")}}
             </div>
             <div class="form-group">
-                {{ form.electronico }} &nbsp;
-                {{ form.electronico.label }}
-            </div>
-            <div class="form-group">
-                {{render_field(form.familia_instr_id, class ="form-control")}}
-            </div>
-            <div class="form-group">
-              {{render_field(form.instrumento_comentario, class ="form-control")}}
+                {{render_field(form.nom_tema, class ="form-control")}}
             </div>
             <br>
              <div>

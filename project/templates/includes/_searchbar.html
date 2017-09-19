@@ -1,6 +1,6 @@
 <form name="search-form" class="form-horizontal" role="form" action="/search" method="get">
     <div class="input-group" id="adv-search">
-        <input onclick="noPropagate(event);" name="search-main" type="text" class="form-control" placeholder="Search"/>
+        <input onclick="noPropagate(event);" name="search-main" type="text" class="form-control" placeholder="Buscar"/>
         <div class="input-group-btn">
             <div class="btn-group" role="group">
                 <div class="dropdown dropdown-lg">
@@ -10,16 +10,16 @@
                           <div class="form-group">
                             <label for="filter">Filtrado por</label>
                             <select name="filter-by" onclick="noPropagate(event);" id="no-click" class="form-control">
-                                <option value="0" selected>All Categories</option>
-                                <option value="1">Autor</option>
-                                <option value="2">Colectivo</option>
-                                <option value="3">Composicion</option>
-                                <option value="4">Serie</option>
-                                <option value="5">Tema</option>
-                                <option value="6">Genero</option>
-                                <option value="7">Instrumento</option>
-                                <option value="8">Idioma</option>
-                                <option value="9">Intepretado por</option>
+                                <option value="all" selected>Todas las categorias</option>
+                                <option value="autor">Autor</option>
+                                <option value="colectivo">Colectivo</option>
+                                <option value="composicion">Composición</option>
+                                <option value="serie">Serie</option>
+                                <option value="tema">Tema</option>
+                                <option value="genero">Genero musicale</option>
+                                <option value="instrumento">Instrumento</option>
+                                <option value="idioma">Idioma</option>
+                                <option value="interp">Intepretado por</option>
                             </select>
                           </div>
                           <div class="form-group">
@@ -27,11 +27,11 @@
                                   <div class="row text-center">
                                       <div class="col-sm-12 col-md-6">
                                           <label for="ano-start">Ano Comenzio</label>
-                                          <input name="ano-start" class="form-control" type="text" placeholder="Ahora" />
+                                          <input name="ano-start" class="form-control" type="text" placeholder="Principio de los tiempos" />
                                       </div>
                                       <div class="col-sm-12 col-md-6">
                                           <label for="an-end">Ano Finale</label>
-                                          <input name="ano-end" class="form-control" type="text" placeholder="Principio de los tiempos" />
+                                          <input name="ano-end" class="form-control" type="text" placeholder="Ahora" />
                                       </div>
                                   </div>
                               </div>

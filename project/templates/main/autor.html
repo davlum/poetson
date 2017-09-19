@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% import 'macros.html' as query %}
+{% from 'macros.html' import composicion, lugar, nom %}
 
 {% block resultbody %}
     <div class="center-block skinny">
@@ -7,40 +7,28 @@
         <hr>
         <div>
             <h4>Nom</h4>
-            <h3 class="indented">{{ autor.nom_primero }}
-                {% if autor.nom_paterno is not none %}
-                        {{ autor.nom_paterno }}
-                {% endif %}
-            </h3>
-                {% if autor.seudonimo is not none %}
-                    <h3 class="indented">'{{ autor.seudonimo }}'</h3>
-                {% endif %}
+            <h3 class="indented">{{ nom(autor) }}</h3>
         </div>
         <br>
         <div>
-        {% if autor.lugar_nac is not none%}
             <h4>Nac</h4>
             <h3 class="indented">
-                {% if autor.fecha_comienzo != "desconocido" %}
-                    {{ autor.fecha_comienzo }}
-                {% endif %}
+                {{ autor.fecha_comienzo }}
             </h3>
             <h3 class="indented">
-                {{ query.lugar(nac) }}
+                {{ lugar(autor) }}
             </h3>
             <br>
         {% endif %}
         </div>
         <div>
-        {% if autor.lugar_muer is not none %}
+        {% if autor.fecha_finale is not none %}
             <h4>Muer</h4>
             <h3 class="indented">
-                {% if autor.fecha_muer != "desconocido" %}
-                    {{ autor.fecha_muer }}
-                {% endif %}
+               {{ autor.fecha_finale }}
             </h3>
             <h3 class="indented">
-                {{ query.lugar(muer) }}
+                {{ lugar(autor, muer=True) }}
             </h3>
             <br>
         {% endif %}
@@ -53,6 +41,6 @@
             {% endif %}
         </div>
         <hr>
-        {{ query.composicion(result) }}
+        {{ composicion(result) }}
     </div>
 {% endblock %}

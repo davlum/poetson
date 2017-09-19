@@ -1,15 +1,17 @@
 from sqlalchemy import text
 from flask import session
-from project.util import current_pers, current_gr, parse_fecha
+from project.util import current_pers, current_gr, parse_fecha, get_fecha
 from project.user.forms import OrgForm, DynamicGenMusForm, DynamicAuthorForm, DynamicInterpForm, \
     DynamicLangForm, DynamicThemeForm
 
 
 # Queries for admin view
-def get_users(con, usuario_id):
-    query = text("""SELECT nom_usuario, coalesce(gr_email, pers_email), permiso FROM public.usuario 
+def get_users(con):
+    query = text("""SELECT nom_usuario, COALESCE(gr_email, pers_email) email, permiso, fecha_registro, prohibido FROM public.usuario 
                       WHERE permiso <> 'ADMIN'""")
     return con.execute(query)
+
+
 
 
 # Queries for InfoForm
@@ -73,6 +75,14 @@ def populate_idiomas_form(con):
     return idioma_arr
 
 
+def populate_album_form(con):
+    # List of albums
+    album_query = text("""SELECT * FROM public.album""")
+    album_result = con.execute(album_query)
+    album_arr = [(str(res.album_id), res.nom_album) for res in album_result]
+    return album_arr
+
+
 def populate_temas_form(con):
     tema_query = text("""SELECT tema_id, nom_tema FROM public.tema""")
     tema_result = con.execute(tema_query)
@@ -130,6 +140,14 @@ def populate_serie_form(con):
     serie_result = con.execute(serie_query)
     serie_arr = [(str(res.serie_id), res.nom_serie) for res in serie_result]
     serie_arr.insert(0, ("0", 'Ninguno'))
+    return serie_arr
+
+
+def populate_serie_album_form(con):
+    # list of series
+    serie_query = text("""SELECT serie_id, nom_serie FROM public.serie;""")
+    serie_result = con.execute(serie_query)
+    serie_arr = [(str(res.serie_id), res.nom_serie) for res in serie_result]
     return serie_arr
 
 
@@ -301,28 +319,28 @@ def populate_info(con, form):
     form.pais.data = user.pais
 
 
-def estado_comp(con, obra_id, estado):
-    query = text("""UPDATE public.composicion SET estado=:estado WHERE composicion_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
-    query = text("""UPDATE public.participante_composicion SET estado=:estado WHERE composicion_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
+def estado_comp(con, obra_id, estado, mod_id):
+    query = text("""UPDATE public.composicion SET estado=:estado, mod_id=:mod_id WHERE composicion_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
+    query = text("""UPDATE public.participante_composicion SET estado=:estado, mod_id=:mod_id WHERE composicion_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
 
 
-def estado_pista(con, obra_id, estado):
-    query = text("""UPDATE public.pista_son SET estado=:estado WHERE pista_son_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
-    query = text("""UPDATE public.participante_pista_son SET estado=:estado WHERE pista_son_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
+def estado_pista(con, obra_id, estado, mod_id):
+    query = text("""UPDATE public.pista_son SET estado=:estado, mod_id=:mod_id WHERE pista_son_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
+    query = text("""UPDATE public.participante_pista_son SET estado=:estado, mod_id=:mod_id WHERE pista_son_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
 
 
-def estado_pers(con, obra_id, estado):
-    query = text("""UPDATE public.persona SET estado=:estado WHERE part_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
+def estado_pers(con, obra_id, estado, mod_id):
+    query = text("""UPDATE public.persona SET estado=:estado, mod_id=:mod_id WHERE part_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
 
 
-def estado_grupo(con, obra_id, estado):
-    query = text("""UPDATE public.grupo SET estado=:estado WHERE part_id=:obra_id""")
-    con.execute(query, obra_id=obra_id, estado=estado)
+def estado_grupo(con, obra_id, estado, mod_id):
+    query = text("""UPDATE public.grupo SET estado=:estado, mod_id=:mod_id WHERE part_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
 
 
 def upsert_pers_grupos(con, form, usuario_id, pers_id, update=False):
@@ -506,16 +524,29 @@ def query_pers(con, part_id, permission='EDITOR'):
 
 
 def query_comps(con, part_id, permission='EDITOR'):
+    autors_query = text("""SELECT p.part_id pers_id
+                                , g.part_id gr_id
+                                , g.nom_part nom_part_ag
+                                , p.nom_part
+                                , p.seudonimo
+                                , p.nom_paterno
+                                , p.nom_paterno
+                                FROM public.participante_composicion pc
+                                LEFT JOIN public.grupo g
+                                  ON g.part_id = pc.part_id
+                                LEFT JOIN public.persona p
+                                  ON p.part_id = pc.part_id
+                                  WHERE pc.composicion_id=:comp_id""")
     if permission == 'EDITOR':
-        query = text("""SELECT composicion_id
-                             , nom_tit
-                             , nom_alt
+        query = text("""SELECT c.composicion_id
+                             , c.nom_tit
+                             , c.nom_alt
                              , public.get_fecha(fecha_pub) fecha_pub
                              FROM public.composicion c
                              WHERE c.cargador_id=:id
                              AND c.estado = 'PENDIENTE'
                               OR c.estado = 'PUBLICADO'""")
-        return con.execute(query, id=part_id)
+        comps = con.execute(query, id=part_id)
     else:
         query = text("""SELECT c.composicion_id
                              , c.nom_tit
@@ -526,7 +557,9 @@ def query_comps(con, part_id, permission='EDITOR'):
                              FROM public.composicion c
                              JOIN public.usuario u 
                                ON c.cargador_id = u.usuario_id""")
-        return con.execute(query)
+        comps = con.execute(query)
+    comps_arr = [(res, con.execute(autors_query, comp_id=res.composicion_id)) for res in comps]
+    return comps_arr
 
 
 def query_pista(con, part_id, permission='EDITOR'):
@@ -564,7 +597,6 @@ def query_pista(con, part_id, permission='EDITOR'):
                                ON u.usuario_id = p.cargador_id""")
         return con.execute(query, id=part_id)
 
-
 def update_permiso(con, usuario_id, permiso):
     query = text("""UPDATE public.usuario SET permiso=:permiso WHERE usuario_id=:usuario_id""")
     con.execute(query, permiso=permiso, usuario_id=usuario_id)
@@ -575,7 +607,7 @@ def update_prohibido(con, usuario_id, prohibido):
     con.execute(query, prohibido=prohibido, usuario_id=usuario_id)
 
 
-def query_perfil(con, part_id, permission='EDITOR'):
+def query_perfil(con, part_id, permission=None):
     perfil_dict = {
         'pistas': query_pista(con, part_id, permission),
         'comps': query_comps(con, part_id, permission),
@@ -588,8 +620,7 @@ def query_perfil(con, part_id, permission='EDITOR'):
         perfil_dict['mod'] = True
         perfil_dict['editor'] = True
     if permission == 'ADMIN':
-        query = text("""SELECT * from public.usuario WHERE permiso <> 'ADMIN'""")
-        perfil_dict['usuarios'] = con.execute(query)
+        perfil_dict['usuarios'] = get_users(con)
         perfil_dict['mod'] = True
         perfil_dict['editor'] = True
     return perfil_dict
@@ -1060,9 +1091,9 @@ def populate_pista(con, form, pista_id):
     form.numero_de_pista.data = pista.numero_de_pista
     form.medio.data = pista.medio
     form.serie_id.data = pista.serie_id
-    form.fecha_grab.data = pista.fecha_grab
-    form.fecha_dig.data = pista.fecha_dig
-    form.fecha_cont.data = pista.fecha_cont
+    form.fecha_grab.data = get_fecha(pista.fecha_grab)
+    form.fecha_dig.data = get_fecha(pista.fecha_dig)
+    form.fecha_cont.data = get_fecha(pista.fecha_cont)
     form.coment_pista_son.data = pista.coment_pista_son
 
     populate_lugar(con, form, pista.lugar_interp)
@@ -1224,26 +1255,61 @@ def insert_inst(con, form):
                      , instrumento_comentario=form.instrumento_comentario.data)
 
 
+def insert_serie(con, form):
+    query_serie = text("""INSERT INTO public.serie (nom_serie, giro) VALUES
+                          (strip(:nom_serie), strip(:giro))""")
+    con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data)
+
+
+def insert_genero(con, form):
+    query_genero = text("""INSERT INTO public.genero_musical (nom_gen_mus, coment_gen_mus) VALUES 
+                            (strip(:nom_gen_mus), strip(:coment_gen_mus))""")
+    con.execute(query_genero, nom_gen_mus=form.nom_gen_mus.data, coment_gen_mus=form.coment_gen_mus.data)
+
+
+def insert_tema(con, form):
+    query_tema = text("""INSERT INTO public.tema(nom_tema) VALUES (strip(LOWER(:nom_tema)))""")
+    con.execute(query_tema, nom_tema=form.nom_tema.data)
+
+
+def insert_idioma(con, form):
+    query_idioma = text("""INSERT INTO public.idioma(nom_idioma) VALUES (strip(:nom_idioma))""")
+    con.execute(query_idioma, nom_idioma=form.nom_idioma.data)
+
+
+def insert_album(con, form):
+    query_tema = text("""INSERT INTO public.album (nom_album, serie_id) VALUES (:nom_album, :serie_id)""")
+    con.execute(query_tema, nom_album=form.nom_album.data, serie_id=form.serie_id.data)
+
+
+def delete_serie(con, serie_id):
+    query = text("""DELETE FROM public.serie WHERE serie_id=:serie_id""")
+    con.execute(query, serie_id=serie_id)
+
+
+def delete_album(con, album_id):
+    query = text("""DELETE FROM public.album WHERE album_id=:album_id""")
+    con.execute(query, album_id=album_id)
+
+
+def delete_tema(con, tema_id):
+    query = text("""DELETE FROM public.tema WHERE tema_id=:tema_id""")
+    con.execute(query, tema_id=tema_id)
+
+
 def delete_inst(con, inst_id):
     query = text("""DELETE FROM public.instrumento WHERE instrumento_id=:inst_id""")
     con.execute(query, inst_id=inst_id)
 
 
-def insert_serie(con, form):
-    query_lugar = text("""INSERT INTO public.lugar (ciudad, subdivision, pais) VALUES 
-                          (strip(:ciudad), strip(:subdivision), :pais) RETURNING lugar_id""")
-    lugar = con.execute(query_lugar, ciudad=form.ciudad.data, subdivision=form.subdivision.data
-                                  , pais=form.pais.data).first[0]
-    query_serie = text("""INSERT INTO public.serie (nom_serie, giro, lugar_id) VALUES
-                          (strip(:nom_serie), strip(:giro), :lugar_id)""")
-    con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data, lugar_id=lugar)
+def delete_idioma(con, idioma_id):
+    query = text("""DELETE FROM public.idioma WHERE idioma_id=:idioma_id""")
+    con.execute(query, idioma_id=idioma_id)
 
 
-def delete_serie(con, serie_id):
-    query = text("""DELETE FROM public.serie WHERE serie_id=:serie_id RETURNING lugar_id""")
-    result = con.execute(query, serie_id=serie_id).first()[0]
-    query = text("""DELETE FROM public.lugar WHERE lugar_id=:lugar_id""")
-    con.execute(query, lugar_id=result)
+def delete_genero(con, genero_id):
+    query = text("""DELETE FROM public.genero_musical WHERE gen_mus_id=:genero_id""")
+    con.execute(query, genero_id=genero_id)
 
 
 # Query for remove_part view

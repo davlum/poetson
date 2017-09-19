@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
-{% block content %}
-<h1>404</h1>
-<p>There's nothing here!</p>
-<p><em>Return <a href="{{url_for('main.home')}}">Home</a>?</em></p>
+{% block body %}
+<div class="text-center">
+    <br><br><br>
+    <h1>404</h1>
+    <p>No hay nada aquí</p>
+    <p><em>Vuelve a <a class="underline" href="{{url_for('main.searchhome')}}">inicio</a></em></p>
+</div>
 {% endblock %}

@@ -7,7 +7,7 @@
 
 import os
 
-from flask import Flask, render_template, session, app, url_for, redirect, request, flash
+from flask import Flask, render_template, session, app, url_for, redirect, request, flash, abort
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import text, create_engine
 from flask_mail import Mail
@@ -37,8 +37,17 @@ engine = create_engine('postgresql:///postgres')
 
 from project.main.views import main_blueprint
 from project.user.views import user_blueprint
+from project.errors.views import errors_blueprint
+app.register_blueprint(errors_blueprint)
 app.register_blueprint(main_blueprint)
 app.register_blueprint(user_blueprint)
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    abort(404)
+
 
 
 def current_user(con, email):
