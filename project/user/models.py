@@ -503,6 +503,8 @@ def query_pers(con, part_id, permission='EDITOR'):
         query = text("""SELECT part_id
                              , nom_part
                              , seudonimo
+                             , nom_paterno
+                             , nom_materno
                              , fecha_comienzo
                              , fecha_finale
                              , ciudad
@@ -517,6 +519,9 @@ def query_pers(con, part_id, permission='EDITOR'):
     else:
         query = text("""SELECT p.part_id
                              , p.nom_part
+                             , p.seudonimo
+                             , p.nom_materno
+                             , p.nom_paterno
                              , p.fecha_comienzo
                              , p.fecha_finale
                              , p.ciudad
@@ -1344,21 +1349,67 @@ def delete_genero(con, genero_id):
 
 
 # Query for remove_part view
-def delete_part(con, part_id):
-    query = text("""DELETE FROM public.participante WHERE part_id=:part_id""")
+def delete_persona(con, part_id, usuario_id):
+    query = text("""SELECT usuario_id FROM public.usuario""")
+    result = con.execute(query)
+    result_arr = [res.usuario_id for res in result]
+    if part_id in result_arr:
+        return False
+    query = text("""DELETE FROM public.participante WHERE part_id=:part_id 
+                    AND part_id NOT IN (SELECT usuario_id FROM public.usuario)""")
     con.execute(query, part_id=part_id)
+    query = text("""UPDATE audit.persona_audit SET mod_id=:usuario_id WHERE part_id=:part_id
+                    AND accion = 'D' AND fecha_accion IN (SELECT MAX(fecha_accion) FROM audit.persona_audit 
+                    WHERE part_id=:part_id AND accion = 'D')""")
+    con.execute(query, part_id=part_id, usuario_id=usuario_id)
+    return True
+
+# Query for remove_part view
+def delete_grupo(con, part_id, usuario_id):
+    query = text("""SELECT usuario_id FROM public.usuario""")
+    result = con.execute(query)
+    result_arr = [res.usuario_id for res in result]
+    if part_id in result_arr:
+        return False
+    query = text("""DELETE FROM public.participante WHERE part_id=:part_id 
+                    AND part_id NOT IN (SELECT usuario_id FROM public.usuario)""")
+    con.execute(query, part_id=part_id)
+    query = text("""UPDATE audit.grupo_audit SET mod_id=:usuario_id WHERE part_id=:part_id
+                    AND accion = 'D' AND fecha_accion IN (SELECT MAX(fecha_accion) FROM audit.grupo_audit 
+                    WHERE part_id=:part_id AND accion = 'D')""")
+    con.execute(query, part_id=part_id, usuario_id=usuario_id)
+    return True
 
 
 # Query to remove a composicion
-def delete_comp(con, comp_id):
+def delete_comp(con, comp_id, usuario_id):
+    query = text("""SELECT DISTINCT composicion_id FROM public.pista_son""")
+    result = con.execute(query)
+    result_arr = [res.composicion_id for res in result]
+    if comp_id in result_arr:
+        return False
     query = text("""DELETE FROM public.composicion WHERE composicion_id=:comp_id""")
     con.execute(query, comp_id=comp_id)
+    query = text("""UPDATE audit.composicion_audit SET mod_id=:usuario_id WHERE composicion_id=:comp_id
+                    AND accion = 'D' AND fecha_accion IN (SELECT MAX(fecha_accion) FROM audit.composicion_audit 
+                    WHERE composicion_id=:comp_id AND accion = 'D')""")
+    con.execute(query, comp_id=comp_id, usuario_id=usuario_id)
+    return True
 
 
-# Query to remove a pista_son
-def delete_pista(con, pista_id):
+def delete_pista(con, pista_id, usuario_id):
+    query = text("""SELECT DISTINCT pista_son_id FROM public.archivo""")
+    result = con.execute(query)
+    result_arr = [res.pista_son_id for res in result]
+    if pista_id in result_arr:
+        return False
     query = text("""DELETE FROM public.pista_son WHERE pista_son_id=:pista_id""")
     con.execute(query, pista_id=pista_id)
+    query = text("""UPDATE audit.pista_son_audit SET mod_id=:usuario_id WHERE pista_son_id=:pista_id
+                    AND accion = 'D' AND fecha_accion IN (SELECT MAX(fecha_accion) FROM audit.pista_son_audit 
+                    WHERE pista_son_id=:pista_id AND accion = 'D')""")
+    con.execute(query, pista_id=pista_id, usuario_id=usuario_id)
+    return True
 
 
 # Queries for init_session

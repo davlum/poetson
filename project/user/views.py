@@ -19,17 +19,18 @@ from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, 
 from project.util import current_user, current_gr, current_pers, send_email, allowed_file
 
 from project.user.models import query_perfil, query_pers_gr, populate_info, update_info, update_permiso, \
-    insert_part, populate_poner_grupo, populate_poner_pers, update_poner_grupo, update_poner_pers, delete_part, \
+    insert_part, populate_poner_grupo, populate_poner_pers, update_poner_grupo, update_poner_pers, delete_persona, \
     init_comps, init_pistas, init_pers, init_grupos, insert_comp,  insert_pista, query_archivos, update_prohibido, \
     populate_pais_form, populate_comp, populate_pista, delete_comp, insert_archivo, estado_comp, estado_grupo, \
     delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, estado_pers, estado_pista, \
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, populate_serie_album_form
+    delete_genero, delete_album, populate_serie_album_form, delete_grupo
 
 
 user_blueprint = Blueprint('user', __name__,)
+
 
 # a few utility functions that reside in views due to circular dependency
 def init_session(con, email):
@@ -53,11 +54,19 @@ def init_session(con, email):
     session['pistas'] = init_pistas(con, user.part_id)
 
 
-def delete_wrapper(fun, con, row_id):
+def delete_wrapper(fun, con, row_id, usuario_id=None):
     try:
-        fun(con, row_id)
-        init_session(con, session['email'])
-        flash('la eliminación se ha realizado correctamente.', 'success')
+        valid = True
+        if usuario_id is not None:
+            valid = fun(con, row_id, usuario_id)
+        else:
+            fun(con, row_id)
+        if valid:
+            init_session(con, session['email'])
+            flash('la eliminación se ha realizado correctamente.', 'success')
+        else:
+            flash("""No se puede borrar. Esto todavía se refiere por otra pieza de datos. 
+            Elimina todos los datos a los que se refiere antes de eliminar este.""", 'danger')
     except Exception as ex:
         if app.config['DEBUG']:
             raise  # Only for development
@@ -316,7 +325,7 @@ def perfil():
     else:
         user = current_gr(con, session['email'])
     pers_gr = query_pers_gr(con, session['id'])
-    result = query_perfil(con, session['id'], session['permission'])
+    result = query_perfil(con, session['id'], 'EDITOR')
     con.close()
     password_form = ChangePasswordForm(request.form)
     if request.method == 'POST' and password_form.validate():
@@ -393,13 +402,24 @@ def poner_grupo(obra_id):
     return render_template('poner/grupo.html', form=form)
 
 
-@user_blueprint.route('/retirar/part/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/persona/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_author
-def retirar_part(obra_id):
+def retirar_persona(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_part, con, obra_id)
+    delete_wrapper(delete_persona, con, obra_id, session['id'])
+    con.close()
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+
+
+@user_blueprint.route('/retirar/grupo/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_author
+def retirar_grupo(obra_id):
+    con = engine.connect()
+    delete_wrapper(delete_grupo, con, obra_id, session['id'])
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
@@ -473,7 +493,7 @@ def poner_pista(obra_id=None):
 @is_author
 def retirar_comp(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_comp, con, obra_id)
+    delete_wrapper(delete_comp, con, obra_id, session['id'])
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
@@ -484,7 +504,7 @@ def retirar_comp(obra_id):
 @is_author
 def retirar_pista(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_pista, con, obra_id)
+    delete_wrapper(delete_pista, con, obra_id, session['id'])
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
@@ -494,6 +514,7 @@ def retirar_pista(obra_id):
 @user_blueprint.route('/retirar/archivo/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_author
 def retirar_archivo(obra_id):
     # This needs to actually delete the album in memory
     con = engine.connect()

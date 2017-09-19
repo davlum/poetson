@@ -19,10 +19,14 @@
     </button>
     <ul class="dropdown-menu wider-dropdown">
         {% for subfield in field %}
-            <li class="row"><div class="col-sm-6">{{ subfield|safe }}</div><div class="col-sm-6"><a class="pull-right open-confirm-modal glyphicon glyphicon-remove"
-                                       data-role="{{ role }}"
+            <li class="row"><div class="col-sm-6">{{ subfield|safe }}</div>
+                {% if 'permission' in session and (session.permission == 'ADMIN' or session.permssion == 'MOD') %}
+                <div class="col-sm-6"><a class="pull-right open-confirm-modal glyphicon glyphicon-remove"
+                                       data-role="{{ role|safe }}"
                                         data-toggle="modal" data-target="#confirm-modal"></a>
-            </div></li>
+            </div>
+            {% endif %}
+            </li>
         {% endfor %}
     </ul>
 </div>

@@ -3,13 +3,13 @@
             {% if result.nom_part_ag is defined and result.nom_part_ag is not none %}
                 {{ result.nom_part_ag }}
             {% else %}
-                {% if result.nom_part is not none and result.nom_part != 'Desconocido' %}
+                {% if result.nom_part is not none %}
                     {{ result.nom_part }}
                 {% endif %}
-                {% if result.seudonimo is not none and result is defined %}
+                {% if result.seudonimo is not none %}
                    '{{ result.seudonimo }}'
                 {% endif %}
-                {% if result.nom_materno is not none and result is defined %}
+                {% if result.nom_materno is not none %}
                    {{ result.nom_materno }}
                 {% endif %}
                 {% if result.nom_paterno is not none %}
@@ -141,7 +141,7 @@
                                 <a class="glyphicon glyphicon-pencil"
                                    href="{{ url_for('user.poner_persona', obra_id=entry.part_id) }}"></a>&nbsp;
                                 <a class="open-confirm-modal glyphicon glyphicon-remove"
-                                   data-role="part" data-id="{{ entry.part_id }}"
+                                   data-role="persona" data-id="{{ entry.part_id }}"
                                     data-toggle="modal" data-target="#confirm-modal"></a>
                             </td>
                             {% endif %}
@@ -210,7 +210,7 @@
                                 <a class="glyphicon glyphicon-pencil"
                                    href="{{ url_for('user.poner_grupo', obra_id=entry.part_id) }}"></a>&nbsp;
                                 <a class="open-confirm-modal glyphicon glyphicon-remove"
-                                   data-role="part" data-id="{{ entry.part_id }}"
+                                   data-role="grupo" data-id="{{ entry.part_id }}"
                                     data-toggle="modal" data-target="#confirm-modal"></a>
                             </td>
                             {% endif %}
