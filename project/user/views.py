@@ -66,7 +66,7 @@ def delete_wrapper(fun, con, row_id, usuario_id=None):
             flash('la eliminación se ha realizado correctamente.', 'success')
         else:
             flash("""No se puede borrar. Esto todavía se refiere por otra pieza de datos. 
-            Elimina todos los datos a los que se refiere antes de eliminar este.""", 'danger')
+            Elimine todos los datos que se refieren a éste antes de él.""", 'danger')
     except Exception as ex:
         if app.config['DEBUG']:
             raise  # Only for development
@@ -115,6 +115,7 @@ def validate_file():
 
 
 def upload_file(con, pista_id, file):
+    file.seek(0)
     audio = File(file)
     if audio is not None:
         filename = secure_filename(file.filename)
@@ -125,7 +126,7 @@ def upload_file(con, pista_id, file):
         file.save(os.path.join(path, filename))
         file.close()
     else:
-        flash('Is not an audio file', 'danger')
+        flash('No es un archivo de audio', 'danger')
 
 
 def upsert_pista_wrapper(fun, con, form, file, pista_id=None):

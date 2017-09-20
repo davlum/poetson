@@ -1,35 +1,23 @@
-<div class="col-md-3">
+<div class="col-md-2">
     <div class="sidebar-nav-fixed pull-right affix">
         <div class="well">
             <ul class="nav ">
-                <li class="nav-header">Sidebar</li>
-                <li class="active"><a href="#">Link</a>
-                </li>
-                <li><a href="#">Just Checking the default behaviour of this side navbar and if it overflows properly onto itself</a> </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li class="nav-header">Sidebar</li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li class="nav-header">Sidebar</li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
-                <li><a href="#">Link</a>
-                </li>
+                <li class="nav-header">Temas</li>
+                {% for tema in result.temas %}
+                    <li><a href="#">{{ tema.nom_tema }} ({{ tema.count }})</a></li>
+                {% endfor %}
+                <li class="nav-header">Géneros musicales</li>
+                {% for genero in result.generos %}
+                    <li><a href="#">{{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
+                {% endfor %}
+                <li class="nav-header">Usuarios</li>
+               {% for usuario in result.usuarios %}
+                    <li><a href="#">{{ usuario.nom_usuario }} ({{ usuario.count }})</a></li>
+                {% endfor %}
+                <li class="nav-header">Idiomas</li>
+               {% for idioma in result.idiomas %}
+                    <li><a href="#">{{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
+                {% endfor %}
             </ul>
         </div>
         <!--/.well -->

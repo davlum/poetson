@@ -1,6 +1,14 @@
 .html, body {
 }
 
+.inline-list{
+  display: inline;
+  list-style-type: none;
+  padding-right: 20px;
+  float: left;
+}
+
+
 
 .organization {
 	display: none;
@@ -29,6 +37,15 @@ a.underline{
         width: 80%;
     }
 }
+
+.row-bordered {
+  content: "";
+  display: block;
+  border-left: 1px solid #ccc;
+  margin: 0 15px;
+}
+
+
 
 .footer {
     margin: auto;

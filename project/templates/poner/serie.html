@@ -2,7 +2,7 @@
 
 {% block body %}
 
-{% from "includes/_formhelpers.html" import render_field %}
+{% from "includes/_formhelpers.html" import render_field, render_delete_field %}
 
 <div>
     <br>
@@ -14,7 +14,7 @@
         <br>
         <div class="center-block skinny">
             <div class="form-group">
-                {{render_field(form.delete_serie, class ="form-control")}}
+                {{render_delete_field(form.delete_serie, 'serie')}}
             </div>
             <div class="form-group">
                 {{render_field(form.nom_serie, class ="form-control")}}

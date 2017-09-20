@@ -19,12 +19,82 @@ def autors_comps_query():
     return autors_query
 
 
+def tema_tags(con, comp_ids):
+    temas = text("""SELECT t.nom_tema, COUNT(tc.tema_id) count
+                           FROM public.tema t
+                           JOIN public.tema_composicion tc
+                             ON t.tema_id = tc.tema_id
+                           WHERE tc.composicion_id IN :comp_ids
+                           GROUP BY t.nom_tema""")
+    return con.execute(temas, comp_ids=comp_ids)
+
+
+def idioma_tags(con, comp_ids):
+    idiomas = text("""SELECT i.nom_idioma, COUNT(ic.idioma_id) count
+                           FROM public.idioma i
+                           JOIN public.idioma_composicion ic
+                             ON i.idioma_id = ic.idioma_id
+                           WHERE ic.composicion_id IN :comp_ids
+                           GROUP BY i.nom_idioma""")
+    return con.execute(idiomas, comp_ids=comp_ids)
+
+
+def genero_tags(con, pista_ids):
+    generos = text("""SELECT gm.nom_gen_mus, COUNT(gp.gen_mus_id) count
+                           FROM public.genero_musical gm
+                           JOIN public.genero_pista gp
+                             ON gm.gen_mus_id = gp.gen_mus_id
+                           WHERE gp.pista_son_id IN :pista_ids
+                           GROUP BY gm.nom_gen_mus""")
+    return con.execute(generos, pista_ids=pista_ids)
+
+
+def usuario_comp_tags(con, comp_ids):
+    comps = text("""SELECT u.nom_usuario, COUNT(c.composicion_id) count
+                           FROM public.usuario u
+                           JOIN public.composicion c
+                             ON u.usuario_id = c.cargador_id    
+                           WHERE c.composicion_id IN :comp_ids
+                           GROUP BY u.nom_usuario""")
+    return con.execute(comps, comp_ids=comp_ids)
+
+
+def usuario_pista_tags(con, pista_ids):
+    pistas = text("""SELECT u.nom_usuario, COUNT(c.pista_son_id) count
+                           FROM public.usuario u
+                           JOIN public.pista_son c
+                             ON u.usuario_id = c.cargador_id    
+                           WHERE c.pista_son_id IN :pista_ids
+                           GROUP BY u.nom_usuario""")
+    return con.execute(pistas, pista_ids=pista_ids)
+
+
+def usuario_persona_tags(con, part_ids):
+    personas = text("""SELECT u.nom_usuario, COUNT(p.part_id) count
+                           FROM public.usuario u
+                           JOIN public.persona p
+                             ON u.usuario_id = p.cargador_id    
+                           WHERE p.part_id IN :part_ids
+                           GROUP BY u.nom_usuario""")
+    return con.execute(personas, part_ids=part_ids)
+
+
+def usuario_grupo_tags(con, part_ids):
+    grupos = text("""SELECT u.nom_usuario, COUNT(g.part_id) count
+                           FROM public.usuario u
+                           JOIN public.grupo g
+                             ON u.usuario_id = g.cargador_id    
+                           WHERE g.part_id IN :part_ids
+                           GROUP BY u.nom_usuario""")
+    return con.execute(grupos, part_ids=part_ids)
+
+
 def set_years(binds_params, year_from, year_to):
     if year_from is None:
-        year_from = '500'
+        year_from = 500
     binds_params['year_from'] = year_from
     if year_to is None:
-        year_to = time.strftime('%Y')
+        year_to = int(time.strftime('%Y'))+1
     binds_params['year_to'] = year_to
 
 
@@ -34,6 +104,8 @@ def autor_query(con, nom, year_from, year_to, contains):
     query_string = """SELECT p.part_id
                           , p.nom_part
                           , p.seudonimo
+                          , p.nom_paterno
+                          , p.nom_materno
                           , p.ciudad
                           , p.subdivision
                           , p.pais
@@ -42,14 +114,13 @@ def autor_query(con, nom, year_from, year_to, contains):
                           FROM public.pers_view p 
                           LEFT JOIN public.participante_composicion pc
                             ON pc.part_id = p.part_id   
-                          WHERE p.nom_part ~* :nom
+                          WHERE (p.nom_part ~* :nom
                             OR p.seudonimo ~* :nom
                             OR p.nom_materno ~* :nom
-                            OR p.nom_paterno ~* :nom 
+                            OR p.nom_paterno ~* :nom) 
                             AND p.estado='PUBLICADO' """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM DATE p.fecha_comienzo_insert.d)
-                            BETWEEN :year_from AND :year_to """
+        query_string += """AND EXTRACT(YEAR FROM (p.fecha_comienzo_insert).d) BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND p.coment_part ~* :contains"
         bind_params['contains'] = contains
@@ -73,7 +144,7 @@ def colectivo_query(con, nom, year_from, year_to, contains):
                             AND g.nom_part ~* :nom 
                             AND g.estado = 'PUBLICADO' """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM DATE g.fecha_comienzo_insert.d)
+        query_string += """AND EXTRACT(YEAR FROM (g.fecha_comienzo_insert).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND g.coment_part ~* :contains"
@@ -86,26 +157,12 @@ def colectivo_query(con, nom, year_from, year_to, contains):
 def composicion_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    autors_query = text("""SELECT p.part_id pers_id
-                                , g.part_id gr_id
-                                , g.nom_part nom_part_ag
-                                , p.nom_part
-                                , p.seudonimo
-                                , p.nom_paterno
-                                , p.nom_paterno
-                                FROM public.participante_composicion pc
-                                LEFT JOIN public.grupo g
-                                  ON g.part_id = pc.part_id
-                                LEFT JOIN public.persona p
-                                  ON p.part_id = pc.part_id
-                                  WHERE pc.composicion_id=:comp_id""")
-
     query_string = """SELECT * FROM public.composicion
                           WHERE nom_tit ~* :nom 
                           OR nom_alt ~* :nom 
                           and estado = 'PUBLICADO' """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM DATE fecha_pub.d)
+        query_string += """AND EXTRACT(YEAR FROM (fecha_pub).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND texto ~* :contains"
@@ -113,8 +170,12 @@ def composicion_query(con, nom, year_from, year_to, contains):
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
     comps = con.execute(query, bind_params)
-    comps_arr = [(res, con.execute(autors_query, comp_id=res.composicion_id)) for res in comps]
-    return comps_arr
+    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
+    comp_ids = tuple([res[0].composicion_id for res in comps_arr])
+    temas = tema_tags(con, comp_ids)
+    idiomas = idioma_tags(con, comp_ids)
+    usuarios = usuario_comp_tags(con, comp_ids)
+    return comps_arr, temas, idiomas, usuarios
 
 
 def serie_query(con, nom, contains):
@@ -124,7 +185,7 @@ def serie_query(con, nom, contains):
                         FROM public.serie
                           WHERE nom_serie ~* :nom """
     if contains is not None and contains != "":
-        query_string += "AND s.giro ~* :contains"
+        query_string += "AND giro ~* :contains"
         bind_params['contains'] = contains
     query = text(query_string)
     return con.execute(query, bind_params)
@@ -140,7 +201,7 @@ def tema_query(con, nom, year_from, year_to, contains):
                             ON t.tema_id = tc.tema_id  
                           WHERE t.nom_tema ~* :nom  """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM c.fecha_pub.d)
+        query_string += """AND EXTRACT(YEAR FROM (c.fecha_pub).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND c.texto ~* :contains"
@@ -162,7 +223,7 @@ def genero_query(con, nom, year_from, year_to, contains):
                             ON gm.gen_mus_id = gp.gen_mus_id  
                           WHERE gm.nom_gen_mus ~* :nom """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM p.fecha_grab.d)
+        query_string += """AND EXTRACT(YEAR FROM (p.fecha_grab).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND p.coment_pista_son ~* :contains"
@@ -184,7 +245,7 @@ def instrumento_query(con, nom, year_from, year_to, contains):
                             ON i.instrumento_id = pps.instrumento_id
                           WHERE i.nom_inst ~* :nom """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM p.fecha_grab.d)
+        query_string += """AND EXTRACT(YEAR FROM (p.fecha_grab).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND p.coment_pista_son ~* :contains"
@@ -204,7 +265,7 @@ def idioma_query(con, nom, year_from, year_to, contains):
                             ON i.idioma_id = ic.idioma_id  
                           WHERE i.nom_idioma ~* :nom """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM c.fecha_pub.d)
+        query_string += """AND EXTRACT(YEAR FROM (c.fecha_pub).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND texto ~* :contains"
@@ -230,7 +291,7 @@ def interp_query(con, nom, year_from, year_to, contains):
                             OR p.nom_paterno ~* :nom 
                            AND pps.rol_pista_son = 'Interpretación musical' """
     if year_from is not None or year_to is not None:
-        query_string += """AND EXTRACT(YEAR FROM p.fecha_comienzo.d)
+        query_string += """AND EXTRACT(YEAR FROM (p.fecha_comienzo).d)
                             BETWEEN :year_from AND :year_to """
     if contains is not None and contains != "":
         query_string += "AND p.coment_part ~* :contains"
@@ -325,7 +386,7 @@ def comp_view_query(con, comp_id):
 def pista_archivo_view(con, comp_id):
     # query all pista son associated with that composicion and return first flac archivo associated with each one
     pista_query = text("""SELECT DISTINCT ON
-                             (a.archivo_id)
+                             (a.pista_son_id) 
                              a.nom_archivo
                            , a.archivo_id
                            , a.codec
@@ -343,12 +404,8 @@ def pista_archivo_view(con, comp_id):
                       LEFT JOIN public.lugar l
                         ON l.lugar_id = ps.lugar_interp
                         WHERE ps.composicion_id=:comp_id
-                          AND ps.estado = 'PUBLICADO' 
-                        ORDER BY CASE a.codec
-                          WHEN 'FLAC' THEN 1
-                          WHEN 'MP3' THEN 2
-                          ELSE  3 END, a.codec """)
-    result = con.execute(pista_query, comp_id=comp_id).first()
+                          AND ps.estado = 'PUBLICADO' """)
+    result = con.execute(pista_query, comp_id=comp_id)
     inst_query = text("""SELECT g.part_id gr_id
                                , p.part_id pers_id 
                                , g.nom_part nom_part_ag
@@ -364,7 +421,7 @@ def pista_archivo_view(con, comp_id):
                             ON g.part_id = p.part_id     
                           JOIN public.instrumento i
                             ON i.instrumento_id = pps.instrumento_id     
-                            WHERE ps.pista_son_id=:pista_id """)
+                            WHERE pps.pista_son_id=:pista_id """)
     result_arr = [(res, con.execute(inst_query, pista_id=res.pista_son_id)) for res in result]
     return result_arr
 

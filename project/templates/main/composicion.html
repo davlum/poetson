@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import nom_link, lugar, pista_archivo %}
+{% from 'macros.html' import nom_link, lugar, archivo_inst %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -38,13 +38,15 @@
             {% endif %}
         </div>
         <div>
-            {% if comp.texto is not none %}
+            {% if comp.texto is not none and comp.texto != "" %}
                 <h4>Texto</h4>
                 <p class="indented"> {{ comp.texto }}</p>
                 <br>
             {% endif %}
         </div>
         <hr>
-        {{ pista_archivo(result) }}
+        {% for res in result %}
+            {{ archivo_inst(res) }}
+        {% endfor %}
     </div>
 {% endblock %}

@@ -11,7 +11,7 @@
             <br>
             <span>Estos son los que ha agregado;</span>
             <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
-            <div class="skinny center-block">
+            <div class="center-block">
                 {{ persona(result) }}
                 {{ grupo(result) }}
             </div>
@@ -24,7 +24,7 @@
             <span>Estos son los que ha agregado;</span>
             <a class="right underline" href="{{ url_for('user.poner_composicion') }}">Nuevo Composición</a><br>
             <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
-            <div class="skinny center-block">
+            <div class="center-block">
                 {{ composicion(result) }}
                 {{ pista(result) }}
             </div>

@@ -475,11 +475,11 @@ def query_grupos(con, part_id, permission='EDITOR'):
                              , subdivision
                              , pais
                              FROM public.gr_view
-                             WHERE cargador_id=:id
+                             WHERE cargador_id=:part_id
                              AND cargador_id <> part_id
                              AND (estado = 'PENDIENTE'
                               OR estado = 'PUBLICADO') """)
-        return con.execute(query, id=part_id)
+        return con.execute(query, part_id=part_id)
     else:
         query = text("""SELECT a.part_id
                              , a.nom_part
@@ -493,8 +493,7 @@ def query_grupos(con, part_id, permission='EDITOR'):
                              , u.nom_usuario
                              FROM public.gr_view a
                              JOIN public.usuario u
-                               ON u.usuario_id = a.cargador_id 
-                             WHERE a.part_id NOT IN (SELECT usuario_id FROM public.usuario)""")
+                               ON u.usuario_id = a.cargador_id """)
         return con.execute(query)
 
 
@@ -532,8 +531,7 @@ def query_pers(con, part_id, permission='EDITOR'):
                              , u.nom_usuario
                              FROM public.pers_view p
                              JOIN public.usuario u
-                               ON u.usuario_id = p.cargador_id 
-                             WHERE p.part_id NOT IN (SELECT usuario_id FROM public.usuario)""")
+                               ON u.usuario_id = p.cargador_id """)
         return con.execute(query)
 
 
@@ -555,6 +553,7 @@ def query_comps(con, part_id, permission='EDITOR'):
         query = text("""SELECT c.composicion_id
                              , c.nom_tit
                              , c.nom_alt
+                             , c.estado
                              , public.get_fecha(fecha_pub) fecha_pub
                              FROM public.composicion c
                              WHERE c.cargador_id=:id
@@ -578,11 +577,13 @@ def query_comps(con, part_id, permission='EDITOR'):
 
 def query_pista(con, part_id, permission='EDITOR'):
     if permission == 'EDITOR':
-        query = text("""SELECT p.pista_son_id
+        query = text("""SELECT c.composicion_id
+                             , p.pista_son_id
                              , c.nom_tit
                              , l.ciudad
                              , l.subdivision
                              , l.pais
+                             , p.estado
                              , public.get_fecha(p.fecha_grab) fecha_grab
                              FROM public.pista_son p
                              JOIN public.composicion c
@@ -594,7 +595,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                               OR p.estado = 'PUBLICADO') """)
         return con.execute(query, id=part_id)
     else:
-        query = text("""SELECT p.pista_son_id
+        query = text("""SELECT c.composicion_id
+                             , p.pista_son_id
                              , c.nom_tit
                              , l.ciudad
                              , l.subdivision
@@ -974,7 +976,7 @@ def update_comp(con, form, usuario_id, comp_id):
                                                , nom_alt=:nom_alt
                                                , fecha_pub=:fecha_pub
                                                , composicion_orig=NULLIf(:composicion_orig, 0)
-                                               , texto=:texto 
+                                               , texto=strip(:texto)
                                                WHERE composicion_id=:comp_id""")
     con.execute(query, nom_tit=form.nom_tit.data
                      , nom_alt=form.nom_alt.data
@@ -1030,7 +1032,7 @@ def update_comp(con, form, usuario_id, comp_id):
     delete_part_comp = text("""DELETE FROM public.participante_composicion WHERE composicion_id=:comp_id
                                 AND (part_id, rol_composicion) NOT IN :used""")
 
-    used_ids.append((0,0))
+    used_ids.append((0, "Ninguno"))
     con.execute(delete_part_comp, comp_id=comp_id, used=tuple(used_ids))
     update_cob(con, form, comp_id, is_pista=False)
 
@@ -1046,7 +1048,7 @@ def insert_comp(con, form, usuario_id):
                                                        , strip(:nom_alt)
                                                        , :fecha_pub
                                                        , NULLIF(:composicion_orig, 0)
-                                                       , :texto
+                                                       , strip(:texto)
                                                        , :cargador_id)
                                                        RETURNING composicion_id""")
 
@@ -1203,7 +1205,7 @@ def update_pista(con, form, usuario_id, pista_id):
     delete_part_pista = text("""DELETE FROM public.participante_pista_son WHERE pista_son_id=:pista_id 
                               AND (part_id, rol_pista_son, instrumento_id) NOT IN :used""")
     con.execute(delete_part_pista, pista_id=pista_id, used=tuple(used_ids))
-    used_ids.append((0,0,0))
+    used_ids.append((0, "Ninguno", 0))
     update_cob(con, form, pista_id)
 
 

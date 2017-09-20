@@ -26,9 +26,9 @@
 
 {%  macro nom_link(result) -%}
     {% if result.pers_id is not none %}
-        <a href="{{ url_for("main.autor", part_id=result.pers_id) }}"> {{ nom(result) }}</a>,
+        <a href="{{ url_for("main.autor", part_id=result.pers_id) }}"> {{ nom(result) }}</a>
     {% else %}
-        <a href="{{ url_for("main.colectivo", part_id=result.gr_id) }}"> {{ nom(result) }}</a>,
+        , <a href="{{ url_for("main.colectivo", part_id=result.gr_id) }}"> {{ nom(result) }}</a>
     {% endif %}
 {% endmacro %}
 
@@ -107,10 +107,10 @@
                             <th>Comienzo</th>
                             <th>Finale</th>
                         {% if 'mod' in result and result.mod == True %}
-                            <th>Estado</th>
                             <th>Usuario</th>
                         {% endif %}
                         {% if 'editor' in result and result.editor == True %}
+                            <th>Estado</th>
                             <th>Acción</th>
                         {% endif %}
                         </tr>
@@ -125,6 +125,7 @@
                             <td>{{ render_none(entry.fecha_comienzo) }}</td>
                             <td>{{ render_none(entry.fecha_finale) }}</td>
                             {% if 'mod' in result and result.mod == True %}
+                                <td>{{ entry.nom_usuario }}</td>
                                 <td>
                                     <select class="form-control ajax-select" data-role="pers"
                                             data-id="{{ entry.part_id }}">
@@ -134,7 +135,8 @@
                                         {{ render_select('Depositar', entry.estado) }}
                                     </select>
                                 </td>
-                                <td>{{ entry.nom_usuario }}</td>
+                            {% elif 'editor' in result and result.editor == True %}
+                                <td>{{ entry.estado }}</td>
                             {% endif %}
                             {% if 'editor' in result and result.editor == True %}
                             <td>
@@ -176,10 +178,10 @@
                             <th>Comienzo</th>
                             <th>Finale</th>
                         {% if 'mod' in result and result.mod == True %}
-                            <th>Estado</th>
                             <th>Usuario</th>
                         {% endif %}
                         {% if 'editor' in result and result.editor == True %}
+                            <th>Estado</th>
                             <th>Acción</th>
                         {% endif %}
                         </tr>
@@ -194,6 +196,7 @@
                             <td>{{ render_none(entry.fecha_comienzo) }}</td>
                             <td>{{ render_none(entry.fecha_finale) }}</td>
                             {% if 'mod' in result and result.mod == True %}
+                                <td>{{ entry.nom_usuario }}</td>
                                 <td>
                                     <select class="form-control ajax-select" data-role="grupo"
                                             data-id="{{ entry.part_id }}">
@@ -203,7 +206,8 @@
                                         {{ render_select('Depositar', entry.estado) }}
                                     </select>
                                 </td>
-                                <td>{{ entry.nom_usuario }}</td>
+                            {% elif 'editor' in result and result.editor == True %}
+                                <td>{{ entry.estado }}</td>
                             {% endif %}
                             {% if 'editor' in result and result.editor == True %}
                             <td>
@@ -244,10 +248,10 @@
                             <th>Origen</th>
                             <th>Serie</th>
                         {% if 'mod' in result and result.mod == True %}
-                            <th>Estado</th>
                             <th>Usuario</th>
                         {% endif %}
                         {% if 'editor' in result and result.editor == True %}
+                            <th>Estado</th>
                             <th>Acción</th>
                         {% endif %}
                         </tr>
@@ -255,7 +259,7 @@
                     <tbody>
                     {% for entry in result.pistas %}
                         <tr>
-                            <td><a class="no-underline" href="/pistason/{{ entry.pista_son_id }}/">
+                            <td><a class="no-underline" href="{{ url_for('main.composicion', comp_id=entry.composicion_id) }}">
                                 {{ entry.nom_tit }}
                                 </a>
                             </td>
@@ -266,6 +270,7 @@
                                 {% endif %}
                             </td>
                             {% if 'mod' in result and result.mod == True %}
+                                <td>{{ entry.nom_usuario }}</td>
                                 <td>
                                     <select class="form-control ajax-select" data-role="pista"
                                             data-id="{{ entry.pista_son_id }}">
@@ -275,7 +280,8 @@
                                         {{ render_select('Depositar', entry.estado) }}
                                     </select>
                                 </td>
-                                <td>{{ entry.nom_usuario }}</td>
+                            {% elif 'editor' in result and result.editor == True %}
+                                <td>{{ entry.estado }}</td>
                             {% endif %}
                             {% if 'editor' in result and result.editor == True %}
                             <td>
@@ -316,10 +322,10 @@
                             <th>Fecha publication</th>
                             <th>Autor(s)</th>
                         {% if 'mod' in result and result.mod == True %}
-                            <th>Estado</th>
                             <th>Usuario</th>
                         {% endif %}
                         {% if 'editor' in result and result.editor == True %}
+                            <th>Estado</th>
                             <th>Acción</th>
                         {% endif %}
                         </tr>
@@ -334,13 +340,14 @@
                                     {% endif %}
                                 </a>
                             </td>
+                            <td>{{ render_none(entry.0.fecha_pub) }}</td>
                             <td>
-                                {% for autor in result.1 %}
+                                {% for autor in entry.1 %}
                                     {{ nom_link(autor) }}
                                 {% endfor %}
                             </td>
-                            <td>{{ entry.0.fecha_pub }}</td>
                             {% if 'mod' in result and result.mod == True %}
+                                <td>{{ entry.0.nom_usuario }}</td>
                                 <td>
                                     <select class="form-control ajax-select" data-role="comp"
                                             data-id="{{ entry.0.composicion_id }}">
@@ -350,7 +357,8 @@
                                         {{ render_select('Depositar', entry.0.estado) }}
                                     </select>
                                 </td>
-                                <td>{{ entry.0.nom_usuario }}</td>
+                            {% elif 'editor' in result and result.editor == True %}
+                                <td>{{ entry.0.estado }}</td>
                             {% endif %}
                             {% if 'editor' in result and result.editor == True %}
                             <td>
@@ -489,33 +497,48 @@
                 <audio controls="controls">
                     Su navegador no admite reproducción de<code>audio</code>
                     <source src="{{ url_for('static',
-                    filename='audio/'+result.0.pista_son_id|string+'/'+result.0.archivo_id|string+'/'+result.0.nom_archivo) }}"
+                    filename='audio/'+result.0.pista_son_id|string+'/'
+                                     +result.0.archivo_id|string+'/'
+                                     +result.0.nom_archivo|string+'/') }}"
                     type="audio/{{ result.0.codec|lower|safe }}">
                 </audio>
             </div>
             <div class="col-md-3">
-               {{ lugar(result.0) }}
+               Lugar; &nbsp; {{ lugar(result.0) }}
             </div>
             <div class="col-md-3">
-              {{ result.0.fecha_grab }}
+              {{ render_none(result.0.fecha_grab) }}
             </div>
         </div>
-        {% for entry in result.1 %}
-        <div class="row">
-            <div class="col-md-4">
-                {{ nom_link(entry) }}
-            </div>
-            <div class="col-md-4">
-                {{ entry.rol_pista_son }}
-            </div>
-            <div class="col-md-4">
-                {% if entry.nom_inst != 'Ninguno' %}
-                   {{ entry.nom_inst }}
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
+        <br>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Rol</th>
+                    <th>Instrumento</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for entry in result.1 %}
+            <tr>
+                <td>
+                    {{ nom_link(entry) }}
+                </td>
+                <td>
+                    {{ entry.rol_pista_son }}
+                </td>
+                <td>
+                    {% if entry.nom_inst != 'Ninguno' %}
+                       {{ entry.nom_inst }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+    <hr>
 {% endmacro %}
 
 

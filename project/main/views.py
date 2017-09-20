@@ -64,7 +64,8 @@ def search():
         if filt == 'all':
             result['pers'] = autor_query(con, param, year_from, year_to, contains)
             result['grupos'] = colectivo_query(con, param, year_from, year_to, contains)
-            result['comps'] = composicion_query(con, param, year_from, year_to, contains)
+            result['comps'], result['temas'], \
+            result['idiomas'], result['usuarios'] = composicion_query(con, param, year_from, year_to, contains)
             result['serie'] = serie_query(con, param, contains)
         # Search through artistas
         if filt == 'autor':
@@ -74,7 +75,8 @@ def search():
             result['grupos'] = colectivo_query(con, param, year_from, year_to, contains)
         # search through composicions
         if filt == 'composicion':
-            result['comps'] = composicion_query(con, param, year_from, year_to, contains)
+            result['comps'], result['temas'], \
+            result['idiomas'], result['usuarios'] = composicion_query(con, param, year_from, year_to, contains)
         # Search through serie
         if filt == 'serie':
             result['serie'] = serie_query(con, param, contains)
