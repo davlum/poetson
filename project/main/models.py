@@ -152,7 +152,6 @@ def gen_grupo_tags(con, parts):
     part_ids = tuple([res.part_id for res in parts_arr])
     lugar = []
     usuarios = []
-    genders = []
     if len(part_ids) > 0:
         lugar = lugar_grupo_tags(con, part_ids)
         usuarios = usuario_grupo_tags(con, part_ids)
@@ -230,13 +229,13 @@ def composicion_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
     query_string = """SELECT composicion_id
-                            ,fecha_pub
+                            , get_fecha(fecha_pub) fecha_pub
                             ,nom_tit
                             ,nom_alt
                           FROM public.composicion
-                          WHERE nom_tit ~* :nom 
-                          OR nom_alt ~* :nom 
-                          and estado = 'PUBLICADO' """
+                          WHERE (nom_tit ~* :nom 
+                          OR nom_alt ~* :nom) 
+                          AND estado = 'PUBLICADO' """
     if year_from is not None or year_to is not None:
         query_string += """AND EXTRACT(YEAR FROM (fecha_pub).d)
                             BETWEEN :year_from AND :year_to """
@@ -265,7 +264,11 @@ def serie_query(con, nom, contains):
 def tema_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion c
+    query_string = """SELECT c.composicion_id
+                            ,get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt 
+                          FROM public.composicion c
                           JOIN public.tema_composicion tc
                             ON c.composicion_id = tc.composicion_id
                           JOIN public.tema t
@@ -286,7 +289,11 @@ def tema_query(con, nom, year_from, year_to, contains):
 def genero_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion c
+    query_string = """SELECT c.composicion_id
+                            , get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt 
+                            FROM public.composicion c
                           JOIN public.pista_son p
                             ON p.composicion_id = c.composicion_id
                           JOIN public.genero_pista gp
@@ -309,7 +316,11 @@ def genero_query(con, nom, year_from, year_to, contains):
 def instrumento_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion c
+    query_string = """SELECT c.composicion_id
+                            , get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt
+                          FROM public.composicion c
                           JOIN public.pista_son p
                             ON p.composicion_id = c.composicion_id
                           JOIN public.participante_pista_son pps
@@ -332,7 +343,11 @@ def instrumento_query(con, nom, year_from, year_to, contains):
 def idioma_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion c
+    query_string = """SELECT c.composicion_id
+                            ,get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt 
+                          FROM public.composicion c
                           JOIN public.idioma_composicion ic
                             ON ic.composicion_id = c.composicion_id
                           JOIN public.idioma i
@@ -353,7 +368,11 @@ def idioma_query(con, nom, year_from, year_to, contains):
 def interp_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion c
+    query_string = """SELECT c.composicion_id
+                            ,get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt 
+                          FROM public.composicion c
                           JOIN public.pista_son ps
                             ON ps.composicion_id = c.composicion_id
                           JOIN public.participante_pista_son pps
@@ -411,7 +430,7 @@ def pers_grupo_view(con, part_id):
                                   ON p.part_id = pa.persona_id 
                                 AND a.part_id=:part_id
                                 and p.estado = 'PUBLICADO'""")
-    return con.execute(author_query, part_id=part_id)
+    return [res for res in con.execute(author_query, part_id=part_id)]
 
 
 def comp_grupo_view(con, part_id):
