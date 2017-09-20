@@ -479,7 +479,7 @@ def query_grupos(con, part_id, permission='EDITOR'):
                              AND cargador_id <> part_id
                              AND (estado = 'PENDIENTE'
                               OR estado = 'PUBLICADO') """)
-        return con.execute(query, part_id=part_id)
+        result = con.execute(query, part_id=part_id)
     else:
         query = text("""SELECT a.part_id
                              , a.nom_part
@@ -494,7 +494,8 @@ def query_grupos(con, part_id, permission='EDITOR'):
                              FROM public.gr_view a
                              JOIN public.usuario u
                                ON u.usuario_id = a.cargador_id """)
-        return con.execute(query)
+        result = con.execute(query)
+    return [res for res in result]
 
 
 def query_pers(con, part_id, permission='EDITOR'):
@@ -514,7 +515,7 @@ def query_pers(con, part_id, permission='EDITOR'):
                              AND cargador_id <> part_id
                              AND (estado = 'PENDIENTE'
                               OR estado = 'PUBLICADO') """)
-        return con.execute(query, id=part_id)
+        result = con.execute(query, id=part_id)
     else:
         query = text("""SELECT p.part_id
                              , p.nom_part
@@ -532,7 +533,8 @@ def query_pers(con, part_id, permission='EDITOR'):
                              FROM public.pers_view p
                              JOIN public.usuario u
                                ON u.usuario_id = p.cargador_id """)
-        return con.execute(query)
+        result = con.execute(query)
+    return [res for res in result]
 
 
 def query_comps(con, part_id, permission='EDITOR'):
