@@ -11,12 +11,20 @@
                     <li><a href="#">{{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
                 {% endfor %}
                 <li class="nav-header">Usuarios</li>
-               {% for usuario in result.usuarios %}
-                    <li><a href="#">{{ usuario.nom_usuario }} ({{ usuario.count }})</a></li>
+               {% for usuario, count in result.usuarios.items() %}
+                    <li><a href="#">{{ usuario }} ({{ count }})</a></li>
                 {% endfor %}
                 <li class="nav-header">Idiomas</li>
                {% for idioma in result.idiomas %}
                     <li><a href="#">{{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
+                {% endfor %}
+                <li class="nav-header">Géneros del personas</li>
+               {% for gender in result.genders %}
+                    <li><a href="#">{{ render_none(gender.genero, True) }} ({{ gender.count }})</a></li>
+                {% endfor %}
+                <li class="nav-header">Ciudads</li>
+                {% for lugar, count in result.lugars.items() %}
+                    <li><a href="#">{{ render_none(lugar, True) }} ({{ count }})</a></li>
                 {% endfor %}
             </ul>
         </div>

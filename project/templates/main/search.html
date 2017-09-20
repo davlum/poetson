@@ -1,13 +1,13 @@
 {% extends 'searchlayout.html' %}
-{% import 'macros.html' as query %}
+{% from 'macros.html' import persona, grupo, composicion, serie, render_none %}
 {% block resultbody %}
     <div class="container">
         <div class="row">
            <div class="col-md-10">
-               {{ query.persona(result) }}
-               {{ query.grupo(result) }}
-               {{ query.composicion(result) }}
-               {{ query.serie(result) }}
+               {{ persona(result) }}
+               {{ grupo(result) }}
+               {{ composicion(result) }}
+               {{ serie(result) }}
            </div>
 
             {% include 'includes/_sidebar.html' %}

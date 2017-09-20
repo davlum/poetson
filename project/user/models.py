@@ -1168,9 +1168,9 @@ def update_pista(con, form, usuario_id, pista_id):
         gen_mus_id = int(entry.data['gen_mus_id'])
         if gen_mus_id != 0 and gen_mus_id not in used_ids:
             used_ids.append(gen_mus_id)
-            insert_gen_mus = text("""INSERT INTO public.genero_pista 
+            insert_gen_mus = text("""INSERT INTO public.genero_pista (pista_son_id, gen_mus_id)
                                       VALUES (:pista_son_id, :gen_mus_id) ON CONFLICT DO NOTHING""")
-            con.execute(insert_gen_mus, pista_son_id=pista_son_result, gen_mus_id=gen_mus_id)
+            con.execute(insert_gen_mus, pista_son_id=pista_id, gen_mus_id=gen_mus_id)
     delete_gen_mus = text("""DELETE FROM public.genero_pista WHERE pista_son_id=:pista_id 
                               AND gen_mus_id NOT IN :used""")
     used_ids.append(0)

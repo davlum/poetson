@@ -81,14 +81,16 @@
 {% endmacro %}
 
 
-{% macro render_none(value) -%}
+{% macro render_none(value, output=False) -%}
     {% if value is not none %}
         {{ value|safe }}
+     {% elif output %}
+        Desconocido
     {% endif %}
 {% endmacro %}
 
 {% macro persona(result) -%}
-    {% if 'pers' in result and result.pers is not none and result.pers.rowcount > 0 %}
+    {% if 'pers' in result and result.pers is not none and result.pers|length > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="autor-heading">
                 <h3 class="mb-0">
@@ -159,7 +161,7 @@
 
 
 {% macro grupo(result) -%}
-    {% if 'grupos' in result and result.grupos is not none and result.grupos.rowcount > 0 %}
+    {% if 'grupos' in result and result.grupos is not none and result.grupos|length > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="grupo-heading">
                 <h3 class="mb-0">
@@ -335,7 +337,7 @@
                         <tr>
                             <td><a class="no-underline" href="{{ url_for("main.composicion", comp_id=entry.0.composicion_id) }}">
                                 {{ entry.0.nom_tit }}
-                                    {% if entry.0.nom_alt is not none %}
+                                    {% if entry.0.nom_alt is not none and entry.0.nom_alt != "" %}
                                         | {{ entry.0.nom_alt }}
                                     {% endif %}
                                 </a>

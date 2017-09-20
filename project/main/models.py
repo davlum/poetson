@@ -39,14 +39,16 @@ def idioma_tags(con, comp_ids):
     return con.execute(idiomas, comp_ids=comp_ids)
 
 
-def genero_tags(con, pista_ids):
+def genero_tags(con, comp_ids):
     generos = text("""SELECT gm.nom_gen_mus, COUNT(gp.gen_mus_id) count
                            FROM public.genero_musical gm
                            JOIN public.genero_pista gp
                              ON gm.gen_mus_id = gp.gen_mus_id
-                           WHERE gp.pista_son_id IN :pista_ids
+                           JOIN public.pista_son ps
+                             ON ps.pista_son_id = gp.pista_son_id
+                           WHERE ps.composicion_id IN :comp_ids
                            GROUP BY gm.nom_gen_mus""")
-    return con.execute(generos, pista_ids=pista_ids)
+    return con.execute(generos, comp_ids=comp_ids)
 
 
 def usuario_comp_tags(con, comp_ids):
@@ -69,11 +71,11 @@ def usuario_pista_tags(con, pista_ids):
     return con.execute(pistas, pista_ids=pista_ids)
 
 
-def usuario_persona_tags(con, part_ids):
+def usuario_pers_tags(con, part_ids):
     personas = text("""SELECT u.nom_usuario, COUNT(p.part_id) count
                            FROM public.usuario u
                            JOIN public.persona p
-                             ON u.usuario_id = p.cargador_id    
+                             ON u.usuario_id = p.cargador_id
                            WHERE p.part_id IN :part_ids
                            GROUP BY u.nom_usuario""")
     return con.execute(personas, part_ids=part_ids)
@@ -83,10 +85,78 @@ def usuario_grupo_tags(con, part_ids):
     grupos = text("""SELECT u.nom_usuario, COUNT(g.part_id) count
                            FROM public.usuario u
                            JOIN public.grupo g
-                             ON u.usuario_id = g.cargador_id    
+                             ON u.usuario_id = g.cargador_id      
                            WHERE g.part_id IN :part_ids
                            GROUP BY u.nom_usuario""")
     return con.execute(grupos, part_ids=part_ids)
+
+
+def lugar_pers_tags(con, part_ids):
+    lugars = text("""SELECT l.ciudad, COUNT(p.part_id) count
+                        FROM public.lugar l 
+                        JOIN public.persona p
+                          ON l.lugar_id = p.lugar_id
+                          WHERE p.part_id IN :part_ids
+                          GROUP BY l.ciudad """)
+    return con.execute(lugars, part_ids=part_ids)
+
+
+def lugar_grupo_tags(con, part_ids):
+    lugars = text("""SELECT l.ciudad, COUNT(g.part_id) count
+                        FROM public.lugar l 
+                        JOIN public.grupo g
+                          ON l.lugar_id = g.lugar_id
+                          WHERE g.part_id IN :part_ids
+                          GROUP BY l.ciudad """)
+    return con.execute(lugars, part_ids=part_ids)
+
+
+def gender_tags(con, part_ids):
+    lugars = text("""SELECT genero, COUNT(part_id) count
+                        FROM public.persona
+                          WHERE part_id IN :part_ids
+                          GROUP BY genero """)
+    return con.execute(lugars, part_ids=part_ids)
+
+
+def gen_comp_tags(con, comps):
+    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
+    comp_ids = tuple([res[0].composicion_id for res in comps_arr])
+    temas = []
+    idiomas = []
+    usuarios = []
+    generos = []
+    if len(comp_ids) > 0:
+        temas = tema_tags(con, comp_ids)
+        idiomas = idioma_tags(con, comp_ids)
+        generos = genero_tags(con, comp_ids)
+        usuarios = usuario_comp_tags(con, comp_ids)
+    return comps_arr, temas, idiomas, generos, usuarios
+
+
+def gen_pers_tags(con, parts):
+    parts_arr = [res for res in parts]
+    part_ids = tuple([res.part_id for res in parts_arr])
+    lugar = []
+    usuarios = []
+    genders = []
+    if len(part_ids) > 0:
+        lugar = lugar_pers_tags(con, part_ids)
+        usuarios = usuario_pers_tags(con, part_ids)
+        genders = gender_tags(con, part_ids)
+    return parts_arr, lugar, genders, usuarios
+
+
+def gen_grupo_tags(con, parts):
+    parts_arr = [res for res in parts]
+    part_ids = tuple([res.part_id for res in parts_arr])
+    lugar = []
+    usuarios = []
+    genders = []
+    if len(part_ids) > 0:
+        lugar = lugar_grupo_tags(con, part_ids)
+        usuarios = usuario_grupo_tags(con, part_ids)
+    return parts_arr, lugar, usuarios
 
 
 def set_years(binds_params, year_from, year_to):
@@ -126,7 +196,8 @@ def autor_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    parts = con.execute(query, bind_params)
+    return gen_pers_tags(con, parts)
 
 
 def colectivo_query(con, nom, year_from, year_to, contains):
@@ -151,13 +222,18 @@ def colectivo_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    parts = con.execute(query, bind_params)
+    return gen_grupo_tags(con, parts)
 
 
 def composicion_query(con, nom, year_from, year_to, contains):
     bind_params = {}
     bind_params['nom'] = nom
-    query_string = """SELECT * FROM public.composicion
+    query_string = """SELECT composicion_id
+                            ,fecha_pub
+                            ,nom_tit
+                            ,nom_alt
+                          FROM public.composicion
                           WHERE nom_tit ~* :nom 
                           OR nom_alt ~* :nom 
                           and estado = 'PUBLICADO' """
@@ -170,12 +246,7 @@ def composicion_query(con, nom, year_from, year_to, contains):
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
     comps = con.execute(query, bind_params)
-    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
-    comp_ids = tuple([res[0].composicion_id for res in comps_arr])
-    temas = tema_tags(con, comp_ids)
-    idiomas = idioma_tags(con, comp_ids)
-    usuarios = usuario_comp_tags(con, comp_ids)
-    return comps_arr, temas, idiomas, usuarios
+    return gen_comp_tags(con, comps)
 
 
 def serie_query(con, nom, contains):
@@ -208,7 +279,8 @@ def tema_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    comps = con.execute(query, bind_params)
+    return gen_comp_tags(con, comps)
 
 
 def genero_query(con, nom, year_from, year_to, contains):
@@ -230,7 +302,8 @@ def genero_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    comps = con.execute(query, bind_params)
+    return gen_comp_tags(con, comps)
 
 
 def instrumento_query(con, nom, year_from, year_to, contains):
@@ -252,7 +325,8 @@ def instrumento_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    comps = con.execute(query, bind_params)
+    return gen_comp_tags(con, comps)
 
 
 def idioma_query(con, nom, year_from, year_to, contains):
@@ -272,7 +346,8 @@ def idioma_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
+    comps = con.execute(query, bind_params)
+    return gen_comp_tags(con, comps)
 
 
 def interp_query(con, nom, year_from, year_to, contains):
@@ -298,8 +373,8 @@ def interp_query(con, nom, year_from, year_to, contains):
         bind_params['contains'] = contains
     set_years(bind_params, year_from, year_to)
     query = text(query_string)
-    return con.execute(query, bind_params)
-
+    comps = con.execute(query, bind_params)
+    return gen_comp_tags(con, comps)
 
 def comp_autor_view(con, part_id):
     # query all compositions including those made by this artist when in a colectivo

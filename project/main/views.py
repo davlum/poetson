@@ -48,6 +48,13 @@ def parse_int(s):
         return None
 
 
+def add_tags(old_tags, new_tags):
+    if not isinstance(old_tags, dict):
+        old_tags = {res[0]: res.count for res in old_tags}
+    new_tags = {res[0]: res.count for res in new_tags}
+    return {k: old_tags.get(k, 0) + new_tags.get(k, 0) for k in set(old_tags) | set(new_tags)}
+
+
 # The main search page. The logic is designed to be
 # comprehensive enough to cover all filtering
 @main_blueprint.route('/search')
@@ -62,39 +69,73 @@ def search():
         # General search
         con = engine.connect()
         if filt == 'all':
-            result['pers'] = autor_query(con, param, year_from, year_to, contains)
-            result['grupos'] = colectivo_query(con, param, year_from, year_to, contains)
+            result['pers'], new_lugars, \
+            result['genders'], new_usuarios = autor_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
+            result['lugars'] = {res[0]: res.count for res in new_lugars}
+
+            result['grupos'], new_lugars, \
+            new_usuarios = colectivo_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = add_tags(result['usuarios'], new_usuarios)
+            result['lugars'] = add_tags(result['lugars'], new_lugars)
+
             result['comps'], result['temas'], \
-            result['idiomas'], result['usuarios'] = composicion_query(con, param, year_from, year_to, contains)
+            result['idiomas'], result['generos'], \
+            new_usuarios = composicion_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = add_tags(result['usuarios'], new_usuarios)
+
             result['serie'] = serie_query(con, param, contains)
         # Search through artistas
         if filt == 'autor':
-            result['pers'] = autor_query(con, param, year_from, year_to, contains)
+            result['pers'], new_lugars, \
+            result['genders'], new_usuarios = autor_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
+            result['lugars'] = {res[0]: res.count for res in new_lugars}
         # Search through colectivos
         if filt == 'colectivo':
-            result['grupos'] = colectivo_query(con, param, year_from, year_to, contains)
+            result['grupos'], new_lugars, \
+            new_usuarios = colectivo_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
+            result['lugars'] = {res[0]: res.count for res in new_lugars}
         # search through composicions
         if filt == 'composicion':
             result['comps'], result['temas'], \
-            result['idiomas'], result['usuarios'] = composicion_query(con, param, year_from, year_to, contains)
+            result['idiomas'], result['generos'], \
+            new_usuarios = composicion_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
         # Search through serie
         if filt == 'serie':
             result['serie'] = serie_query(con, param, contains)
         # Search through comps by Tema
         if filt == 'tema':
-            result['comps'] = tema_query(con, param, year_from, year_to, contains)
-        # Search through pista by Genre
+            result['comps'], result['temas'], \
+            result['idiomas'], result['generos'], \
+            new_usuarios = tema_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
+        # Search through comps by Genre
         if filt == 'genero':
-            result['comps'] = genero_query(con, param, year_from, year_to, contains)
-        # Search through pista by instrument
+            result['comps'], result['temas'], \
+            result['idiomas'], result['generos'], \
+            new_usuarios = genero_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
+        # Search through comps by instrument
         if filt == 'instrumento':
-            result['comps'] = instrumento_query(con, param, year_from, year_to, contains)
+            result['comps'], result['temas'], \
+            result['idiomas'], result['generos'], \
+            new_usuarios = instrumento_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
         # Search through comps by language
         if filt == 'idioma':
-            result['comps'] = idioma_query(con, param, year_from, year_to, contains)
+            result['comps'], result['temas'], \
+            result['idiomas'], result['generos'], \
+            new_usuarios = idioma_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
         # Search through pista by performer
         if filt == 'interp':
-            result['comps'] = interp_query(con, param, year_from, year_to, contains)
+            result['comps'], result['temas'], \
+            result['idiomas'], result['generos'], \
+            new_usuarios = interp_query(con, param, year_from, year_to, contains)
+            result['usuarios'] = {res[0]: res.count for res in new_usuarios}
         con.close()
     return render_template('main/search.html', result=result)
 
