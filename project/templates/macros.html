@@ -81,11 +81,11 @@
 {% endmacro %}
 
 
-{% macro render_none(value, output=False) -%}
+{% macro render_none(value, output=none) -%}
     {% if value is not none %}
         {{ value|safe }}
-     {% elif output %}
-        Desconocido
+     {% elif output is not none %}
+       {{ output|safe }}
     {% endif %}
 {% endmacro %}
 

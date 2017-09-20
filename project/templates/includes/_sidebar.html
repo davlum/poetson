@@ -1,30 +1,30 @@
 <div class="col-md-2">
     <div class="sidebar-nav-fixed pull-right affix">
         <div class="well">
-            <ul class="nav ">
-                <li class="nav-header">Temas</li>
+            <ul class="nav">
+                <li class="nav-header header-padding">Temas</li>
                 {% for tema in result.temas %}
                     <li><a href="#">{{ tema.nom_tema }} ({{ tema.count }})</a></li>
                 {% endfor %}
-                <li class="nav-header">Géneros musicales</li>
+                <li class="nav-header header-padding">Géneros musicales</li>
                 {% for genero in result.generos %}
-                    <li><a href="#">{{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
+                    <li><a class="li-link" href="#">{{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
                 {% endfor %}
-                <li class="nav-header">Usuarios</li>
+                <li class="nav-header header-padding">Usuarios</li>
                {% for usuario, count in result.usuarios.items() %}
-                    <li><a href="#">{{ usuario }} ({{ count }})</a></li>
+                    <li><a class="li-link" href="#">{{ usuario }} ({{ count }})</a></li>
                 {% endfor %}
-                <li class="nav-header">Idiomas</li>
+                <li class="nav-header header-padding">Idiomas</li>
                {% for idioma in result.idiomas %}
-                    <li><a href="#">{{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
+                    <li><a class="li-link" href="#">{{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
                 {% endfor %}
-                <li class="nav-header">Géneros del personas</li>
+                <li class="nav-header header-padding">Géneros del personas</li>
                {% for gender in result.genders %}
-                    <li><a href="#">{{ render_none(gender.genero, True) }} ({{ gender.count }})</a></li>
+                    <li><a class="li-link" href="#">{{ render_none(gender.genero, "Desconocido") }} ({{ gender.count }})</a></li>
                 {% endfor %}
-                <li class="nav-header">Ciudads</li>
+                <li class="nav-header header-padding">Ciudads</li>
                 {% for lugar, count in result.lugars.items() %}
-                    <li><a href="#">{{ render_none(lugar, True) }} ({{ count }})</a></li>
+                    <li><a class="li-link" href="#">{{ render_none(lugar, "Desconocido") }} ({{ count }})</a></li>
                 {% endfor %}
             </ul>
         </div>
