@@ -6,14 +6,14 @@
                 {% if result.nom_part is not none %}
                     {{ result.nom_part }}
                 {% endif %}
-                {% if result.seudonimo is not none %}
-                   '{{ result.seudonimo }}'
-                {% endif %}
                 {% if result.nom_materno is not none %}
                    {{ result.nom_materno }}
                 {% endif %}
                 {% if result.nom_paterno is not none %}
                    {{ result.nom_paterno }}
+                {% endif %}
+                {% if result.seudonimo is not none %}
+                   '{{ result.seudonimo }}'
                 {% endif %}
             {% endif %}
     {% endset %}
@@ -435,6 +435,110 @@
    {% endif %}
 {% endmacro %}
 
+
+{% macro album(result) -%}
+    {% if 'albums' in result and result.albums is not none and result.albums.rowcount > 0 %}
+        <hr>
+        <div class="card">
+            <div class="card-header" role="tab" id="album-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#album-collapse" aria-expanded="true" aria-controls="album-collapse">
+                        Archivos de audio con esta interpretación
+                    </a>
+                </h3>
+            </div>
+            <div id="album-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom album</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.albums %}
+                        <tr>
+                            <td>{{ entry.nom_album }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro tema(result) -%}
+    {% if 'temas' in result and result.temas is not none and result.temas.rowcount > 0 %}
+        <hr>
+        <div class="card">
+            <div class="card-header" role="tab" id="tema-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#tema-collapse" aria-expanded="true" aria-controls="tema-collapse">
+                        Archivos de audio con esta interpretación
+                    </a>
+                </h3>
+            </div>
+            <div id="tema-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom tema</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.temas %}
+                        <tr>
+                            <td>{{ entry.nom_tema }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+{% macro idioma(result) -%}
+    {% if 'idiomas' in result and result.idiomas is not none and result.idiomas.rowcount > 0 %}
+        <hr>
+        <div class="card">
+            <div class="card-header" role="tab" id="idioma-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#idioma-collapse" aria-expanded="true" aria-controls="idioma-collapse">
+                        Archivos de audio con esta interpretación
+                    </a>
+                </h3>
+            </div>
+            <div id="idioma-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom idioma</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.idiomas %}
+                        <tr>
+                            <td>{{ entry.nom_idioma }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
 
 
 {% macro archivo(result) -%}

@@ -1,5 +1,3 @@
-
-
 CREATE OR REPLACE FUNCTION strip(text) RETURNS text AS $body$
 BEGIN
     IF $1 IS NULL THEN
@@ -10,6 +8,28 @@ END;
 $body$
 LANGUAGE plpgsql
 RETURNS NULL ON NULL INPUT;
+
+
+CREATE OR REPLACE FUNCTION nom(text, text, text, text) RETURNS text AS $body$
+DECLARE full_name text;
+BEGIN
+  full_name := '';
+  IF strip($1) IS NOT NULL THEN
+    full_name := CONCAT(full_name, ' ', strip($1));
+  END IF;
+  IF strip($2) IS NOT NULL THEN
+    full_name := CONCAT(full_name, ' ', strip($2));
+  END IF;
+  IF strip($3) IS NOT NULL THEN
+    full_name := CONCAT(full_name, ' ', strip($3));
+  END IF;
+  IF strip($4) IS NOT NULL THEN
+    full_name := CONCAT(full_name, ' ''', strip($4), '''');
+  END IF;
+  RETURN full_name;
+END;
+$body$
+LANGUAGE plpgsql;
 
 COMMENT ON FUNCTION strip(text) IS 'function that strips whitespace and returns null if empty string or null input';
 

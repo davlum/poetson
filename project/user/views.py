@@ -445,7 +445,7 @@ def retirar_grupo(obra_id):
 def poner_composicion(obra_id=None):
     form = AddCompForm(request.form)
     con = engine.connect()
-    if request.method == 'GET' and obra_id is not None:
+    if request.method == 'GET':
         populate_comp(con, form, obra_id)
     add_comp_choices(con, form)
     con.close()
@@ -469,7 +469,7 @@ def poner_pista(obra_id=None):
     result = {}
     form = AddTrackForm(request.form)
     con = engine.connect()
-    if request.method == 'GET' and obra_id is not None:
+    if request.method == 'GET':
         populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
     result['archivos'] = query_archivos(con, obra_id)

@@ -145,11 +145,15 @@ def colectivo(part_id):
 def composicion(comp_id):
     result = {}
     con = engine.connect()
-    # query composicion ths composicion
+    # query composicion
     comp, autors = comp_view_query(con, comp_id)
     if comp is None:
         abort(404)
-    result = pista_archivo_view(con, comp_id)
+    result['pistas'] = pista_archivo_view(con, comp_id)
+    query_idioma = text("""SELECT * FROM public.idioma_composicion WHERE composicion_id=:comp_id""")
+    result['idiomas'] = con.execute(query_idioma, comp_id=comp_id)
+    query_tema = text("""SELECT * FROM public.tema_composicion WHERE composicion_id=:comp_id""")
+    result['temas'] = con.execute(query_tema, comp_id=comp_id)
     con.close()
     return render_template('main/composicion.html', comp=comp, autors=autors, result=result)
 
@@ -162,6 +166,8 @@ def serie(serie_id):
     serie = serie_view(con, serie_id)
     if serie is None:
         abort(404)
+    album_query = text("""SELECT * FROM public.album WHERE serie_id=:serie_id""")
+    result['albums'] = con.execute(album_query, serie_id=serie_id)
     # query all pista son associated with that serie
     result['comps'] = comp_serie_view(con, serie_id)
     con.close()

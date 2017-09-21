@@ -12,8 +12,6 @@ def get_users(con):
     return con.execute(query)
 
 
-
-
 # Queries for InfoForm
 def populate_grupos_form(con):
     # List of all agregates
@@ -202,7 +200,8 @@ def add_pista_choices(con, form):
 
 def add_comp_choices(con, form):
     for sub_form in form.part_id_form:
-        sub_form.part_id.choices = populate_part_id_form(con)
+        parts = populate_part_id_form(con)
+        sub_form.part_id.choices = parts
         sub_form.rol_composicion.choices = populate_rol_comp_form(con)
     for sub_form in form.idioma_form:
         idiomas = populate_idiomas_form(con)
@@ -217,7 +216,6 @@ def add_comp_choices(con, form):
     form.composicion_id.choices = comps
     form.cobertura.choices = populate_cob_form(con)
     form.pais_cob.choices = populate_pais_form(con)
-    form.cobertura.choices = populate_cob_form(con)
 
 
 def add_part_choices(con, form):
@@ -860,7 +858,7 @@ def populate_cob(con, form, ent_id, is_pista=True):
                              , public.get_fecha(fecha_finale) fecha_finale
                              , pais_cobertura  FROM public.cobertura WHERE composicion_id=:ent_id""")
     cob_result = con.execute(query, ent_id=ent_id).first()
-    form.cobertura.data = cob_result.cobertura_lic_id
+    form.cobertura.data = str(cob_result.cobertura_lic_id)
     form.pais_cob.data = cob_result.pais_cobertura
     form.fecha_comienzo_cob.data = cob_result.fecha_comienzo
     form.fecha_finale_cob.data = cob_result.fecha_finale
@@ -877,7 +875,7 @@ def populate_comp(con, form, comp_id):
         form.part_id_form.append_entry(aut_form)
     for res in comps_result:
         aut_form = DynamicAuthorForm()
-        aut_form.part_id = res.part_id
+        aut_form.part_id = str(res.part_id)
         aut_form.rol_composicion = res.rol_composicion
         form.part_id_form.append_entry(aut_form)
 
@@ -889,7 +887,7 @@ def populate_comp(con, form, comp_id):
         form.idioma_form.append_entry(lang_form)
     for res in comps_result:
         lang_form = DynamicLangForm()
-        lang_form.idioma_id = res.idioma_id
+        lang_form.idioma_id = str(res.idioma_id)
         form.idioma_form.append_entry(lang_form)
 
     query = text("""SELECT * FROM public.tema_composicion WHERE composicion_id=:comp_id""")
@@ -900,17 +898,18 @@ def populate_comp(con, form, comp_id):
         form.tema_form.append_entry(theme_form)
     for res in comps_result:
         theme_form = DynamicThemeForm()
-        theme_form.tema_id = res.tema_id
+        theme_form.tema_id = str(res.tema_id)
         form.tema_form.append_entry(theme_form)
     query = text("""SELECT nom_tit, nom_alt, public.get_fecha(fecha_pub) fecha_pub, 
                           composicion_orig, texto FROM public.composicion WHERE composicion_id=:comp_id""")
     comp = con.execute(query, comp_id=comp_id).first()
-    form.nom_tit.data = comp.nom_tit
-    form.nom_alt.data = comp.nom_alt
-    form.fecha_pub.data = comp.fecha_pub
-    form.comp_id = comp.composicion_orig
-    form.texto.data = comp.texto
-    populate_cob(con, form, comp_id, False)
+    if comp is not None:
+        form.nom_tit.data = comp.nom_tit
+        form.nom_alt.data = comp.nom_alt
+        form.fecha_pub.data = comp.fecha_pub
+        form.comp_id = str(comp.composicion_orig)
+        form.texto.data = comp.texto
+        populate_cob(con, form, comp_id, False)
 
 
 def insert_cob(con, form, ent_id, is_pista=True):
@@ -1100,9 +1099,9 @@ def populate_pista(con, form, pista_id):
         form.interp_form.append_entry(interp_form)
     for res in pista_result:
         interp_form = DynamicInterpForm()
-        interp_form.part_id = res.part_id
+        interp_form.part_id = str(res.part_id)
         interp_form.rol_pista_son = res.rol_pista_son
-        interp_form.instrumento_id = res.instrumento_id
+        interp_form.instrumento_id = str(res.instrumento_id)
         form.interp_form.append_entry(interp_form)
 
     query = text("""SELECT * FROM public.genero_pista WHERE pista_son_id=:pista_id""")
@@ -1113,21 +1112,22 @@ def populate_pista(con, form, pista_id):
         form.gen_mus_form.append_entry(gen_mus_form)
     for res in pista_result:
         gen_mus_form = DynamicGenMusForm()
-        gen_mus_form.gen_mus_id = res.gen_mus_id
+        gen_mus_form.gen_mus_id = str(res.gen_mus_id)
         form.gen_mus_form.append_entry(gen_mus_form)
 
     query = text("""SELECT * FROM public.pista_son WHERE pista_son_id=:pista_id""")
     pista = con.execute(query, pista_id=pista_id).first()
-    form.numero_de_pista.data = pista.numero_de_pista
-    form.medio.data = pista.medio
-    form.serie_id.data = pista.serie_id
-    form.fecha_grab.data = get_fecha(pista.fecha_grab)
-    form.fecha_dig.data = get_fecha(pista.fecha_dig)
-    form.fecha_cont.data = get_fecha(pista.fecha_cont)
-    form.coment_pista_son.data = pista.coment_pista_son
+    if pista is not None:
+        form.numero_de_pista.data = pista.numero_de_pista
+        form.medio.data = pista.medio
+        form.serie_id.data = str(pista.serie_id)
+        form.fecha_grab.data = get_fecha(pista.fecha_grab)
+        form.fecha_dig.data = get_fecha(pista.fecha_dig)
+        form.fecha_cont.data = get_fecha(pista.fecha_cont)
+        form.coment_pista_son.data = pista.coment_pista_son
 
-    populate_lugar(con, form, pista.lugar_id)
-    populate_cob(con, form, pista_id)
+        populate_lugar(con, form, pista.lugar_id)
+        populate_cob(con, form, pista_id)
 
 
 def update_pista(con, form, usuario_id, pista_id):
@@ -1203,7 +1203,7 @@ def update_pista(con, form, usuario_id, pista_id):
 
 def insert_pista(con, form, usuario_id):
     result_lugar = insert_lugar(con, form)
-    query = text("""INSERT INTO public.pista_son(numero_de_pista
+    query = text("""INSERT INTO public.pista_son( numero_de_pista
                                                 , composicion_id
                                                 , medio
                                                 , lugar_id
@@ -1213,7 +1213,7 @@ def insert_pista(con, form, usuario_id):
                                                 , fecha_dig
                                                 , fecha_cont
                                                 , cargador_id)
-                                                 VALUES (:numero_de_pista
+                                                 VALUES ( :numero_de_pista
                                                         , :composicion_id
                                                         , :medio
                                                         , :lugar_id
@@ -1241,8 +1241,8 @@ def insert_pista(con, form, usuario_id):
         gen_mus_id = int(entry.data['gen_mus_id'])
         if gen_mus_id != 0 and gen_mus_id not in used_ids:
             used_ids.append(gen_mus_id)
-            gen_mus_insert = text("""INSERT INTO public.genero_pista 
-                                      VALUES (:pista_son_id, :gen_mus_id) ON CONFLICT DO NOTHING""")
+            gen_mus_insert = text("""INSERT INTO public.genero_pista (pista_son_id, gen_mus_id)
+                                      VALUES (:pista_son_id, :gen_mus_id)""")
             con.execute(gen_mus_insert, pista_son_id=pista_son_result, gen_mus_id=gen_mus_id)
     used_ids = []
     for entry in form.interp_form.entries:

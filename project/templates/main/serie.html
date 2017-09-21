@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import composicion %}
+{% from 'macros.html' import composicion, album %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -20,6 +20,7 @@
                 <br>
             {% endif %}
         </div>
+        {{ album(result) }}
         <hr>
         {{ composicion(result) }}
     </div>
