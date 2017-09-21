@@ -184,10 +184,8 @@ def add_pista_choices(con, form):
         sub_form.gen_mus_id.choices = gen_mus
     for sub_form in form.interp_form:
         sub_form.part_id.choices = populate_part_id_form(con)
-        sub_form.rol_pista_son.default = 'Interpretación musical'
         sub_form.rol_pista_son.choices = populate_rol_pista_form(con)
         sub_form.instrumento_id.choices = populate_instrumento_form(con)
-        sub_form.instrumento_id.default = '1'
     form.medio.choices = populate_medio_form(con)
     series = populate_serie_form(con)
     series.insert(0, ("0", 'Ninguno'))
@@ -1170,7 +1168,7 @@ def update_pista(con, form, usuario_id, pista_id):
 
     used_ids = []
     for entry in form.interp_form.entries:
-        tuple_id = (int(entry.data['part_id']), entry.data['rol_pista_son'], entry.data['instrumento_id'])
+        tuple_id = (int(entry.data['part_id']), entry.data['rol_pista_son'], int(entry.data['instrumento_id']))
         if tuple_id not in used_ids:
             used_ids.append(tuple_id)
             insert_part_insert = text("""INSERT INTO public.participante_pista_son(pista_son_id
@@ -1246,7 +1244,7 @@ def insert_pista(con, form, usuario_id):
             con.execute(gen_mus_insert, pista_son_id=pista_son_result, gen_mus_id=gen_mus_id)
     used_ids = []
     for entry in form.interp_form.entries:
-        tuple_id = (int(entry.data['part_id']), entry.data['rol_pista_son'], entry.data['instrumento_id'])
+        tuple_id = (int(entry.data['part_id']), entry.data['rol_pista_son'], int(entry.data['instrumento_id']))
         if tuple_id not in used_ids:
             used_ids.append(tuple_id)
             part_comp_insert = text("""INSERT INTO public.participante_pista_son(pista_son_id

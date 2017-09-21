@@ -430,7 +430,7 @@ def usuario_autor_query(con, bind_params, result):
                           FROM public.pers_view p 
                           LEFT JOIN public.participante_composicion pc
                             ON pc.part_id = p.part_id   
-                          WHERE c.cargador_id ~* :nom
+                          WHERE p.cargador_id ~* :nom
                             AND p.estado='PUBLICADO' """
     if local_params['year_from'] is not None or local_params['year_to'] is not None:
         query_string += """AND EXTRACT(YEAR FROM (p.fecha_comienzo_insert).d) 
