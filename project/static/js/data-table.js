@@ -1,4 +1,6 @@
+/*
 $(function()
 {
     $('.mod-tables').dataTable();
 });
+*/

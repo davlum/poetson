@@ -71,7 +71,6 @@ def populate_idiomas_form(con):
     idioma_query = text("""SELECT idioma_id, nom_idioma FROM public.idioma""")
     idioma_result = con.execute(idioma_query)
     idioma_arr = [(str(res.idioma_id), res.nom_idioma) for res in idioma_result]
-    idioma_arr.insert(0, ("0", 'Ninguno'))
     return idioma_arr
 
 
@@ -87,7 +86,6 @@ def populate_temas_form(con):
     tema_query = text("""SELECT tema_id, nom_tema FROM public.tema""")
     tema_result = con.execute(tema_query)
     tema_arr = [(str(res.tema_id), res.nom_tema) for res in tema_result]
-    tema_arr.insert(0, ("0", 'Ninguno'))
     return tema_arr
 
 
@@ -96,7 +94,6 @@ def populate_comps_form(con):
     comp_query = text("""SELECT composicion_id, nom_tit FROM public.composicion""")
     comp_result = con.execute(comp_query)
     comp_arr = [(str(res.composicion_id), res.nom_tit) for res in comp_result]
-    comp_arr.insert(0, ("0", 'Ninguno'))
     return comp_arr
 
 
@@ -122,7 +119,6 @@ def populate_gen_mus_form(con):
     gen_mus_query = text("""SELECT gen_mus_id, nom_gen_mus FROM public.genero_musical""")
     gen_mus_result = con.execute(gen_mus_query)
     gen_mus_arr = [(str(res.gen_mus_id), res.nom_gen_mus) for res in gen_mus_result]
-    gen_mus_arr.insert(0, ("0", 'Ninguno'))
     return gen_mus_arr
 
 
@@ -139,24 +135,7 @@ def populate_serie_form(con):
     serie_query = text("""SELECT serie_id, nom_serie FROM public.serie;""")
     serie_result = con.execute(serie_query)
     serie_arr = [(str(res.serie_id), res.nom_serie) for res in serie_result]
-    serie_arr.insert(0, ("0", 'Ninguno'))
     return serie_arr
-
-
-def populate_serie_album_form(con):
-    # list of series
-    serie_query = text("""SELECT serie_id, nom_serie FROM public.serie;""")
-    serie_result = con.execute(serie_query)
-    serie_arr = [(str(res.serie_id), res.nom_serie) for res in serie_result]
-    return serie_arr
-
-
-def populate_comps_pista_form(con):
-    # list of possible composicions without the none option
-    comp_query = text("""SELECT composicion_id, nom_tit FROM public.composicion""")
-    comp_result = con.execute(comp_query)
-    comp_arr = [(str(res.composicion_id), res.nom_tit) for res in comp_result]
-    return comp_arr
 
 
 def populate_cob_form(con):
@@ -202,7 +181,9 @@ def add_info_choices(con, form):
 
 def add_pista_choices(con, form):
     for sub_form in form.gen_mus_form:
-        sub_form.gen_mus_id.choices = populate_gen_mus_form(con)
+        gen_mus = populate_gen_mus_form(con)
+        gen_mus.insert(0, ("0", 'Ninguno'))
+        sub_form.gen_mus_id.choices = gen_mus
     for sub_form in form.interp_form:
         sub_form.part_id.choices = populate_part_id_form(con)
         sub_form.rol_pista_son.default = 'Interpretación musical'
@@ -210,8 +191,10 @@ def add_pista_choices(con, form):
         sub_form.instrumento_id.choices = populate_instrumento_form(con)
         sub_form.instrumento_id.default = '1'
     form.medio.choices = populate_medio_form(con)
-    form.serie_id.choices = populate_serie_form(con)
-    form.comp_id.choices = populate_comps_pista_form(con)
+    series = populate_serie_form(con)
+    series.insert(0, ("0", 'Ninguno'))
+    form.serie_id.choices = series
+    form.comp_id.choices = populate_comps_form(con)
     form.pais.choices = populate_pais_form(con)
     form.pais_cob.choices = populate_pais_form(con)
     form.cobertura.choices = populate_cob_form(con)
@@ -222,10 +205,16 @@ def add_comp_choices(con, form):
         sub_form.part_id.choices = populate_part_id_form(con)
         sub_form.rol_composicion.choices = populate_rol_comp_form(con)
     for sub_form in form.idioma_form:
-        sub_form.idioma_id.choices = populate_idiomas_form(con)
+        idiomas = populate_idiomas_form(con)
+        idiomas.insert(0, ("0", "Ninguno"))
+        sub_form.idioma_id.choices = idiomas
     for sub_form in form.tema_form:
-        sub_form.tema_id.choices = populate_temas_form(con)
-    form.composicion_id.choices = populate_comps_form(con)
+        temas = populate_temas_form(con)
+        temas.insert(0, ("0", 'Ninguno'))
+        sub_form.tema_id.choices = temas
+    comps = populate_comps_form(con)
+    comps.insert(0, ("0", 'Ninguno'))
+    form.composicion_id.choices = comps
     form.cobertura.choices = populate_cob_form(con)
     form.pais_cob.choices = populate_pais_form(con)
     form.cobertura.choices = populate_cob_form(con)
@@ -511,11 +500,11 @@ def query_pers(con, part_id, permission='EDITOR'):
                              , subdivision
                              , pais
                              FROM public.pers_view
-                             WHERE cargador_id=:id
+                             WHERE cargador_id=:part_id
                              AND cargador_id <> part_id
                              AND (estado = 'PENDIENTE'
                               OR estado = 'PUBLICADO') """)
-        result = con.execute(query, id=part_id)
+        result = con.execute(query, part_id=part_id)
     else:
         query = text("""SELECT p.part_id
                              , p.nom_part
@@ -591,11 +580,11 @@ def query_pista(con, part_id, permission='EDITOR'):
                              JOIN public.composicion c
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
-                               ON l.lugar_id = p.lugar_interp
-                             WHERE p.cargador_id=:id
+                               ON l.lugar_id = p.lugar_id
+                             WHERE p.cargador_id=:part_id
                              AND (p.estado = 'PENDIENTE'
                               OR p.estado = 'PUBLICADO') """)
-        return con.execute(query, id=part_id)
+        return con.execute(query, part_id=part_id)
     else:
         query = text("""SELECT c.composicion_id
                              , p.pista_son_id
@@ -610,10 +599,11 @@ def query_pista(con, part_id, permission='EDITOR'):
                              JOIN public.composicion c
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
-                               ON  l.lugar_id = P.lugar_interp
+                               ON  l.lugar_id = P.lugar_id
                              JOIN public.usuario u
                                ON u.usuario_id = p.cargador_id""")
-        return con.execute(query, id=part_id)
+        return con.execute(query)
+
 
 def update_permiso(con, usuario_id, permiso):
     query = text("""UPDATE public.usuario SET permiso=:permiso WHERE usuario_id=:usuario_id""")
@@ -1136,7 +1126,7 @@ def populate_pista(con, form, pista_id):
     form.fecha_cont.data = get_fecha(pista.fecha_cont)
     form.coment_pista_son.data = pista.coment_pista_son
 
-    populate_lugar(con, form, pista.lugar_interp)
+    populate_lugar(con, form, pista.lugar_id)
     populate_cob(con, form, pista_id)
 
 
@@ -1150,7 +1140,7 @@ def update_pista(con, form, usuario_id, pista_id):
                                                 , fecha_dig=:fecha_dig
                                                 , fecha_cont=:fecha_cont
                                                 , mod_id=:mod_id
-                                            WHERE pista_son_id=:pista_id RETURNING lugar_interp""")
+                                            WHERE pista_son_id=:pista_id RETURNING lugar_id""")
 
     pista_son_result = con.execute(query
                      , numero_de_pista=form.numero_de_pista.data
@@ -1216,7 +1206,7 @@ def insert_pista(con, form, usuario_id):
     query = text("""INSERT INTO public.pista_son(numero_de_pista
                                                 , composicion_id
                                                 , medio
-                                                , lugar_interp
+                                                , lugar_id
                                                 , serie_id
                                                 , coment_pista_son
                                                 , fecha_grab
@@ -1226,7 +1216,7 @@ def insert_pista(con, form, usuario_id):
                                                  VALUES (:numero_de_pista
                                                         , :composicion_id
                                                         , :medio
-                                                        , :lugar_interp
+                                                        , :lugar_id
                                                         , NULLIF(:serie_id, 0)
                                                         , :coment_pista_son
                                                         , :fecha_grab
@@ -1238,7 +1228,7 @@ def insert_pista(con, form, usuario_id):
                                    , numero_de_pista=form.numero_de_pista.data
                                    , composicion_id=form.comp_id.data
                                    , medio=form.medio.data
-                                   , lugar_interp=result_lugar
+                                   , lugar_id=result_lugar
                                    , serie_id=form.serie_id.data
                                    , coment_pista_son=form.coment_pista_son.data
                                    , fecha_grab=parse_fecha(form.fecha_grab.data)
@@ -1368,6 +1358,7 @@ def delete_persona(con, part_id, usuario_id):
     con.execute(query, part_id=part_id, usuario_id=usuario_id)
     return True
 
+
 # Query for remove_part view
 def delete_grupo(con, part_id, usuario_id):
     query = text("""SELECT usuario_id FROM public.usuario""")
@@ -1414,6 +1405,9 @@ def delete_pista(con, pista_id, usuario_id):
                     WHERE pista_son_id=:pista_id AND accion = 'D')""")
     con.execute(query, pista_id=pista_id, usuario_id=usuario_id)
     return True
+
+
+
 
 
 # Queries for init_session

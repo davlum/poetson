@@ -1,4 +1,4 @@
-﻿INSERT INTO pista_son (composicion_id, editor_id, medio, lugar_interp, serie_id, fecha_grab, fecha_dig, fecha_cont, fecha_inc) VALUES
+﻿INSERT INTO pista_son (composicion_id, editor_id, medio, lugar_id, serie_id, fecha_grab, fecha_dig, fecha_cont, fecha_inc) VALUES
 (1, 1, 'Digital', 58, 1, '2003-04-27', '2003-04-27', '2016-11-16', '2017-08-15'),
 (2, 3, 'Digital', 58, 1, '2003-04-27', '2003-04-27', '2016-11-16', '2017-08-15'),
 (292, 2, 'Digital', 58, 1, '2003-04-27', '2003-04-27', '2016-11-16', '2017-08-15'),
@@ -15,7 +15,7 @@
 (11, 2, 'Digital', 58, 1, '2003-04-27', '2003-04-27', '2016-11-16', '2017-08-15'),
 (12, 3, 'Digital', 58, 1, '2003-04-27', '2003-04-27', '2016-11-16', '2017-08-15');
 
-INSERT INTO pista_son (numero_de_pista, composicion_id, editor_id, medio, lugar_interp, serie_id, fecha_grab, fecha_dig, fecha_cont, fecha_inc) VALUES
+INSERT INTO pista_son (numero_de_pista, composicion_id, editor_id, medio, lugar_id, serie_id, fecha_grab, fecha_dig, fecha_cont, fecha_inc) VALUES
 (1, 135, 1, 'Digital', 58, 22, '2015-12-00', '2015-12-01', '2016-08-03', '2017-08-15'),
 (2, 161, 1, 'Digital', 58, 22, '2015-12-01', '2015-12-01', '2016-08-03', '2017-08-15'),
 (3, 210, 1, 'Digital', 58, 22, '2015-12-01', '2015-12-01', '2016-08-03', '2017-08-15'),

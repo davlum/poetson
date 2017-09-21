@@ -26,9 +26,9 @@
 
 {%  macro nom_link(result) -%}
     {% if result.pers_id is not none %}
-        <a href="{{ url_for("main.autor", part_id=result.pers_id) }}"> {{ nom(result) }}</a>
+        <a href="{{ url_for("main.autor", part_id=result.pers_id) }}"> {{ nom(result) }} &nbsp;</a>
     {% else %}
-        , <a href="{{ url_for("main.colectivo", part_id=result.gr_id) }}"> {{ nom(result) }}</a>
+        <a href="{{ url_for("main.colectivo", part_id=result.gr_id) }}"> {{ nom(result) }} &nbsp;</a>
     {% endif %}
 {% endmacro %}
 

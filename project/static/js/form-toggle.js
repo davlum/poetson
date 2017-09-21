@@ -38,4 +38,16 @@ $(document).on("click", ".open-confirm-modal", function () {
     $(".modal-body #delete-button").attr('href', '/retirar/'+ entType + '/' + partId + '/');
 });
 
+$(function() {
+    $('.varios-modal').each(function(){
+        var vario_id = String($(this).find('option').val());
+        $(this).find('a').each(function(){
+           $(this).attr('data-id', vario_id);
+        });
+    });
+
+    $('.li-link').on('click', function() {
+       console.log('hey');
+    });
+});
 

@@ -2,30 +2,190 @@
     <div class="sidebar-nav-fixed pull-right affix">
         <div class="well">
             <ul class="nav">
-                <li class="nav-header header-padding">Temas</li>
-                {% for tema in result.temas %}
-                    <li><a href="#">{{ tema.nom_tema }} ({{ tema.count }})</a></li>
-                {% endfor %}
-                <li class="nav-header header-padding">Géneros musicales</li>
-                {% for genero in result.generos %}
-                    <li><a class="li-link" href="#">{{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
-                {% endfor %}
-                <li class="nav-header header-padding">Usuarios</li>
-               {% for usuario, count in result.usuarios.items() %}
-                    <li><a class="li-link" href="#">{{ usuario }} ({{ count }})</a></li>
-                {% endfor %}
-                <li class="nav-header header-padding">Idiomas</li>
-               {% for idioma in result.idiomas %}
-                    <li><a class="li-link" href="#">{{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
-                {% endfor %}
-                <li class="nav-header header-padding">Géneros del personas</li>
-               {% for gender in result.genders %}
-                    <li><a class="li-link" href="#">{{ render_none(gender.genero, "Desconocido") }} ({{ gender.count }})</a></li>
-                {% endfor %}
-                <li class="nav-header header-padding">Ciudads</li>
-                {% for lugar, count in result.lugars.items() %}
-                    <li><a class="li-link" href="#">{{ render_none(lugar, "Desconocido") }} ({{ count }})</a></li>
-                {% endfor %}
+                <div class="card">
+                    <div class="card-header" role="tab" id="tema-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#tema-collapse" aria-expanded="true" aria-controls="tema-collapse">
+                                Temas
+                            </a>
+                        </li>
+                    </div>
+                {% if 'temas' in result %}
+                    <div id="tema-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for tema in result.temas %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + tema.nom_tema|safe +
+                                                            '&filtrado=tema&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ tema.nom_tema }} ({{ tema.count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="genero-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#genero-collapse" aria-expanded="true" aria-controls="genero-collapse">
+                                Géneros musicales
+                            </a>
+                        </li>
+                    </div>
+                {% if 'generos' in result %}
+                     <div id="genero-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for genero in result.generos %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + genero.nom_gen_mus|safe +
+                                                            '&filtrado=genero&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ genero.nom_gen_mus }} ({{ genero.count }})</a></li>
+                        {% endfor %}
+                        </div>
+                     </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="usuario-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#usuario-collapse" aria-expanded="true" aria-controls="usuario-collapse">
+                                Usuarios
+                            </a>
+                        </li>
+                    </div>
+                {% if 'usuarios' in result %}
+                    <div id="usuario-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for usuario, count in result.usuarios.items() %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + usuario|safe +
+                                                            '&filtrado=usuario&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ usuario }} ({{ count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="idioma-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#idioma-collapse" aria-expanded="true" aria-controls="idioma-collapse">
+                                Idiomas
+                            </a>
+                        </li>
+                    </div>
+                {% if 'idiomas' in result %}
+                    <div id="idioma-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for idioma in result.idiomas %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + idioma.nom_idioma|safe +
+                                                            '&filtrado=idiomao&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ idioma.nom_idioma }} ({{ idioma.count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="genders-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#genders-collapse" aria-expanded="true" aria-controls="genders-collapse">
+                                Géneros de personas
+                            </a>
+                        </li>
+                    </div>
+                {% if 'genders' in result %}
+                    <div id="genders-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for gender in result.genders %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + gender.genero +
+                                                            '&filtrado=gender&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ render_none(gender.genero, "Desconocido") }} ({{ gender.count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="ciudad-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#ciudad-collapse" aria-expanded="true" aria-controls="ciudad-collapse">
+                                Ciudads
+                            </a>
+                        </li>
+                    </div>
+                {% if 'ciudads' in result %}
+                    <div id="ciudad-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for ciudad, count in result.ciudads.items() %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + ciudad|safe +
+                                                            '&filtrado=ciudad&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ render_none(ciudad, "Desconocido") }} ({{ count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="subdivision-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#subdivision-collapse" aria-expanded="true" aria-controls="subdivision-collapse">
+                                Estados o provincias
+                            </a>
+                        </li>
+                    </div>
+                {% if 'subdivisions' in result %}
+                    <div id="subdivision-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for subdivision, count in result.subdivisions.items() %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + subdivision|safe +
+                                                            '&filtrado=subdivision&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ render_none(subdivision, "Desconocido") }} ({{ count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
+                <div class="card">
+                    <div class="card-header" role="tab" id="pais-heading">
+                        <li class="nav-header header-padding">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#pais-collapse" aria-expanded="true" aria-controls="pais-collapse">
+                                País
+                            </a>
+                        </li>
+                    </div>
+                {% if 'paiss' in result %}
+                    <div id="pais-collapse" class="collapse in">
+                        <div class="card-block">
+                        {% for pais, count in result.paiss.items() %}
+                            <li><a class="li-link" href="{{ '/search?nom=' + pais|safe +
+                                                            '&filtrado=pais&ano-comienzo=' +
+                                                            render_none(bind_params.year_from)|safe + '&ano-finale=' +
+                                                            render_none(bind_params.year_to)|safe + '&comentario=' +
+                                                            render_none(bind_params.contains)|safe }}">
+                                {{ render_none(pais, "Desconocido") }} ({{ count }})</a></li>
+                        {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                </div>
             </ul>
         </div>
         <!--/.well -->

@@ -2,7 +2,8 @@
 # coding=utf-8
 
 
-import os, errno
+import os
+from shutil import rmtree
 from project import app
 from flask import render_template, Blueprint, url_for, \
     redirect, flash, request, session, abort
@@ -21,12 +22,12 @@ from project.util import current_user, current_gr, current_pers, send_email, all
 from project.user.models import query_perfil, query_pers_gr, populate_info, update_info, update_permiso, \
     insert_part, populate_poner_grupo, populate_poner_pers, update_poner_grupo, update_poner_pers, delete_persona, \
     init_comps, init_pistas, init_pers, init_grupos, insert_comp,  insert_pista, query_archivos, update_prohibido, \
-    populate_pais_form, populate_comp, populate_pista, delete_comp, insert_archivo, estado_comp, estado_grupo, \
+    populate_comp, populate_pista, delete_comp, insert_archivo, estado_comp, estado_grupo, \
     delete_pista, insert_inst, insert_serie, delete_inst, delete_serie, populate_inst_fam, estado_pers, estado_pista, \
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, populate_serie_album_form, delete_grupo
+    delete_genero, delete_album, delete_grupo
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -127,6 +128,13 @@ def upload_file(con, pista_id, file):
         file.close()
     else:
         flash('No es un archivo de audio', 'danger')
+
+
+def delete_archivo(con, archivo_id):
+    query = text("""DELETE FROM public.archivo WHERE archivo_id=:archivo_id RETURNING pista_son_id""")
+    pista_son_id = con.execute(query, archivo_id=archivo_id).first()[0]
+    path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_son_id) + '/' + str(archivo_id)
+    rmtree(path)
 
 
 def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
@@ -510,18 +518,14 @@ def retirar_pista(obra_id):
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
-
-
 @user_blueprint.route('/retirar/archivo/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-@is_author
 def retirar_archivo(obra_id):
-    # This needs to actually delete the album in memory
     con = engine.connect()
-    delete_wrapper(delete_inst, con, obra_id)
+    delete_wrapper(delete_archivo, con, obra_id)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_pista'))
 
 
     #####################################
@@ -580,7 +584,7 @@ def permiso(usuario_id):
     permiso = json['permiso'].upper()
     update_permiso(con, usuario_id, permiso)
     con.close()
-    return redirect(url_for('user.admin', _anchor='tab_usario'))
+    return '', 204
 
 
 @user_blueprint.route('/prohibido/<int:usuario_id>/', methods=['GET', 'POST'])
@@ -593,7 +597,7 @@ def prohibido(usuario_id):
     prohibido = (json['prohibido'] == 'True')
     update_prohibido(con, usuario_id, prohibido)
     con.close()
-    return redirect(url_for('user.admin', _anchor='tab_usuario'))
+    return '', 204
 
 
     #######################################
@@ -671,7 +675,7 @@ def poner_album():
     form = AlbumForm(request.form)
     con = engine.connect()
     form.delete_album.choices = populate_album_form(con)
-    form.serie_id.choices = populate_serie_album_form(con)
+    form.serie_id.choices = populate_serie_form(con)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()
@@ -701,6 +705,7 @@ def poner_instrumento():
 @user_blueprint.route('/retirar/serie/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_serie(obra_id):
     con = engine.connect()
     delete_wrapper(delete_serie, con, obra_id)
@@ -711,16 +716,22 @@ def retirar_serie(obra_id):
 @user_blueprint.route('/retirar/inst/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_inst(obra_id):
-    con = engine.connect()
-    delete_wrapper(delete_inst, con, obra_id)
-    con.close()
+    if obra_id == 1 or obra_id == 2:
+        flash('No se puede eliminar esta información', 'danger')
+        return redirect(url_for('user.poner_instrumento'))
+    else:
+        con = engine.connect()
+        delete_wrapper(delete_inst, con, obra_id)
+        con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/tema/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_tema(obra_id):
     con = engine.connect()
     delete_wrapper(delete_tema, con, obra_id)
@@ -731,6 +742,7 @@ def retirar_tema(obra_id):
 @user_blueprint.route('/retirar/idioma/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_idioma(obra_id):
     con = engine.connect()
     delete_wrapper(delete_idioma, con, obra_id)
@@ -741,6 +753,7 @@ def retirar_idioma(obra_id):
 @user_blueprint.route('/retirar/genero/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_genero(obra_id):
     con = engine.connect()
     delete_wrapper(delete_genero, con, obra_id)
@@ -751,6 +764,7 @@ def retirar_genero(obra_id):
 @user_blueprint.route('/retirar/album/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
+@is_mod
 def retirar_album(obra_id):
     con = engine.connect()
     delete_wrapper(delete_album, con, obra_id)

@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS pista_son (
    ,numero_de_pista int CHECK (numero_de_pista > 0)
    ,composicion_id int REFERENCES composicion ON DELETE RESTRICT
    ,medio text REFERENCES medio
-   ,lugar_interp int REFERENCES lugar
+   ,lugar_id int REFERENCES lugar
    ,serie_id int REFERENCES serie ON DELETE SET NULL
    ,coment_pista_son text
    ,fecha_grab fecha -- fecha recorded

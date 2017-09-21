@@ -11,6 +11,8 @@
 .li-link{
     padding-bottom: 5px !important;
     padding-top: 5px !important;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .header-padding{

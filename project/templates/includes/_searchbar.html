@@ -1,6 +1,6 @@
 <form name="search-form" class="form-horizontal" role="form" action="/search" method="get">
     <div class="input-group" id="adv-search">
-        <input onclick="noPropagate(event);" name="search-main" type="text" class="form-control" placeholder="Buscar"/>
+        <input onclick="noPropagate(event);" name="nom" type="text" class="form-control" placeholder="Buscar"/>
         <div class="input-group-btn">
             <div class="btn-group" role="group">
                 <div class="dropdown dropdown-lg">
@@ -8,37 +8,40 @@
                     <div class="dropdown-menu dropdown-menu-right" role="menu">
                         <div class="form-horizontal" role="form">
                           <div class="form-group">
-                            <label for="filter">Filtrado por</label>
-                            <select name="filter-by" onclick="noPropagate(event);" id="no-click" class="form-control">
+                            <label for="filtrado">Filtrado por</label>
+                            <select name="filtrado" onclick="noPropagate(event);" id="no-click" class="form-control">
                                 <option value="all" selected>Todas las categorias</option>
                                 <option value="autor">Autor</option>
                                 <option value="colectivo">Colectivo</option>
                                 <option value="composicion">Composición</option>
                                 <option value="serie">Serie</option>
                                 <option value="tema">Tema</option>
-                                <option value="genero">Genero musicale</option>
+                                <option value="genero">Género musicale</option>
                                 <option value="instrumento">Instrumento</option>
                                 <option value="idioma">Idioma</option>
                                 <option value="interp">Intepretado por</option>
+                                <option value="lugar">Lugar</option>
+                                <option value="usuario">Usuario</option>
+                                <option value="gender">Género de personas</option>
                             </select>
                           </div>
                           <div class="form-group">
                               <div class="container">
                                   <div class="row text-center">
                                       <div class="col-sm-12 col-md-6">
-                                          <label for="ano-start">Ano Comenzio</label>
-                                          <input name="ano-start" class="form-control" type="text" placeholder="Principio de los tiempos" />
+                                          <label for="ano-comienzo">Ano Comenzio</label>
+                                          <input name="ano-comienzo" class="form-control" type="text" placeholder="Principio de los tiempos" />
                                       </div>
                                       <div class="col-sm-12 col-md-6">
-                                          <label for="an-end">Ano Finale</label>
-                                          <input name="ano-end" class="form-control" type="text" placeholder="Ahora" />
+                                          <label for="ano-finale">Ano Finale</label>
+                                          <input name="ano-finale" class="form-control" type="text" placeholder="Ahora" />
                                       </div>
                                   </div>
                               </div>
                           </div>
                           <div class="form-group">
-                            <label for="contains">Buscar los comentarios</label>
-                            <input name="contains" class="form-control" type="text" />
+                            <label for="comentario">Buscar los comentarios</label>
+                            <input name="comentario" class="form-control" type="text" />
                           </div>
                           <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                         </div>
