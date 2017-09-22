@@ -4,8 +4,6 @@ import time
 
 
 def add_tags(old_tags, new_tags):
-    print(type(old_tags))
-    print(type(new_tags))
     return {k: old_tags.get(k, 0) + new_tags.get(k, 0) for k in set(old_tags) | set(new_tags)}
 
 

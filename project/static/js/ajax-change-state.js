@@ -11,17 +11,19 @@ $(function(){
 
    $('.ajax-select').on('change', function(e){
         e.preventDefault();
-        console.log($(this).val());
         var request = $.ajax({
             type: "POST",
-            url: "/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
+            url: "https://poeticasonora.me/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 estado: $(this).val()
             }),
             contentType: 'application/json; charset=utf-8',
             dataType: "json",
             success: function() {
-                console.log('woot')
+                console.log('change state success');
+            },
+            error: function () {
+                console.log('change state failed');
             }
         })
             .done( function(request){

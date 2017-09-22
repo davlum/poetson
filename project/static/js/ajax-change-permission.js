@@ -11,17 +11,19 @@ $(function(){
 
    $('.ajax-permission').on('change', function(e){
         e.preventDefault();
-        console.log($(this).val());
         var request = $.ajax({
             type: "POST",
-            url: "/permiso/"+$(this).data('id') +"/",
+            url: "https://poeticasonora.me/permiso/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 permiso: $(this).val()
             }),
             contentType: 'application/json; charset=utf-8',
             dataType: "json",
             success: function() {
-                console.log('woot')
+                console.log('change permission success');
+            },
+            error: function () {
+                console.log('change permission failed');
             }
         })
             .done( function(request){
@@ -29,17 +31,19 @@ $(function(){
     });
    $('.ajax-banned').on('change', function(e){
         e.preventDefault();
-        console.log($(this).val());
         var request = $.ajax({
             type: "POST",
-            url: "/prohibido/"+$(this).data('id') +"/",
+            url: "https://poeticasonora.me/prohibido/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 prohibido: $(this).val()
             }),
             contentType: 'application/json; charset=utf-8',
             dataType: "json",
             success: function() {
-                console.log('woot')
+                console.log('change prohibido sucess');
+            },
+            error: function() {
+                console.log('change prohibido failed');
             }
         })
             .done( function(request){
