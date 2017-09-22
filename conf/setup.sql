@@ -9,7 +9,7 @@ ALTER DATABASE postgres SET datestyle TO "ISO, DMY";
 \i audit_tables.sql
 \i views.sql
 \i lookup.sql
-INSERT INTO public.us_pers (nom_usuario, email, contrasena) VALUES ('AurMez', 'meza.aurelio@gmail.com', 'password');
-\i insert.sql
+--INSERT INTO public.us_pers (nom_usuario, email, contrasena) VALUES ('AurMez', 'meza.aurelio@gmail.com', 'password');
+--\i insert.sql
 
 

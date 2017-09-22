@@ -9,16 +9,19 @@ $(function(){
         }
     });
 
+	
+   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+
    $('.ajax-select').on('change', function(e){
         e.preventDefault();
         var request = $.ajax({
             type: "POST",
-            url: "/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
+            url: $SCRIPT_ROOT + "/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
             data: JSON.stringify({
-                estado: $(this).val()
+                estado: String($(this).val())
             }),
             contentType: 'application/json; charset=utf-8',
-            dataType: "json",
             success: function() {
                 console.log('change state success');
             },
