@@ -554,25 +554,22 @@ def mod():
     return render_template('user/mod.html', result=result)
 
 
-@user_blueprint.route('/estado/<obra>/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/estado/<obra>/<estado>/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_mod
-def estado(obra, obra_id):
+def estado(obra, estado, obra_id):
+    print('got here')
+    estado_upper = estado.upper()
     con = engine.connect()
-    try:
-        json = request.get_json()
-        estado = json['estado'].upper()
-    except Exception as ex:
-        raise ex
     if 'comp' in obra:
-        estado_comp(con, obra_id, estado, session['id'])
+        estado_comp(con, obra_id, estado_upper, session['id'])
     elif 'pista' in obra:
-        estado_pista(con, obra_id, estado, session['id'])
+        estado_pista(con, obra_id, estado_upper, session['id'])
     elif 'pers' in obra:
-        estado_pers(con, obra_id, estado, session['id'])
+        estado_pers(con, obra_id, estado_upper, session['id'])
     elif 'grupo' in obra:
-        estado_grupo(con, obra_id, estado, session['id'])
+        estado_grupo(con, obra_id, estado_upper, session['id'])
     con.close()
     return '', 204
 
