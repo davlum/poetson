@@ -560,8 +560,11 @@ def mod():
 @is_mod
 def estado(obra, obra_id):
     con = engine.connect()
-    json = request.get_json(force=True)
-    estado = json['estado'].upper()
+    try:
+        json = request.get_json()
+        estado = json['estado'].upper()
+    except Exception as ex:
+        flash(ex, 'danger')
     if 'comp' in obra:
         estado_comp(con, obra_id, estado, session['id'])
     elif 'pista' in obra:
@@ -580,7 +583,7 @@ def estado(obra, obra_id):
 @is_admin
 def permiso(usuario_id):
     con = engine.connect()
-    json = request.get_json(force=True)
+    json = request.get_json()
     permiso = json['permiso'].upper()
     update_permiso(con, usuario_id, permiso)
     con.close()

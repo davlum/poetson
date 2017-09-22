@@ -13,7 +13,7 @@ $(function(){
         e.preventDefault();
         var request = $.ajax({
             type: "POST",
-            url: "https://poeticasonora.me/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
+            url: "/estado/"+ $(this).data('role')+"/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 estado: $(this).val()
             }),
