@@ -150,9 +150,11 @@ def composicion(comp_id):
     if comp is None:
         abort(404)
     result['pistas'] = pista_archivo_view(con, comp_id)
-    query_idioma = text("""SELECT * FROM public.idioma_composicion WHERE composicion_id=:comp_id""")
+    query_idioma = text("""SELECT * FROM public.idioma_composicion ic JOIN public.idioma i ON ic.idioma_id = i.idioma_id
+                                    WHERE composicion_id=:comp_id""")
     result['idiomas'] = con.execute(query_idioma, comp_id=comp_id)
-    query_tema = text("""SELECT * FROM public.tema_composicion WHERE composicion_id=:comp_id""")
+    query_tema = text("""SELECT * FROM public.tema_composicion tc JOIN public.tema t ON t.tema_id = tc.tema_id
+                          WHERE composicion_id=:comp_id""")
     result['temas'] = con.execute(query_tema, comp_id=comp_id)
     con.close()
     return render_template('main/composicion.html', comp=comp, autors=autors, result=result)

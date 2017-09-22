@@ -58,18 +58,37 @@ $(function() {
             );
         }
     );
+    $('.form-custom').each(
+        function () {
+            var instForm = $(this).find('.instrumento:first');
+            if ($(this).find('.rol-pista:first').val() !== 'Interpretación musical') {
+                instForm.val(1);
+                var inst = $(this).find('.instrumento:first');
+                inst.css('visibility', 'hidden');
+                $("label[for='"+inst.attr('id')+"']").css('visibility', 'hidden');
+            }
+            else {
+                var inst = $(this).find('.instrumento:first');
+                inst.css('visibility', 'visible');
+                $("label[for='"+inst.attr('id')+"']").css('visibility', 'visible');
+            }
+        }
+    );
     // Only allow instrument selection when the rol is set as Interpretación musical'
     $(document).on('click', function() {
         $('.form-custom').on('change',
             function () {
                 var instForm = $(this).find('.instrumento:first');
                 if ($(this).find('.rol-pista:first').val() !== 'Interpretación musical') {
-                    instForm.val("1");
-                    instForm.attr('disabled', true);
-
+                    instForm.val(1);
+                    var inst = $(this).find('.instrumento:first');
+                    inst.css('visibility', 'hidden');
+                    $("label[for='"+inst.attr('id')+"']").css('visibility', 'hidden');
                 }
                 else {
-                    instForm.attr('disabled', false);
+                    var inst = $(this).find('.instrumento:first');
+                    inst.css('visibility', 'visible');
+                    $("label[for='"+inst.attr('id')+"']").css('visibility', 'visible');
                 }
             }
         );

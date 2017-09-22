@@ -477,7 +477,7 @@
             <div class="card-header" role="tab" id="tema-heading">
                 <h3 class="mb-0">
                     <a data-toggle="collapse" data-parent="#accordion" href="#tema-collapse" aria-expanded="true" aria-controls="tema-collapse">
-                        Archivos de audio con esta interpretación
+                        Temas
                     </a>
                 </h3>
             </div>
@@ -511,7 +511,7 @@
             <div class="card-header" role="tab" id="idioma-heading">
                 <h3 class="mb-0">
                     <a data-toggle="collapse" data-parent="#accordion" href="#idioma-collapse" aria-expanded="true" aria-controls="idioma-collapse">
-                        Archivos de audio con esta interpretación
+                        Idiomas
                     </a>
                 </h3>
             </div>
@@ -594,6 +594,7 @@
 
 
 {% macro archivo_inst(result) -%}
+    <hr>
     <div class="render-audiofile container">
         <div class="row">
             <div class="col-md-6">
@@ -641,7 +642,6 @@
             </tbody>
         </table>
     </div>
-    <hr>
 {% endmacro %}
 
 

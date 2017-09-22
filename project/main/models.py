@@ -93,9 +93,9 @@ def gen_comp_tags(con, comps, result):
         idiomas = idioma_tags(con, comp_ids)
         generos = genero_tags(con, comp_ids)
         usuarios = usuario_tags(con, comp_ids, "composicion", "composicion_id")
-        ciudads = lugar_tags(con, comp_ids, "ciudad", "composicion", "composicion_id")
-        subdivisions = lugar_tags(con, comp_ids, "subdivision", "composicion", "composicion_id")
-        paiss = lugar_tags(con, comp_ids, "pais", "composicion", "composicion_id")
+        ciudads = lugar_tags(con, comp_ids, "ciudad", "pista_son", "pista_son_id")
+        subdivisions = lugar_tags(con, comp_ids, "subdivision", "pista_son", "pista_son_id")
+        paiss = lugar_tags(con, comp_ids, "pais", "pista_son", "pista_son_id")
     result['comps'] = comps_arr
     result['temas'] = temas
     result['idiomas'] = idiomas
@@ -397,13 +397,15 @@ def lugar_colectivo_query(con, bind_params, result, tipo_lugar):
 
 def usuario_comp_query(con, bind_params, result):
     local_params = deepcopy(bind_params)
-    query_string = """SELECT composicion_id
-                            , public.get_fecha(fecha_pub) fecha_pub
-                            ,nom_tit
-                            ,nom_alt
-                          FROM public.composicion
-                          WHERE cargador_id ~* :nom 
-                          AND estado = 'PUBLICADO' """
+    query_string = """SELECT c.composicion_id
+                            , public.get_fecha(c.fecha_pub) fecha_pub
+                            ,c.nom_tit
+                            ,c.nom_alt
+                          FROM public.composicion c
+                          JOIN public.usuario u
+                            ON u.usuario_id = c.cargador_id
+                          WHERE u.nom_usuario ~* :nom 
+                          AND c.estado = 'PUBLICADO' """
     if local_params['year_from'] is not None or local_params['year_to'] is not None:
         query_string += """AND EXTRACT(YEAR FROM (fecha_pub).d)
                             BETWEEN :year_from AND :year_to """
@@ -428,9 +430,11 @@ def usuario_autor_query(con, bind_params, result):
                           , p.fecha_comienzo
                           , p.fecha_finale
                           FROM public.pers_view p 
+                          JOIN public.usuario u
+                            ON p.cargador_id = u.usuario_id
                           LEFT JOIN public.participante_composicion pc
                             ON pc.part_id = p.part_id   
-                          WHERE p.cargador_id ~* :nom
+                          WHERE u.nom_usuario ~* :nom
                             AND p.estado='PUBLICADO' """
     if local_params['year_from'] is not None or local_params['year_to'] is not None:
         query_string += """AND EXTRACT(YEAR FROM (p.fecha_comienzo_insert).d) 
@@ -453,8 +457,10 @@ def usuario_colectivo_query(con, bind_params, result):
                            , g.fecha_comienzo
                            , g.fecha_finale
                           FROM public.gr_view g 
+                          JOIN public.usuario u
+                            ON u.usuario_id =  g.cargador_id
                           WHERE g.tipo_grupo = 'Colectivo'
-                            AND g.cargador_id ~* :nom 
+                            AND u.nom_usuario ~* :nom 
                             AND g.estado = 'PUBLICADO' """
     if local_params['year_from'] is not None or local_params['year_to'] is not None:
         query_string += """AND EXTRACT(YEAR FROM (g.fecha_comienzo_insert).d)

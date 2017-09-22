@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import nom_link, lugar, archivo_inst, idioma, tma %}
+{% from 'macros.html' import nom_link, lugar, archivo_inst, idioma, tema %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -44,8 +44,10 @@
                 <br>
             {% endif %}
         </div>
-        {{ tema(result) }}
-        {{ idioma(result) }}
+        <div class="row">
+            <div class="col-md-6">{{ tema(result) }}</div>
+            <div class="col-md-6">{{ idioma(result) }}</div>
+        </div>
         {% for pista in result.pistas %}
             {{ archivo_inst(pista) }}
         {% endfor %}

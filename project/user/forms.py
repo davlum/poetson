@@ -305,7 +305,7 @@ class DynamicInterpForm(Form):
     # Dynamic for to add any number of artists to AddTrackForm
     part_id = SelectField('Artista')
     rol_pista_son = SelectField('Papel en esta pista')
-    instrumento_id = SelectField('instrumento')
+    instrumento_id = SelectField('Instrumento')
 
 
 class DynamicGenMusForm(Form):
