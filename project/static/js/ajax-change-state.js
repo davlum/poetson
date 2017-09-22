@@ -1,5 +1,5 @@
 $(function(){
-    var csrf_token = "{{ csrf_token() }}";
+    var csrf_token = $('meta[name=csrf-token]').attr('content');
 
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
