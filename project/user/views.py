@@ -564,7 +564,7 @@ def estado(obra, obra_id):
         json = request.get_json()
         estado = json['estado'].upper()
     except Exception as ex:
-        flash(ex, 'danger')
+        raise ex
     if 'comp' in obra:
         estado_comp(con, obra_id, estado, session['id'])
     elif 'pista' in obra:
