@@ -559,7 +559,6 @@ def mod():
 @check_confirmed
 @is_mod
 def estado(obra, estado, obra_id):
-    print('got here')
     estado_upper = estado.upper()
     con = engine.connect()
     if 'comp' in obra:

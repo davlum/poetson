@@ -6,11 +6,11 @@
                 {% if result.nom_part is not none %}
                     {{ result.nom_part }}
                 {% endif %}
-                {% if result.nom_materno is not none %}
-                   {{ result.nom_materno }}
-                {% endif %}
                 {% if result.nom_paterno is not none %}
                    {{ result.nom_paterno }}
+                {% endif %}
+                {% if result.nom_materno is not none %}
+                   {{ result.nom_materno }}
                 {% endif %}
                 {% if result.seudonimo is not none %}
                    '{{ result.seudonimo }}'

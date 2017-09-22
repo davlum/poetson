@@ -2,7 +2,7 @@
 CREATE OR REPLACE view public.part_view AS
   SELECT pa.part_id
        , COALESCE(g.nom_part,
-         nom(pe.nom_part, pe.nom_materno, pe.nom_paterno, pe.seudonimo)) nom_part
+         nom(pe.nom_part, pe.nom_paterno, pe.nom_materno, pe.seudonimo)) nom_part
     FROM public.participante pa
     LEFT JOIN public.persona pe
       ON pa.part_id = pe.part_id
