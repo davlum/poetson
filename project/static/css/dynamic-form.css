@@ -15,6 +15,10 @@
 }
 
 
+.li-error {
+    color: orangered;
+}
+
 .pull-down{
     bottom: 0;
     display: table-cell;

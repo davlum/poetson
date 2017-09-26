@@ -4,7 +4,7 @@
   {% if field.errors %}
       <ul class="errors">
     {% for error in field.errors %}
-      <li>{{ error }}</li>
+      <li class="li-error">{{ error }}</li>
     {% endfor %}
       </ul>
   {% endif %}
@@ -120,12 +120,42 @@
                       {{render_field(org_form.titulo, class ="form-control")}}
                     </div>
                     <div class="form-group col-md-2">
-                      {{render_field(org_form.fecha_comienzo, class ="form-control"
-                                                         , placeholder="dd/mm/aaaa")}}
+                        <dt>{{ org_form.fecha_comienzo.label }}
+                          <dd>{{ org_form.fecha_comienzo(class ="form-control", placeholder="dd/mm/aaaa")|safe }}
+                            {% if org_form.fecha_comienzo.errors %}
+                                <ul class="errors"><span>Afiliación</span>
+                                {% for error in org_form.fecha_comienzo.errors %}
+                                    <li class="li-error">{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if org_form.fecha_finale.errors %}
+                                <ul class="errors"><span>Salida</span>
+                                {% for error in org_form.fecha_finale.errors %}
+                                    <li class="li-error">{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                          </dd>
                     </div>
                     <div class="form-group col-md-2">
-                      {{render_field(org_form.fecha_finale, class ="form-control"
-                                                        , placeholder="dd/mm/aaaa")}}
+                      <dt>{{ org_form.fecha_finale.label }}
+                          <dd>{{ org_form.fecha_finale(class ="form-control", placeholder="dd/mm/aaaa")|safe }}
+                            {% if org_form.fecha_comienzo.errors %}
+                                <ul class="errors"><span>Afiliación</span>
+                                {% for error in org_form.fecha_comienzo.errors %}
+                                    <li class="li-error">{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if org_form.fecha_finale.errors %}
+                                <ul class="errors"><span>Salida</span>
+                                {% for error in org_form.fecha_finale.errors %}
+                                    <li class="li-error">{{ error }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                          </dd>
                     </div>
                     <div class="dyn-buttons col-md-2 text-center">
                         <button class="pull-down btn btn-default" data-role="remove">
@@ -141,4 +171,5 @@
         {% endfor %}
     </div>
 {% endmacro %}
+
 

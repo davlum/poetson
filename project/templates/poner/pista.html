@@ -17,6 +17,11 @@
             <div class="form-group">
                 {{render_field(form.archivo, class ="form-control")}}
             </div>
+            <div>
+                <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
+                <h3 id="status"></h3>
+                 <p id="loaded_n_total"></p>
+            </div>
             {{ archivo(result) }}
             <div class="form-group">
                 {{render_field(form.comp_id, class ="form-control")}}
@@ -112,7 +117,7 @@
             {{ cob(form) }}
             <br>
              <div>
-                <button class="btn btn-success" type="submit">Enviar</button>
+                <button class="btn btn-success" type="submit" onclick="uploadFile()">Enviar</button>
             </div>
         </div>
     </form>

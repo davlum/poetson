@@ -132,9 +132,10 @@ def upload_file(con, pista_id, file):
 
 def delete_archivo(con, archivo_id):
     query = text("""DELETE FROM public.archivo WHERE archivo_id=:archivo_id RETURNING pista_son_id""")
-    pista_son_id = con.execute(query, archivo_id=archivo_id).first()[0]
-    path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_son_id) + '/' + str(archivo_id)
-    rmtree(path)
+    pista_son_id = con.execute(query, archivo_id=archivo_id).first()
+    if pista_son_id is not None:
+        path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_son_id[0]) + '/' + str(archivo_id)
+        rmtree(path)
 
 
 def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
@@ -525,7 +526,7 @@ def retirar_archivo(obra_id):
     con = engine.connect()
     delete_wrapper(delete_archivo, con, obra_id)
     con.close()
-    return redirect(url_for('user.poner_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
 
     #####################################
@@ -559,16 +560,27 @@ def mod():
 @check_confirmed
 @is_mod
 def estado(obra, estado, obra_id):
+    estados = ['DEPOSITAR', 'RECHAZADO', 'PENDIENTE', 'PUBLICADO']
     estado_upper = estado.upper()
+    if estado_upper not in estados:
+        abort(404)
+    obras = ['comp', 'pista', 'pers', 'grupo']
+    if obra not in obras:
+        abort(404)
     con = engine.connect()
-    if 'comp' in obra:
-        estado_comp(con, obra_id, estado_upper, session['id'])
-    elif 'pista' in obra:
-        estado_pista(con, obra_id, estado_upper, session['id'])
-    elif 'pers' in obra:
-        estado_pers(con, obra_id, estado_upper, session['id'])
-    elif 'grupo' in obra:
-        estado_grupo(con, obra_id, estado_upper, session['id'])
+    try:
+        if 'comp' in obra:
+            estado_comp(con, obra_id, estado_upper, session['id'])
+        elif 'pista' in obra:
+            estado_pista(con, obra_id, estado_upper, session['id'])
+        elif 'pers' in obra:
+            estado_pers(con, obra_id, estado_upper, session['id'])
+        elif 'grupo' in obra:
+            estado_grupo(con, obra_id, estado_upper, session['id'])
+    except Exception as ex:
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error;' + str(ex), 'danger')
     con.close()
     return '', 204
 

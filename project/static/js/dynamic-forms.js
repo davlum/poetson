@@ -1,4 +1,9 @@
 $(function() {
+
+    $('form input').on('keypress', function(e) {
+        return e.which !== 13;
+    });
+
     function parse_inc(match) {
         var i = parseInt(match);
         i++;
@@ -20,7 +25,7 @@ $(function() {
         function(e) {
             e.preventDefault();
             var container = $(this).closest('[data-role="dynamic-fields"]');
-            var new_field_group = container.children().filter('.form-custom:first-child').clone();
+            var new_field_group = container.children().filter('.form-custom:last-child').clone();
             new_field_group.find('input, select, label').each(function(){
                 if (!$(this).is('label')) {
                     if ($(this).is('select')){
@@ -35,6 +40,9 @@ $(function() {
                     var new_for = old_for.replace(/\d{1,2}/, parse_inc);
                     $(this).attr('for', new_for);
                 }
+            });
+            new_field_group.find('.errors').each(function(){
+                $(this).remove();
             });
             container.append(new_field_group);
         }

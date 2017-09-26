@@ -17,8 +17,8 @@ class BaseConfig(object):
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT", "")
     UPLOAD_FOLDER = os.environ.get("POETSON_UPLOAD_FOLDER", "")
     ALLOWED_EXTENSIONS = set(['mp3', 'flac', 'opus', 'mp4', 'aiff'])
-    # Max content length is 5 minutes of 32 bit wav file mono ~50mbs
-    MAX_CONTENT_LENGTH = 4 * 44100 * 60 * 5
+    # Max content length is 10 minutes of 32 bit wav file mono ~100mbs
+    MAX_CONTENT_LENGTH = 4 * 44100 * 60 * 10
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_DATABASE_URI = 'postgresql:///postgres'
