@@ -101,7 +101,11 @@
             </div>
             <div id="autor-collapse" class="collapse in">
                 <div class="card-block">
+                    {% if 'mod' in result and result.mod == True %}
+                    <table class="table table-striped mod-tables">
+                    {% else %}
                     <table class="table table-striped">
+                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nom</th>
@@ -172,7 +176,11 @@
             </div>
             <div id="grupo-collapse" class="collapse in">
                 <div class="card-block">
+                    {% if 'mod' in result and result.mod == True %}
+                    <table class="table table-striped mod-tables">
+                    {% else %}
                     <table class="table table-striped">
+                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nom</th>
@@ -243,7 +251,11 @@
             </div>
             <div id="pista-collapse" class="collapse in">
                 <div class="card-block">
+                    {% if 'mod' in result and result.mod == True %}
+                    <table class="table table-striped mod-tables">
+                    {% else %}
                     <table class="table table-striped">
+                    {% endif %}
                     <thead>
                         <tr>
                             <th>Título</th>
@@ -317,7 +329,11 @@
             </div>
             <div id="composicion-collapse" class="collapse in">
                 <div class="card-block">
+                    {% if 'mod' in result and result.mod == True %}
+                    <table class="table table-striped mod-tables">
+                    {% else %}
                     <table class="table table-striped">
+                    {% endif %}
                     <thead>
                         <tr>
                             <th>Título</th>
@@ -395,7 +411,11 @@
             </div>
             <div id="composicion-collapse" class="collapse in">
                 <div class="card-block">
+                    {% if 'mod' in result and result.mod == True %}
+                    <table class="table table-striped mod-tables">
+                    {% else %}
                     <table class="table table-striped">
+                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nom</th>

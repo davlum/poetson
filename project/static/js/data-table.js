@@ -1,6 +1,0 @@
-/*
-$(function()
-{
-    $('.mod-tables').dataTable();
-});
-*/

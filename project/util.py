@@ -16,9 +16,14 @@ def current_user(con, email):
     return result
 
 
-def allowed_file(filename):
+def allowed_audio_file(filename):
     ext = filename.rsplit('.', 1)[1].lower()
-    return '.' in filename and ext in app.config['ALLOWED_EXTENSIONS']
+    return '.' in filename and ext in app.config['ALLOWED_AUDIO_EXTENSIONS']
+
+
+def allowed_image_file(filename):
+    ext = filename.rsplit('.', 1)[1].lower()
+    return '.' in filename and ext in app.config['ALLOWED_IMAGE_EXTENSIONS']
 
 
 def send_email(to, subject, template):

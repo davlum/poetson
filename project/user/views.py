@@ -6,7 +6,7 @@ import os
 from shutil import rmtree
 from project import app
 from flask import render_template, Blueprint, url_for, \
-    redirect, flash, request, session, abort
+    redirect, flash, request, session, abort, jsonify
 from werkzeug.utils import secure_filename
 from sqlalchemy import text
 from project.token import generate_confirmation_token, confirm_token, ts
@@ -17,7 +17,7 @@ from .forms import LoginForm, RegisterForm, \
     ChangePasswordForm, EmailForm, PasswordForm, InstrForm, GenMusForm, IdiomaForm, TemaForm, AlbumForm, \
     InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
-from project.util import current_user, current_gr, current_pers, send_email, allowed_file
+from project.util import current_user, current_gr, current_pers, send_email, allowed_audio_file, allowed_image_file
 
 from project.user.models import query_perfil, query_pers_gr, populate_info, update_info, update_permiso, \
     insert_part, populate_poner_grupo, populate_poner_pers, update_poner_grupo, update_poner_pers, delete_persona, \
@@ -104,24 +104,33 @@ def insert_wrapper(fun, con, form):
         flash('Ocurrió un error; ' + str(ex), 'danger')
 
 
-def validate_file():
+def validate_audio_file():
     if 'archivo' not in request.files:
-        return False, 'Ninguna parte del archivo'
+        return False, 'Ningún archivo seleccionado'
     file = request.files['archivo']
     if file.filename == '':
         return False, 'Ningún archivo seleccionado'
-    if not file or not allowed_file(file.filename):
+    if not file or not allowed_audio_file(file.filename):
         return False, 'Este tipo de archivo no es aceptado'
     return True, file
 
 
-def upload_file(con, pista_id, file):
+def validate_image_file():
+    if 'archivo' not in request.files:
+        return False, 'Ningún archivo seleccionado'
+    file = request.files['archivo']
+    if not allowed_image_file(file.filename):
+        return False, 'Este tipo de archivo no es aceptado'
+    return True, file
+
+
+def upload_audio(con, pista_id, file):
     file.seek(0)
     audio = File(file)
     if audio is not None:
         filename = secure_filename(file.filename)
         archivo_id = str(insert_archivo(con, audio, filename, pista_id))
-        path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_id) + '/' + archivo_id
+        path = app.config['UPLOAD_FOLDER'] + '/audio/' + str(pista_id) + '/' + archivo_id
         file.seek(0)
         os.makedirs(path, exist_ok=True)
         file.save(os.path.join(path, filename))
@@ -130,11 +139,20 @@ def upload_file(con, pista_id, file):
         flash('No es un archivo de audio', 'danger')
 
 
+def upload_album_image(file, album_id):
+    file.seek(0)
+    filename = secure_filename(file.filename)
+    path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(album_id)
+    os.makedirs(path, exist_ok=True)
+    file.save(os.path.join(path, filename))
+    file.close()
+
+
 def delete_archivo(con, archivo_id):
     query = text("""DELETE FROM public.archivo WHERE archivo_id=:archivo_id RETURNING pista_son_id""")
     pista_son_id = con.execute(query, archivo_id=archivo_id).first()
     if pista_son_id is not None:
-        path = app.config['UPLOAD_FOLDER'] + '/' + str(pista_son_id[0]) + '/' + str(archivo_id)
+        path = app.config['UPLOAD_FOLDER'] + '/audio/' + str(pista_son_id[0]) + '/' + str(archivo_id)
         rmtree(path)
 
 
@@ -146,15 +164,15 @@ def upsert_pista_wrapper(fun, con, form, file, pista_id=None):
         else:
             fun(con, form, session['id'], pista_id)
         if file is not None:
-            upload_file(con, pista_id, file)
+            upload_audio(con, pista_id, file)
         trans.commit()
         init_session(con, session['email'])
-        flash('La actualización se ha realizado correctamente.', 'success')
+        return 'La actualización se ha realizado correctamente.', "success"
     except Exception as ex:
         trans.rollback()
         if app.config['DEBUG']:
             raise   # Only for development
-        flash('Ocurrió un error; ' + str(ex), 'danger')
+        return 'Ocurrió un error; ' + str(ex), "danger"
 
 
     #########################
@@ -475,25 +493,29 @@ def poner_pista(obra_id=None):
     add_pista_choices(con, form)
     result['archivos'] = query_archivos(con, obra_id)
     result['editor'] = True
+    if obra_id is not None:
+        result['obra_id'] = obra_id
     con.close()
     if request.method == 'POST' and form.validate():
-        validated, file = validate_file()
+        validated, file = validate_audio_file()
         con = engine.connect()
         if obra_id is None:
             # When inserting for the first time there must be a file
             if not validated:
-                flash(file, 'danger')
-                return redirect(url_for('user.poner_pista'))
-            upsert_pista_wrapper(insert_pista, con, form, file)
+                return jsonify(success="danger", msg=file)
+            msg, success = upsert_pista_wrapper(insert_pista, con, form, file)
         else:
             if not validated:
                 # On update a file need not be uploaded
                 flash(file, 'warning')
-                upsert_pista_wrapper(update_pista, con, form, file=None, pista_id=obra_id)
+                msg, success = upsert_pista_wrapper(update_pista, con, form, file=None, pista_id=obra_id)
             else:
-                upsert_pista_wrapper(update_pista, con, form, file, obra_id)
+                msg, success = upsert_pista_wrapper(update_pista, con, form, file, obra_id)
         con.close()
-        return redirect(url_for('user.perfil', _anchor='tab_pista'))
+        if success:
+            return jsonify(success=success, msg=msg)
+        else:
+            return jsonify(success=success, msg=msg)
     return render_template('poner/pista.html', form=form, result=result)
 
 
@@ -689,8 +711,24 @@ def poner_album():
     form.serie_id.choices = populate_serie_form(con)
     con.close()
     if request.method == 'POST' and form.validate():
+        validated, file = validate_image_file()
+        print(file)
         con = engine.connect()
-        insert_wrapper(insert_album, con, form)
+        trans = con.begin()
+        try:
+            if validated:
+                album_id = insert_album(con, form, file.filename)
+                upload_album_image(file, album_id)
+            else:
+                insert_album(con, form, None)
+                flash(file, 'warning')
+            trans.commit()
+            flash('La actualización se ha realizado correctamente.', 'success')
+        except Exception as ex:
+            trans.rollback()
+            if app.config['DEBUG']:
+                raise  # Only for development
+            flash('Ocurrió un error; ' + str(ex), 'danger')
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_varios'))
     return render_template('poner/album.html', form=form)
@@ -730,6 +768,7 @@ def retirar_serie(obra_id):
 @is_mod
 def retirar_inst(obra_id):
     if obra_id == 1 or obra_id == 2:
+        # cannot remove 'Ninguno' or 'voz' instruments
         flash('No se puede eliminar esta información', 'danger')
         return redirect(url_for('user.poner_instrumento'))
     else:
@@ -778,7 +817,15 @@ def retirar_genero(obra_id):
 @is_mod
 def retirar_album(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_album, con, obra_id)
+    try:
+        path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(obra_id)
+        rmtree(path)
+        delete_album(con, obra_id)
+        flash('la eliminación se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error;' + str(ex), 'danger')
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 

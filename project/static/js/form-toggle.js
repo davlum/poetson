@@ -38,6 +38,12 @@ $(document).on("click", ".open-confirm-modal", function () {
     $(".modal-body #delete-button").attr('href', '/retirar/'+ entType + '/' + partId + '/');
 });
 
+
+$(document).on("click", ".open-progress-modal", function () {
+    $('#progress-modal').css('top', $(window).scrollTop()+ ($(window).height()*0.4));
+});
+
+
 $(function() {
     $('.varios-modal').each(function(){
         var vario_id = String($(this).find('option').val());

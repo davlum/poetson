@@ -140,8 +140,9 @@ COMMENT ON TABLE idioma IS 'Possible Languages. Works as a lookup table.';
 -- search giro?
 CREATE TABLE IF NOT EXISTS serie (
     serie_id serial PRIMARY KEY
-   ,nom_serie text NOT NULL
-   ,giro text
+  , nom_serie text NOT NULL
+  , giro text
+  , coment_serie text
 );
 
 COMMENT ON TABLE serie IS 'A compilation of pista_son';
@@ -149,9 +150,9 @@ COMMENT ON TABLE serie IS 'A compilation of pista_son';
 
 CREATE TABLE IF NOT EXISTS album (
     album_id serial PRIMARY KEY
-   ,serie_id int REFERENCES serie ON DELETE CASCADE
-   ,nom_album text
-   ,ruta_foto text
+  , serie_id int REFERENCES serie ON DELETE CASCADE
+  , nom_album text
+  , ruta_foto text
 );
 
 COMMENT ON TABLE album IS 'a 1:M relationship from serie.';

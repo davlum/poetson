@@ -10,18 +10,15 @@
     <h2>Añadir una pista de audio</h2>
     <br>
     <p>Por favor, agregue información adicional sobre este trabajo.</p>
-    <form id="add-entity-form" method='POST' action="" enctype="multipart/form-data">
+    <br>
+    <input type="hidden" id="obra-id" value="{{ result.obra_id|safe }}">
+    <form id="add-pista-form" method='POST' action="{{ url_for('user.poner_pista') }}" enctype="multipart/form-data">
         {{ form.csrf_token }}
-        <br>
         <div class="center-block skinny">
             <div class="form-group">
                 {{render_field(form.archivo, class ="form-control")}}
             </div>
-            <div>
-                <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
-                <h3 id="status"></h3>
-                 <p id="loaded_n_total"></p>
-            </div>
+
             {{ archivo(result) }}
             <div class="form-group">
                 {{render_field(form.comp_id, class ="form-control")}}
@@ -117,7 +114,8 @@
             {{ cob(form) }}
             <br>
              <div>
-                <button class="btn btn-success" type="submit" onclick="uploadFile()">Enviar</button>
+                <a id="pista-form-submit" class="btn btn-success open-progress-modal" data-toggle="modal"
+                   data-target="#progress-modal" type="submit">Enviar</a>
             </div>
         </div>
     </form>
