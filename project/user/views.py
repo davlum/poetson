@@ -139,9 +139,9 @@ def upload_audio(con, pista_id, file):
         flash('No es un archivo de audio', 'danger')
 
 
-def upload_album_image(file, album_id):
-    file.seek(0)
+def upload_album_image(con, form, file):
     filename = secure_filename(file.filename)
+    album_id = insert_album(con, form, filename)
     path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(album_id)
     os.makedirs(path, exist_ok=True)
     file.save(os.path.join(path, filename))
@@ -712,13 +712,11 @@ def poner_album():
     con.close()
     if request.method == 'POST' and form.validate():
         validated, file = validate_image_file()
-        print(file)
         con = engine.connect()
         trans = con.begin()
         try:
             if validated:
-                album_id = insert_album(con, form, file.filename)
-                upload_album_image(file, album_id)
+                upload_album_image(con, form, file)
             else:
                 insert_album(con, form, None)
                 flash(file, 'warning')
