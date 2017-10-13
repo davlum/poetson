@@ -716,7 +716,7 @@ def comp_serie_view(con, serie_id):
         query = text("""SELECT c.composicion_id
                                , c.nom_tit
                                , c.nom_alt
-                               , c.fecha_pub
+                               , public.get_fecha(c.fecha_pub) fecha_pub
                               FROM public.composicion c
                               JOIN public.pista_son ps
                                 ON ps.composicion_id = c.composicion_id  
