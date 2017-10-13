@@ -330,7 +330,7 @@ def login():
         con = engine.connect()
         init_session(con, form.email.data)
         con.close()
-        flash('Ahora está conectado', 'success')
+        flash('Conexión exitosa', 'success')
         return redirect(url_for('user.perfil'))
     return render_template('user/login.html', form=form)
 
@@ -339,7 +339,7 @@ def login():
 @is_logged_in
 def logout():
     session.clear()
-    flash('Usted fue desconectado.', 'success')
+    flash('Desconexión exitosa.', 'success')
     return redirect(url_for('user.login'))
 
 

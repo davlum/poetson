@@ -122,7 +122,7 @@ class RegisterForm(Form):
                           choices=[('persona', 'Un individuo'), ('grupo', 'Una organización')])
 
     # The minimum required fields to make an account
-    nom_usuario = StringField('Nomdre de usuario', validators=[
+    nom_usuario = StringField('Nombre de usuario', validators=[
         InputRequired(message='Esto es requerido.'),
         Length(min=4, max=25),
         Regexp('^[a-zÀ-ÿ0-9_-]+$', message='nombre de usuario debe ser números, letras, guiones o subrayados')
@@ -134,9 +134,9 @@ class RegisterForm(Form):
     ])
     contrasena = PasswordField('Contraseña', validators=[
         InputRequired(message='Esto es requerido.'),
-        EqualTo('confirm', message='los paswords no coinciden')
+        EqualTo('confirm', message='los contraseñas no coinciden')
     ])
-    confirm = PasswordField('Confirmar Contraseña', [InputRequired(message='Esto es requerido.')])
+    confirm = PasswordField('Confirmar contraseña', [InputRequired(message='Esto es requerido.')])
 
     def validate(self):
         initial_validation = super(RegisterForm, self).validate()

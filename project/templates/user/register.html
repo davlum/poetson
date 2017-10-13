@@ -7,7 +7,8 @@
   {% from "includes/_formhelpers.html" import render_field %}
       <form method='POST' action={{ url_for('user.register') }}>
         {{ form.csrf_token }}
-        <div class="center-block" style="width: 70%">
+        <div class="center-block skinny">
+            <h3>Indique si es...</h3>
             <div class="form-group" id="user-type">
                 {% for opt in form.user_type %}
                     <div style="display: inline-block;">{{ opt }} &nbsp;</div>

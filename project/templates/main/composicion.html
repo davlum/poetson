@@ -34,7 +34,7 @@
          <div>
             {% if comp.serie_id is not none %}
                 <h4>Fecha</h4>
-                <h3 class="indented"><a href="{{ url_fur("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
+                <h3 class="indented"><a href="{{ url_for("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
             {% endif %}
         </div>
         <div>

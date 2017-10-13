@@ -10,7 +10,8 @@
     <h2>Bienvenido {{ user.nom_usuario }}</h2>
     <br>
     <h3>Tu perfil</h3>
-    <span>Algo que explica lo que está pasando</span>
+    <span>Aquí podrás subir nuevas composiciones y pistas sonoras, así como añadir o modificar autores,
+instrumentos, temas, entre otros.</span>
     {% if session.permission == 'MOD' %}
         <a class="right underline" href="{{ url_for('user.mod') }}">Perfil mod</a>
     {% elif session.permission =='ADMIN' %}
@@ -33,7 +34,7 @@
             <br>
             <h2>Inicio</h2>
             <br>
-            <span>Todos los detalles sobre este perfil;
+            <span>Todos los detalles sobre este perfil.
             </span>
             <a class="right underline" href="{{ url_for('user.info') }}">Actualizar información</a>
             <div class="center-block skinny">
@@ -41,8 +42,8 @@
                 <table class="table">
                     <tbody>
                         {% if session['is_person'] %}
-                         <tr><th scope="row">Nom: </th><td> {{ nom(user) }}</td></tr>
-                            {{ render_profile('Genéro: ', user.genero) }}
+                         <tr><th scope="row">Nombre: </th><td> {{ nom(user) }}</td></tr>
+                            {{ render_profile('Género: ', user.genero) }}
                             {{ render_profile('Nombre del Padre: ', user.nom_paterno) }}
                             {{ render_profile('Nombre del Madre: ', user.nom_materno) }}
                         {% else %}
