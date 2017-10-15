@@ -5,20 +5,34 @@
     <div class="center-block" style="width: 80%;">
         <h2>Serie</h2>
         <hr>
-        <div>
-            <h4>Título</h4>
-            <h3 class="indented">
-                {{ serie.nom_serie }}
-            </h3> 
-        </div>
-        <br>
-        <br>
-        <div>
-            {% if serie.giro is not none %}
-                <h4>Giro</h4>
-                <h3 class="indented"> {{ serie.giro }}</h3>
-                <br>
-            {% endif %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h4>Título</h4>
+                        <h3 class="indented">
+                            {{ serie.nom_serie }}
+                        </h3>
+                    </div>
+                    <br>
+                    <br>
+                    <div>
+                        {% if serie.giro is not none %}
+                            <h4>Giro</h4>
+                            <h3 class="indented"> {{ serie.giro }}</h3>
+                            <br>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-center fade-in">
+                            <img src="{{ url_for('static',
+                                filename='images/albums/'+serie.serie_id|string+'/'
+                                                     +serie.ruta_foto|string) }}"
+                            height="98%" width="98%">
+                    </div>
+                </div>
+            </div>
         </div>
         {{ album(result) }}
         <hr>

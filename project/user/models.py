@@ -1283,10 +1283,12 @@ def insert_inst(con, form):
                      , instrumento_comentario=form.instrumento_comentario.data)
 
 
-def insert_serie(con, form):
-    query_serie = text("""INSERT INTO public.serie (nom_serie, giro, coment_serie) VALUES
-                          (strip(:nom_serie), strip(:giro), strip(:coment_serie))""")
-    con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data, coment_serie=form.coment_serie.data)
+def insert_serie(con, form, filename):
+    query_serie = text("""INSERT INTO public.serie (nom_serie, giro, coment_serie, ruta_foto) VALUES
+                          (strip(:nom_serie), strip(:giro), strip(:coment_serie), :filename) RETURNING serie_id""")
+    query = con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data
+                                   , coment_serie=form.coment_serie.data, filename=filename)
+    return query.first()[0]
 
 
 def insert_genero(con, form):
@@ -1305,11 +1307,11 @@ def insert_idioma(con, form):
     con.execute(query_idioma, nom_idioma=form.nom_idioma.data)
 
 
-def insert_album(con, form, filename):
-    query_tema = text("""INSERT INTO public.album (nom_album, serie_id, ruta_foto) 
-                          VALUES (:nom_album, :serie_id, :ruta_foto) RETURNING album_id""")
-    result = con.execute(query_tema, nom_album=form.nom_album.data, serie_id=form.serie_id.data, ruta_foto=filename)
-    return result.first()[0]
+def insert_album(con, form):
+    query_tema = text("""INSERT INTO public.album (nom_album, serie_id) 
+                          VALUES (:nom_album, :serie_id)""")
+    con.execute(query_tema, nom_album=form.nom_album.data, serie_id=form.serie_id.data)
+
 
 def delete_serie(con, serie_id):
     query = text("""DELETE FROM public.serie WHERE serie_id=:serie_id""")

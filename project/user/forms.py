@@ -352,6 +352,7 @@ class SerieForm(Form):
     giro = StringField("Giro", validators=[Optional()])
     delete_serie = SelectField("Serie actualmente en la base de datos", validators=[Optional()])
     coment_serie = TextAreaField("Comentario", validators=[Optional()])
+    archivo = FileField("Subir un foto", validators=[Optional()])
 
 
 class IdiomaForm(Form):
@@ -372,7 +373,6 @@ class AlbumForm(Form):
     nom_album = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
     serie_id = SelectField("Parte de esta serie", validators=[InputRequired(message='Esto es requerido.')])
     delete_album = SelectField("Album actualmente en la base de datos", validators=[Optional()])
-    archivo = FileField("Subir un archivo", validators=[Optional()])
 
 
 class TemaForm(Form):

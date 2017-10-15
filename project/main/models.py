@@ -705,10 +705,7 @@ def pista_archivo_view(con, comp_id):
 
 
 def serie_view(con, serie_id):
-    serie_query = text("""SELECT nom_serie
-                                ,giro
-                             FROM public.serie s
-                             WHERE serie_id=:serie_id """)
+    serie_query = text("""SELECT * FROM public.serie WHERE serie_id=:serie_id """)
     return con.execute(serie_query, serie_id=serie_id).first()
 
 

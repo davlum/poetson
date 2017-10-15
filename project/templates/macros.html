@@ -459,32 +459,21 @@
 {% macro album(result) -%}
     {% if 'albums' in result and result.albums is not none and result.albums.rowcount > 0 %}
         <hr>
-        <div class="card">
-            <div class="card-header" role="tab" id="album-heading">
-                <h3 class="mb-0">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#album-collapse" aria-expanded="true" aria-controls="album-collapse">
-                        Archivos de audio con esta interpretación
-                    </a>
-                </h3>
-            </div>
-            <div id="album-collapse" class="collapse in">
-                <div class="card-block">
-                    <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nom album</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for entry in result.albums %}
-                        <tr>
-                            <td>{{ entry.nom_album }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="card-block">
+            <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom album</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for entry in result.albums %}
+                <tr>
+                    <td>{{ entry.nom_album }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
         </div>
    {% endif %}
 {% endmacro %}
@@ -504,11 +493,6 @@
             <div id="tema-collapse" class="collapse in">
                 <div class="card-block">
                     <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nom tema</th>
-                        </tr>
-                    </thead>
                     <tbody>
                     {% for entry in result.temas %}
                         <tr>
@@ -538,11 +522,6 @@
             <div id="idioma-collapse" class="collapse in">
                 <div class="card-block">
                     <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Nom idioma</th>
-                        </tr>
-                    </thead>
                     <tbody>
                     {% for entry in result.idiomas %}
                         <tr>

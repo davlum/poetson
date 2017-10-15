@@ -142,6 +142,7 @@ CREATE TABLE IF NOT EXISTS serie (
     serie_id serial PRIMARY KEY
   , nom_serie text NOT NULL
   , giro text
+  , ruta_foto text
   , coment_serie text
 );
 
@@ -152,7 +153,6 @@ CREATE TABLE IF NOT EXISTS album (
     album_id serial PRIMARY KEY
   , serie_id int REFERENCES serie ON DELETE CASCADE
   , nom_album text
-  , ruta_foto text
 );
 
 COMMENT ON TABLE album IS 'a 1:M relationship from serie.';

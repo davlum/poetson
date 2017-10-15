@@ -119,6 +119,8 @@ def validate_image_file():
     if 'archivo' not in request.files:
         return False, 'Ningún archivo seleccionado'
     file = request.files['archivo']
+    if file.filename == '':
+        return False, 'Ningún archivo seleccionado'
     if not allowed_image_file(file.filename):
         return False, 'Este tipo de archivo no es aceptado'
     return True, file
@@ -141,8 +143,8 @@ def upload_audio(con, pista_id, file):
 
 def upload_album_image(con, form, file):
     filename = secure_filename(file.filename)
-    album_id = insert_album(con, form, filename)
-    path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(album_id)
+    serie_id = insert_serie(con, form, filename)
+    path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(serie_id)
     os.makedirs(path, exist_ok=True)
     file.save(os.path.join(path, filename))
     file.close()
@@ -646,8 +648,22 @@ def poner_serie():
     form.delete_serie.choices = populate_serie_form(con)
     con.close()
     if request.method == 'POST' and form.validate():
+        validated, file = validate_image_file()
         con = engine.connect()
-        insert_wrapper(insert_serie, con, form)
+        trans = con.begin()
+        try:
+            if validated:
+                upload_album_image(con, form, file)
+            else:
+                insert_serie(con, form, None)
+                flash(file, 'warning')
+            trans.commit()
+            flash('La actualización se ha realizado correctamente.', 'success')
+        except Exception as ex:
+            trans.rollback()
+            if app.config['DEBUG']:
+                raise  # Only for development
+            flash('Ocurrió un error; ' + str(ex), 'danger')
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_varios'))
     return render_template('poner/serie.html', form=form)
@@ -711,22 +727,8 @@ def poner_album():
     form.serie_id.choices = populate_serie_form(con)
     con.close()
     if request.method == 'POST' and form.validate():
-        validated, file = validate_image_file()
         con = engine.connect()
-        trans = con.begin()
-        try:
-            if validated:
-                upload_album_image(con, form, file)
-            else:
-                insert_album(con, form, None)
-                flash(file, 'warning')
-            trans.commit()
-            flash('La actualización se ha realizado correctamente.', 'success')
-        except Exception as ex:
-            trans.rollback()
-            if app.config['DEBUG']:
-                raise  # Only for development
-            flash('Ocurrió un error; ' + str(ex), 'danger')
+        insert_wrapper(insert_album, con, form)
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_varios'))
     return render_template('poner/album.html', form=form)
@@ -755,9 +757,18 @@ def poner_instrumento():
 @is_mod
 def retirar_serie(obra_id):
     con = engine.connect()
-    delete_wrapper(delete_serie, con, obra_id)
+    try:
+        path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(obra_id)
+        if os.path.exists(path):
+            rmtree(path)
+        delete_serie(con, obra_id)
+        flash('la eliminación se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error;' + str(ex), 'danger')
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_serie', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/inst/<int:obra_id>/', methods=['GET', 'POST'])
@@ -773,7 +784,7 @@ def retirar_inst(obra_id):
         con = engine.connect()
         delete_wrapper(delete_inst, con, obra_id)
         con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_instrumento', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/tema/<int:obra_id>/', methods=['GET', 'POST'])
@@ -784,7 +795,7 @@ def retirar_tema(obra_id):
     con = engine.connect()
     delete_wrapper(delete_tema, con, obra_id)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_idioma', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/idioma/<int:obra_id>/', methods=['GET', 'POST'])
@@ -795,7 +806,7 @@ def retirar_idioma(obra_id):
     con = engine.connect()
     delete_wrapper(delete_idioma, con, obra_id)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_idioma', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/genero/<int:obra_id>/', methods=['GET', 'POST'])
@@ -806,7 +817,7 @@ def retirar_genero(obra_id):
     con = engine.connect()
     delete_wrapper(delete_genero, con, obra_id)
     con.close()
-    return redirect(url_for('user.perfil', _anchor='tab_pista'))
+    return redirect(url_for('user.poner_genero', _anchor='tab_pista'))
 
 
 @user_blueprint.route('/retirar/album/<int:obra_id>/', methods=['GET', 'POST'])
@@ -815,15 +826,7 @@ def retirar_genero(obra_id):
 @is_mod
 def retirar_album(obra_id):
     con = engine.connect()
-    try:
-        path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(obra_id)
-        rmtree(path)
-        delete_album(con, obra_id)
-        flash('la eliminación se ha realizado correctamente.', 'success')
-    except Exception as ex:
-        if app.config['DEBUG']:
-            raise  # Only for development
-        flash('Ocurrió un error;' + str(ex), 'danger')
+    delete_wrapper(delete_album, con, obra_id)
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
 
