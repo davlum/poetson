@@ -696,7 +696,7 @@ def pista_archivo_view(con, comp_id):
                           LEFT JOIN public.persona p
                             ON p.part_id = pps.part_id
                           LEFT JOIN public.grupo g
-                            ON g.part_id = p.part_id     
+                            ON g.part_id = pps.part_id     
                           JOIN public.instrumento i
                             ON i.instrumento_id = pps.instrumento_id     
                             WHERE pps.pista_son_id=:pista_id """)
