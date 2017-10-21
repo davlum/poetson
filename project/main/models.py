@@ -638,6 +638,7 @@ def comp_view_query(con, comp_id):
     composicion_query = text("""SELECT c.nom_tit
                                      , c.nom_alt
                                      , public.get_fecha(fecha_pub) fecha_pub
+                                     , c.texto
                                      , g.nom_part 
                                      , p.nom_part
                                      , p.seudonimo
@@ -669,6 +670,7 @@ def pista_archivo_view(con, comp_id):
                            , a.archivo_id
                            , a.codec
                            , ps.pista_son_id
+                           , ps.coment_pista_son
                            , public.get_fecha(ps.fecha_grab) fecha_grab
                            , l.ciudad
                            , l.subdivision
