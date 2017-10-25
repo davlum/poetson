@@ -1116,7 +1116,8 @@ def populate_pista(con, form, pista_id):
     query = text("""SELECT * FROM public.pista_son WHERE pista_son_id=:pista_id""")
     pista = con.execute(query, pista_id=pista_id).first()
     if pista is not None:
-        form.numero_de_pista.data = pista.numero_de_pista
+        form.comp_id.data = str(pista.composicion_id)
+        form.numero_de_pista.data = str(pista.numero_de_pista)
         form.medio.data = pista.medio
         form.serie_id.data = str(pista.serie_id)
         form.fecha_grab.data = get_fecha(pista.fecha_grab)
