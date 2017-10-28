@@ -101,11 +101,7 @@
             </div>
             <div id="autor-collapse" class="collapse in">
                 <div class="card-block">
-                    {% if 'mod' in result and result.mod == True %}
                     <table class="table table-striped mod-tables">
-                    {% else %}
-                    <table class="table table-striped">
-                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nombre</th>
@@ -176,11 +172,7 @@
             </div>
             <div id="grupo-collapse" class="collapse in">
                 <div class="card-block">
-                    {% if 'mod' in result and result.mod == True %}
                     <table class="table table-striped mod-tables">
-                    {% else %}
-                    <table class="table table-striped">
-                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nom</th>
@@ -251,11 +243,7 @@
             </div>
             <div id="pista-collapse" class="collapse in">
                 <div class="card-block">
-                    {% if 'mod' in result and result.mod == True %}
                     <table class="table table-striped mod-tables">
-                    {% else %}
-                    <table class="table table-striped">
-                    {% endif %}
                     <thead>
                         <tr>
                             <th>Título</th>
@@ -329,11 +317,7 @@
             </div>
             <div id="composicion-collapse" class="collapse in">
                 <div class="card-block">
-                    {% if 'mod' in result and result.mod == True %}
                     <table class="table table-striped mod-tables">
-                    {% else %}
-                    <table class="table table-striped">
-                    {% endif %}
                     <thead>
                         <tr>
                             <th>Título</th>
@@ -400,7 +384,7 @@
 
 
 {% macro serie(result) -%}
-    {% if 'serie' in result and result.serie is not none and result.serie.rowcount > 0 %}
+  {% if 'series' in result and result.series is not none and result.series.rowcount > 0 %}
         <div class="card">
             <div class="card-header" role="tab" id="composicion-heading">
                 <h3 class="mb-0">
@@ -411,22 +395,22 @@
             </div>
             <div id="composicion-collapse" class="collapse in">
                 <div class="card-block">
-                    {% if 'mod' in result and result.mod == True %}
                     <table class="table table-striped mod-tables">
-                    {% else %}
-                    <table class="table table-striped">
-                    {% endif %}
                     <thead>
                         <tr>
                             <th>Nom</th>
-                            <th>giro</th>
+                            <th>Giro</th>
                         {% if 'mod' in result and result.mod == True %}
+                            <th>Usuario</th>
+                        {% endif %}
+                        {% if 'editor' in result and result.editor == True %}
+                            <th>Estado</th>
                             <th>Acción</th>
                         {% endif %}
                         </tr>
                     </thead>
                     <tbody>
-                    {% for entry in result.serie %}
+                    {% for entry in result.series %}
                         <tr>
                             <td><a class="no-underline" href="{{ url_for("main.serie", serie_id=entry.serie_id) }}">
                                 {{ entry.nom_serie }}
@@ -437,11 +421,26 @@
                                     {{ entry.giro }}
                                 {% endif %}
                             </td>
-
                             {% if 'mod' in result and result.mod == True %}
+                                <td>{{ entry.nom_usuario }}</td>
+                                <td>
+                                    <select class="form-control ajax-select" data-role="serie"
+                                            data-id="{{ entry.serie_id }}">
+                                        {{ render_select('Pendiente', entry.estado) }}
+                                        {{ render_select('Publicado', entry.estado) }}
+                                        {{ render_select('Rechazado', entry.estado) }}
+                                        {{ render_select('Depositar', entry.estado) }}
+                                    </select>
+                                </td>
+                            {% elif 'editor' in result and result.editor == True %}
+                                <td>{{ entry.estado }}</td>
+                            {% endif %}
+                            {% if 'editor' in result and result.editor == True %}
                             <td>
+                                <a class="glyphicon glyphicon-pencil"
+                                   href="{{ url_for('user.poner_serie', obra_id=entry.serie_id) }}"></a>&nbsp;
                                 <a class="open-confirm-modal glyphicon glyphicon-remove"
-                                   data-role="comp" data-id="{{ entry.serie_id }}"
+                                   data-role="serie" data-id="{{ entry.serie_id }}"
                                     data-toggle="modal" data-target="#confirm-modal"></a>
                             </td>
                             {% endif %}
@@ -452,7 +451,7 @@
                 </div>
             </div>
         </div>
-   {% endif %}
+  {% endif %}
 {% endmacro %}
 
 

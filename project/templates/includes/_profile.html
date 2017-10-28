@@ -1,5 +1,5 @@
 
-    {% from 'macros.html' import persona, grupo, pista, composicion, lugar %}
+    {% from 'macros.html' import persona, grupo, pista, composicion, lugar, serie %}
 
     {% if 'mod' in result and result.mod == True %}
         <div id="part" class="tab-pane fade in active">
@@ -33,6 +33,7 @@
         <div id="vario" class="tab-pane fade">
             <br>
             <h2>Añadir varios</h2>
+
             <br>
 
             <div class="skinny center-block">
@@ -45,4 +46,5 @@
                     <li><a class="underline" href="{{ url_for('user.poner_album') }}">Nuevo album</a></li>
                 </ul>
             </div>
+            {{ serie(result) }}
         </div>

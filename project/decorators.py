@@ -47,6 +47,8 @@ def is_author(f):
         if 'permission' in session and (session['permission'] == 'MOD' or
                                         session['permission'] == 'ADMIN'):
             return f(obra_id, *args, **kwargs)
+        if 'serie' in request.url and obra_id in session['series']:
+            return f(obra_id, *args, **kwargs)
         if 'comp' in request.url and obra_id in session['comps']:
             return f(obra_id, *args, **kwargs)
         if 'pista' in request.url and obra_id in session['pistas']:

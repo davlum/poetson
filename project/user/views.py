@@ -27,7 +27,7 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, delete_grupo
+    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -53,6 +53,8 @@ def init_session(con, email):
     session['parts'] = init_pers(con, user.part_id) + init_grupos(con, user.part_id)
     # list of pista_son added
     session['pistas'] = init_pistas(con, user.part_id)
+    # list of series added
+    session['series'] = init_series(con, user.part_id)
 
 
 def delete_wrapper(fun, con, row_id, usuario_id=None):
@@ -490,7 +492,7 @@ def poner_pista(obra_id=None):
     result = {}
     form = AddTrackForm(request.form)
     con = engine.connect()
-    if request.method == 'GET':
+    if request.method == 'GET' and obra_id is not None:
         populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
     result['archivos'] = query_archivos(con, obra_id)
@@ -588,7 +590,7 @@ def estado(obra, estado, obra_id):
     estado_upper = estado.upper()
     if estado_upper not in estados:
         abort(404)
-    obras = ['comp', 'pista', 'pers', 'grupo']
+    obras = ['comp', 'pista', 'pers', 'grupo', 'serie']
     if obra not in obras:
         abort(404)
     con = engine.connect()
@@ -601,6 +603,8 @@ def estado(obra, estado, obra_id):
             estado_pers(con, obra_id, estado_upper, session['id'])
         elif 'grupo' in obra:
             estado_grupo(con, obra_id, estado_upper, session['id'])
+        elif 'serie' in obra:
+            estado_serie(con, obra_id, estado_upper, session['id'])
     except Exception as ex:
         if app.config['DEBUG']:
             raise  # Only for development
@@ -639,13 +643,16 @@ def prohibido(usuario_id):
     # Views for varios tab in perfil.html #
     #######################################
 
+@user_blueprint.route('/poner/serie/<int:obra_id>/', methods=['GET', 'POST'])
 @user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
-def poner_serie():
+@is_author
+def poner_serie(obra_id=None):
     form = SerieForm(request.form)
     con = engine.connect()
-    form.delete_serie.choices = populate_serie_form(con)
+    if request.method == 'GET' and obra_id is not None:
+        populate_serie(con, form, obra_id)
     con.close()
     if request.method == 'POST' and form.validate():
         validated, file = validate_image_file()
@@ -768,7 +775,7 @@ def retirar_serie(obra_id):
             raise  # Only for development
         flash('Ocurrió un error;' + str(ex), 'danger')
     con.close()
-    return redirect(url_for('user.poner_serie', _anchor='tab_pista'))
+    return redirect(url_for('user.perfil', _anchor='tab_varios'))
 
 
 @user_blueprint.route('/retirar/inst/<int:obra_id>/', methods=['GET', 'POST'])

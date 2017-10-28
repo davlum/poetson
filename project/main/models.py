@@ -264,7 +264,7 @@ def serie_query(con, bind_params, result):
     if bind_params['contains'] is not None and bind_params['contains'] != "":
         query_string += "AND giro ~* :contains"
     query = text(query_string)
-    result['serie'] = con.execute(query, bind_params)
+    result['series'] = con.execute(query, bind_params)
 
 
 def tema_query(con, bind_params, result):

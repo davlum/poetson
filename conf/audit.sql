@@ -43,15 +43,6 @@ CREATE OR REPLACE FUNCTION gen_table(target_table regclass) RETURNS void AS $bod
 DECLARE
   pk_name text; -- key of the
 BEGIN
-  /*
-  EXECUTE format('SELECT string_agg(quote_ident(a.attname), '', '')
-              FROM pg_index i
-              JOIN pg_attribute a 
-              ON a.attrelid = i.indrelid
-                AND a.attnum = ANY(i.indkey)
-                WHERE i.indrelid = ''%I''::regclass
-                AND i.indisprimary', target_table) INTO pk_name;
-  */
 
   EXECUTE format('ALTER TABLE %I ' ||
                  'ADD COLUMN IF NOT EXISTS cargador_id int NOT NULL ' ||

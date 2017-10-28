@@ -313,6 +313,11 @@ def populate_info(con, form):
     form.pais.data = user.pais
 
 
+def estado_serie(con, obra_id, estado, mod_id):
+    query = text("""UPDATE public.serie SET estado=:estado, mod_id=:mod_id WHERE serie_id=:obra_id""")
+    con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
+
+
 def estado_comp(con, obra_id, estado, mod_id):
     query = text("""UPDATE public.composicion SET estado=:estado, mod_id=:mod_id WHERE composicion_id=:obra_id""")
     con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
@@ -562,6 +567,33 @@ def query_comps(con, part_id, permission='EDITOR'):
     return comps_arr
 
 
+def query_serie(con, part_id, permission='EDITOR'):
+    if permission == 'EDITOR':
+        query = text("""SELECT s.serie_id
+                             , s.nom_serie
+                             , s.ruta_foto
+                             , s.giro
+                             , s.coment_serie
+                             , s.estado
+                            FROM public.serie s
+                            WHERE s.cargador_id=:part_id
+                            AND (s.estado = 'PENDIENTE'
+                              OR s.estado = 'PUBLICADO')""")
+        return con.execute(query, part_id=part_id)
+    else:
+        query = text("""SELECT s.serie_id
+                             , s.nom_serie
+                             , s.ruta_foto
+                             , s.giro
+                             , s.coment_serie
+                             , u.nom_usuario
+                             , s.estado
+                            FROM public.serie s
+                            JOIN public.usuario u 
+                              ON s.cargador_id = u.usuario_id""")
+        return con.execute(query)
+
+
 def query_pista(con, part_id, permission='EDITOR'):
     if permission == 'EDITOR':
         query = text("""SELECT c.composicion_id
@@ -616,7 +648,8 @@ def query_perfil(con, part_id, permission=None):
         'pistas': query_pista(con, part_id, permission),
         'comps': query_comps(con, part_id, permission),
         'grupos': query_grupos(con, part_id, permission),
-        'pers': query_pers(con, part_id, permission)
+        'pers': query_pers(con, part_id, permission),
+        'series': query_serie(con, part_id, permission)
     }
     if permission == 'EDITOR':
         perfil_dict['editor'] = True
@@ -739,6 +772,15 @@ def populate_part(form, user):
     form.fecha_comienzo.data = user.fecha_comienzo
     form.fecha_finale.data = user.fecha_finale
     form.coment_part.data = user.coment_part
+
+
+def populate_serie(con, form, obra_id):
+    query = text("""SELECT * from public.serie WHERE serie_id=:obra_id""")
+    result = con.execute(query, obra_id=obra_id).first()
+    form.nom_serie.data = result.nom_serie
+    form.archivo.data = result.ruta_foto
+    form.giro.data = result.giro
+    form.coment_serie.data = result.coment_serie
 
 
 # Queries for the poner_pers view
@@ -1409,9 +1451,6 @@ def delete_pista(con, pista_id, usuario_id):
     return True
 
 
-
-
-
 # Queries for init_session
 def init_comps(con, part_id):
     comps_query = text("""SELECT composicion_id 
@@ -1448,6 +1487,16 @@ def init_grupos(con, part_id):
                            FROM public.grupo
                            WHERE cargador_id=:id
                              AND (estado='PENDIENTE'
-                             OR estado='PUBLICADO') """)
+                             OR estado='PUBLICADO')""")
     gr_result = con.execute(gr_query, id=part_id)
     return [ag[0] for ag in gr_result]
+
+
+def init_series(con, part_id):
+    serie_query = text("""SELECT serie_id
+                            FROM public.serie
+                            WHERE cargador_id=:id
+                            AND (estado='PENDIENTE'
+                             OR estado='PUBLICADO')""")
+    serie_result = con.execute(serie_query, id=part_id)
+    return [ag[0] for ag in serie_result]

@@ -25,12 +25,14 @@
                     </div>
                 </div>
                 <div class="col-md-6">
+                    {% if serie.ruta_foto is not none %}
                     <div class="text-center fade-in">
                             <img src="{{ url_for('static',
                                 filename='images/albums/'+serie.serie_id|string+'/'
                                                      +serie.ruta_foto|string) }}"
                             height="98%" width="98%">
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -350,7 +350,6 @@ class SerieForm(Form):
     # Add a serie to the database
     nom_serie = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
     giro = StringField("Giro", validators=[Optional()])
-    delete_serie = SelectField("Serie actualmente en la base de datos", validators=[Optional()])
     coment_serie = TextAreaField("Comentario", validators=[Optional()])
     archivo = FileField("Subir un foto", validators=[Optional()])
 
