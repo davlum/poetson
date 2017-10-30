@@ -27,7 +27,7 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie
+    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -143,9 +143,18 @@ def upload_audio(con, pista_id, file):
         flash('No es un archivo de audio', 'danger')
 
 
-def upload_album_image(con, form, file):
+def upload_album_image_update(con, form, usuario_id, file, serie_id):
     filename = secure_filename(file.filename)
-    serie_id = insert_serie(con, form, filename)
+    update_serie(con, form, usuario_id, serie_id, filename)
+    path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(serie_id)
+    os.makedirs(path, exist_ok=True)
+    file.save(os.path.join(path, filename))
+    file.close()
+
+
+def upload_album_image_insert(con, form, usuario_id, file):
+    filename = secure_filename(file.filename)
+    serie_id = insert_serie(con, form, usuario_id, filename)
     path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(serie_id)
     os.makedirs(path, exist_ok=True)
     file.save(os.path.join(path, filename))
@@ -643,6 +652,7 @@ def prohibido(usuario_id):
     # Views for varios tab in perfil.html #
     #######################################
 
+
 @user_blueprint.route('/poner/serie/<int:obra_id>/', methods=['GET', 'POST'])
 @user_blueprint.route('/poner/serie', methods=['GET', 'POST'])
 @is_logged_in
@@ -652,18 +662,23 @@ def poner_serie(obra_id=None):
     form = SerieForm(request.form)
     con = engine.connect()
     if request.method == 'GET' and obra_id is not None:
-        populate_serie(con, form, obra_id)
+       ruta = populate_serie(con, form, obra_id)
     con.close()
     if request.method == 'POST' and form.validate():
         validated, file = validate_image_file()
         con = engine.connect()
         trans = con.begin()
         try:
-            if validated:
-                upload_album_image(con, form, file)
+            if obra_id is None:
+                if validated:
+                    upload_album_image_insert(con, form, session['id'], file)
+                else:
+                    insert_serie(con, form, session['id'], None)
             else:
-                insert_serie(con, form, None)
-                flash(file, 'warning')
+                if validated:
+                    upload_album_image_update(con, form, session['id'], obra_id, file)
+                else:
+                    update_serie(con, form, session['id'], None)
             trans.commit()
             flash('La actualización se ha realizado correctamente.', 'success')
         except Exception as ex:
@@ -673,7 +688,7 @@ def poner_serie(obra_id=None):
             flash('Ocurrió un error; ' + str(ex), 'danger')
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_varios'))
-    return render_template('poner/serie.html', form=form)
+    return render_template('poner/serie.html', form=form, ruta=ruta)
 
 
 @user_blueprint.route('/poner/genero', methods=['GET', 'POST'])
@@ -756,6 +771,26 @@ def poner_instrumento():
         con.close()
         return redirect(url_for('user.perfil', _anchor='tab_varios'))
     return render_template('poner/instrumento.html', form=form)
+
+
+@user_blueprint.route('/retirar/album_foto/<int:obra_id>/', methods=['GET', 'POST'])
+@is_logged_in
+@check_confirmed
+@is_mod
+def retirar_foto(obra_id):
+    con = engine.connect()
+    try:
+        path = app.config['UPLOAD_FOLDER'] + '/images/albums/' + str(obra_id)
+        if os.path.exists(path):
+            rmtree(path)
+        query = text("""UPDATE public.serie SET ruta_foto = NULL WHERE serie_id=:obra_id""")
+        con.execute(query, obra_id=obra_id)
+        flash('la eliminación se ha realizado correctamente.', 'success')
+    except Exception as ex:
+        if app.config['DEBUG']:
+            raise  # Only for development
+        flash('Ocurrió un error;' + str(ex), 'danger')
+    return '', 204
 
 
 @user_blueprint.route('/retirar/serie/<int:obra_id>/', methods=['GET', 'POST'])

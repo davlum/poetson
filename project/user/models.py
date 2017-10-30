@@ -781,6 +781,7 @@ def populate_serie(con, form, obra_id):
     form.archivo.data = result.ruta_foto
     form.giro.data = result.giro
     form.coment_serie.data = result.coment_serie
+    return result.ruta_foto, result.serie_id
 
 
 # Queries for the poner_pers view
@@ -1309,6 +1310,22 @@ def insert_pista(con, form, usuario_id):
     return pista_son_result
 
 
+def insert_serie(con, form, usuario_id, filename):
+    query_serie = text("""INSERT INTO public.serie (nom_serie, giro, coment_serie, ruta_foto, cargador_id) VALUES
+                          (strip(:nom_serie), strip(:giro), strip(:coment_serie), :filename, :usuario_id) RETURNING serie_id""")
+    query = con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data
+                                   , coment_serie=form.coment_serie.data, filename=filename, usuario_id=usuario_id)
+    return query.first()[0]
+
+
+def update_serie(con, form, usuario_id, serie_id, filename):
+    query = text("""UPDATE public.serie 
+                      SET nom_serie=:nom_serie, giro=:giro, ruta_foto=:ruta_foto, 
+                          coment_serie=:coment_serie, mod_id=:usuario_id
+                      WHERE serie_id=:serie_id""")
+    con.execute(query, nom_serie=form.nom_serie.data, giro=form.giro.data, ruta_foto=filename,
+                coment_serie=form.coment_serie.data, usuario_id=usuario_id, serie_id=serie_id)
+
 # Query to add an instrument
 def populate_inst_fam(con):
     query_inst = text("""SELECT familia_instr_id f_id, nom_familia_instr f_nom FROM public.familia_instrumento""")
@@ -1324,14 +1341,6 @@ def insert_inst(con, form):
                      , familia_instr_id=form.familia_instr_id.data
                      , electronico=form.electronico.data
                      , instrumento_comentario=form.instrumento_comentario.data)
-
-
-def insert_serie(con, form, filename):
-    query_serie = text("""INSERT INTO public.serie (nom_serie, giro, coment_serie, ruta_foto) VALUES
-                          (strip(:nom_serie), strip(:giro), strip(:coment_serie), :filename) RETURNING serie_id""")
-    query = con.execute(query_serie, nom_serie=form.nom_serie.data, giro=form.giro.data
-                                   , coment_serie=form.coment_serie.data, filename=filename)
-    return query.first()[0]
 
 
 def insert_genero(con, form):

@@ -19,9 +19,18 @@
             <div class="form-group">
                 {{render_field(form.giro, class ="form-control")}}
             </div>
+            {% if ruta.0 is none %}
             <div class="form-group">
                 {{render_field(form.archivo, class ="form-control")}}
             </div>
+            {% else %}
+            <div class="form-group">
+                {{ ruta.0|safe }}
+                <a class="open-confirm-modal glyphicon glyphicon-remove"
+                                   data-role="foto" data-id="{{ ruta.1 }}"
+                                    data-toggle="modal" data-target="#confirm-modal"></a>
+            </div>
+            {% endif %}
             <div class="form-group">
                 {{render_field(form.coment_serie, class ="form-control")}}
             </div>
