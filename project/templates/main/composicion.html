@@ -5,37 +5,53 @@
     <div class="center-block" style="width: 80%;">
         <h2>Composicion</h2>
         <hr>
-        <div>
-            <h4>Título</h4>
-            <h3 class="indented">
-                {{ comp.nom_tit }}
-                {% if comp.nom_alt is not none %}
-                        {{ comp.nom_alt }}
-                {% endif %}
-            </h3>
-        </div>
-        <br>
-        <div>
-            <h4>Autor</h4>
-            <h3 class="indented">
-                {% for autor in autors %}
-                    {{ nom_link(autor) }}
-                {% endfor %}
-            </h3>
-        </div>
-        <br>
-        <div>
-            {% if comp.fecha_pub is not none %}
-                <h4>Fecha</h4>
-                <h3 class="indented">{{ comp.fecha_pub }}</h3>
-            {% endif %}
-        </div>
-        <br>
-         <div>
-            {% if comp.serie_id is not none %}
-                <h4>Fecha</h4>
-                <h3 class="indented"><a href="{{ url_for("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
-            {% endif %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h4>Título</h4>
+                        <h3 class="indented">
+                            {{ comp.nom_tit }}
+                            {% if comp.nom_alt is not none %}
+                                    {{ comp.nom_alt }}
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <br>
+                    <div>
+                        <h4>Autor</h4>
+                        <h3 class="indented">
+                            {% for autor in autors %}
+                                {{ nom_link(autor) }}
+                            {% endfor %}
+                        </h3>
+                    </div>
+                    <br>
+                    <div>
+                        {% if comp.fecha_pub is not none %}
+                            <h4>Fecha</h4>
+                            <h3 class="indented">{{ comp.fecha_pub }}</h3>
+                        {% endif %}
+                    </div>
+                    <br>
+                     <div>
+                        {% if comp.serie_id is not none %}
+                            <h4>Serie</h4>
+                            <h3 class="indented"><a href="{{ url_for("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                     {% if comp.ruta_foto is not none %}
+                    <div class="text-center fade-in">
+                            <img src="{{ url_for('static',
+                                filename='images/albums/'+comp.serie_id|string+'/'
+                                                     +comp.ruta_foto|string) }}"
+                            height="98%" width="98%">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         <div>
             {% if comp.texto is not none and comp.texto != "" %}

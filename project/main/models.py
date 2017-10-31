@@ -644,6 +644,7 @@ def comp_view_query(con, comp_id):
                                      , p.seudonimo
                                      , p.nom_paterno
                                      , s.serie_id
+                                     , s.ruta_foto
                                      , s.nom_serie
                                      FROM public.composicion c
                                      JOIN public.participante_composicion pc

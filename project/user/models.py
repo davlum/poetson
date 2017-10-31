@@ -1326,6 +1326,7 @@ def update_serie(con, form, usuario_id, serie_id, filename):
     con.execute(query, nom_serie=form.nom_serie.data, giro=form.giro.data, ruta_foto=filename,
                 coment_serie=form.coment_serie.data, usuario_id=usuario_id, serie_id=serie_id)
 
+
 # Query to add an instrument
 def populate_inst_fam(con):
     query_inst = text("""SELECT familia_instr_id f_id, nom_familia_instr f_nom FROM public.familia_instrumento""")

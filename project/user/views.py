@@ -661,6 +661,7 @@ def prohibido(usuario_id):
 def poner_serie(obra_id=None):
     form = SerieForm(request.form)
     con = engine.connect()
+    ruta = (None, None)
     if request.method == 'GET' and obra_id is not None:
        ruta = populate_serie(con, form, obra_id)
     con.close()
@@ -676,7 +677,7 @@ def poner_serie(obra_id=None):
                     insert_serie(con, form, session['id'], None)
             else:
                 if validated:
-                    upload_album_image_update(con, form, session['id'], obra_id, file)
+                    upload_album_image_update(con, form, session['id'], file, obra_id)
                 else:
                     update_serie(con, form, session['id'], None)
             trans.commit()
@@ -773,7 +774,7 @@ def poner_instrumento():
     return render_template('poner/instrumento.html', form=form)
 
 
-@user_blueprint.route('/retirar/album_foto/<int:obra_id>/', methods=['GET', 'POST'])
+@user_blueprint.route('/retirar/foto/<int:obra_id>/', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 @is_mod
@@ -790,7 +791,7 @@ def retirar_foto(obra_id):
         if app.config['DEBUG']:
             raise  # Only for development
         flash('Ocurrió un error;' + str(ex), 'danger')
-    return '', 204
+    return redirect(url_for('user.poner_serie', obra_id=obra_id))
 
 
 @user_blueprint.route('/retirar/serie/<int:obra_id>/', methods=['GET', 'POST'])
