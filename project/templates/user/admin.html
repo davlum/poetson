@@ -41,9 +41,9 @@
                         <table class="table table-striped mod-tables">
                         <thead>
                             <tr>
-                                <th>Nom usuario</th>
+                                <th>Nombre usuario</th>
                                 <th>Correo electrónico</th>
-                                <th>Fecha registrado</th>
+                                <th>Fecha registro</th>
                                 <th>Permiso</th>
                                 <th>Prohibido</th>
                             </tr>
@@ -58,7 +58,7 @@
                                     <select class="form-control ajax-permission"
                                             data-id="{{ entry.usuario_id }}">
                                         {{ render_select('Editor', entry.permiso) }}
-                                        {{ render_select('Mod', entry.permiso) }}
+                                        {{ render_select('Moderador', entry.permiso) }}
                                     </select>
                                 </td>
                                 <td>

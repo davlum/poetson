@@ -44,18 +44,16 @@ instrumentos, temas, entre otros.</span>
                         {% if session['is_person'] %}
                          <tr><th scope="row">Nombre: </th><td> {{ nom(user) }}</td></tr>
                             {{ render_profile('Género: ', user.genero) }}
-                            {{ render_profile('Nombre del Padre: ', user.nom_paterno) }}
-                            {{ render_profile('Nombre del Madre: ', user.nom_materno) }}
                         {% else %}
                             {{ render_profile('Nom: ', user.nom_part) }}
                         {% endif %}
                             <tr><th scope="row">Origen: </th><td>{{ lugar(user) }}</td></tr>
-                            {{ render_profile('Email: ', user.email) }}
-                            {{ render_profile('Sitio Web: ', user.sitio_web) }}
-                            {{ render_profile('Telefono: ', user.telefono) }}
+                            {{ render_profile('Corréo electrónico: ', user.email) }}
+                            {{ render_profile('Sitio web: ', user.sitio_web) }}
+                            {{ render_profile('Teléfono: ', user.telefono) }}
                             {{ render_profile('Dirección: ', user.direccion) }}
-                            {{ render_profile('Fecha inicial: ', user.fecha_comienzo) }}
-                            {{ render_profile('Comentario Adicional: ', user.coment_participante) }}
+                            {{ render_profile('Fecha de nacimiento: ', user.fecha_comienzo) }}
+                            {{ render_profile('Comentario adicional: ', user.coment_participante) }}
                     </tbody>
                 </table>
                 {% if pers_gr.rowcount > 0 %}
@@ -88,7 +86,7 @@ instrumentos, temas, entre otros.</span>
 
         <div id="contrasena" class="tab-pane fade">
             <br>
-            <h2>Cambia la contraseña</h2>
+            <h2>Cambiar la contraseña</h2>
             <br>
             <div class="center-block skinny">
                 <form class="form-reset" role="form" method="post" action="">

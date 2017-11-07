@@ -9,7 +9,7 @@
             <br>
             <h2>Añadido por usted</h2>
             <br>
-            <span>Estos son los que ha agregado;</span>
+            <span>Estos son los que ha agregado.</span>
             <a class="right underline" href="{{ url_for('user.poner_part') }}">Nuevo</a>
             <div class="center-block">
                 {{ persona(result) }}
@@ -21,9 +21,9 @@
             <br>
             <h2>Añadido por usted</h2>
             <br>
-            <span>Estos son los que ha agregado;</span>
-            <a class="right underline" href="{{ url_for('user.poner_composicion') }}">Nuevo Composición</a><br>
-            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nuevo Pista</a><br>
+            <span>Estos son los que ha agregado.</span>
+            <a class="right underline" href="{{ url_for('user.poner_composicion') }}">Nueva composición</a><br>
+            <a class="right underline" href="{{ url_for('user.poner_pista') }}">Nueva pista</a><br>
             <div class="center-block">
                 {{ composicion(result) }}
                 {{ pista(result) }}
@@ -39,11 +39,11 @@
             <div class="skinny center-block">
                 <ul>
                     <li><a class="underline" href="{{ url_for('user.poner_instrumento') }}">Nuevo instrumento</a></li>
-                    <li><a class="underline" href="{{ url_for('user.poner_serie') }}">Nuevo serie</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_serie') }}">Nueva serie</a></li>
                     <li><a class="underline" href="{{ url_for('user.poner_idioma') }}">Nuevo idioma</a></li>
-                    <li><a class="underline" href="{{ url_for('user.poner_genero') }}">Nuevo genero musical</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_genero') }}">Nuevo género musical</a></li>
                     <li><a class="underline" href="{{ url_for('user.poner_tema') }}">Nuevo tema</a></li>
-                    <li><a class="underline" href="{{ url_for('user.poner_album') }}">Nuevo album</a></li>
+                    <li><a class="underline" href="{{ url_for('user.poner_album') }}">Nuevo álbum</a></li>
                 </ul>
             </div>
             {{ serie(result) }}

@@ -174,7 +174,7 @@ class OrgForm(Form):
         Date(),
         GreaterThanDate('fecha_comienzo')
     ])
-    grupo_id = SelectField('Nom del Organización', validators=[
+    grupo_id = SelectField('Grupo u organización', validators=[
         InputRequired(message='Esto es requerido.')
     ])
 
@@ -185,15 +185,15 @@ class InfoForm(Form):
     nom_paterno = StringField('Apellido paterno', validators=[Optional()])
     nom_materno = StringField('Apellido materno', validators=[Optional()])
     seudonimo = StringField('Seudónimo', validators=[Optional()])
-    nom_part_gr = StringField('Nom del Organización', validators=[Optional()])
+    nom_part_gr = StringField('Nombre del Organización', validators=[Optional()])
     sitio_web = StringField('Sitio web', validators=[
         URL(),
         Optional()
     ])
 
-    direccion = StringField('Dirreción postal', validators=[Optional()])
+    direccion = StringField('Dirección postal', validators=[Optional()])
     telefono = StringField('Teléfono', validators=[Optional()])
-    fecha_comienzo = StringField('Fecha de comenzando', validators=[
+    fecha_comienzo = StringField('Fecha de nacimiento', validators=[
         Optional(),
         Date(),
     ])
@@ -209,7 +209,7 @@ class InfoForm(Form):
     pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
 
     # if organization just specify type
-    tipo_grupo = SelectField('Tipo del Organización', validators=[Optional()])
+    tipo_grupo = SelectField('Tipo de organización', validators=[Optional()])
 
     coment_part = TextAreaField('Comentarios', validators=[Optional()])
 
@@ -252,15 +252,15 @@ class AddEntityForm(UpdateEntityForm):
 
 class CopyrightForm(Form):
     cobertura = SelectField('Cobertura', validators=[InputRequired(message='Esto es requerido.')])
-    pais_cob = SelectField('País Cobertura', validators=[InputRequired(message='Esto es requerido.')])
+    pais_cob = SelectField('País cobertura', validators=[InputRequired(message='Esto es requerido.')])
 
-    fecha_comienzo_cob = StringField('Fecha Comienzo', validators=[
+    fecha_comienzo_cob = StringField('Fecha comienzo', validators=[
         Optional(),
         Date(),
         LessThanDate('fecha_finale_cob')
     ])
 
-    fecha_finale_cob = StringField('Fecha Finale', validators=[
+    fecha_finale_cob = StringField('Fecha finale', validators=[
         Optional(),
         Date(),
         GreaterThanDate('fecha_comienzo_cob')
@@ -290,8 +290,8 @@ class AddCompForm(CopyrightForm):
     composicion_id = SelectField('Composición de referencia', validators=[RequiredIf('references')])
 
     nom_tit = StringField("Título", validators=[InputRequired(message='Esto es requerido.')])
-    nom_alt = StringField("Título Alternativo", validators=[Optional()])
-    texto = TextAreaField("Texto del Composición", validators=[Optional()])
+    nom_alt = StringField("Título alternativo", validators=[Optional()])
+    texto = TextAreaField("Texto de la composición", validators=[Optional()])
     fecha_pub = StringField("Fecha de publicación", validators=[
         Optional(),
         Date()
@@ -310,7 +310,7 @@ class DynamicInterpForm(Form):
 
 class DynamicGenMusForm(Form):
     # Dynamic form to add any number of genres to AddTrackForm
-    gen_mus_id = SelectField('Género musical en esta pista audio')
+    gen_mus_id = SelectField('Género musical en esta pista de audio')
 
 
 class AddTrackForm(CopyrightForm):
@@ -348,7 +348,7 @@ class AddTrackForm(CopyrightForm):
 # Forms for the varios tab
 class SerieForm(Form):
     # Add a serie to the database
-    nom_serie = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    nom_serie = StringField("Nombre", validators=[InputRequired(message='Esto es requerido.')])
     giro = StringField("Giro", validators=[Optional()])
     coment_serie = TextAreaField("Comentario", validators=[Optional()])
     archivo = FileField("Subir un foto", validators=[Optional()])
@@ -356,27 +356,27 @@ class SerieForm(Form):
 
 class IdiomaForm(Form):
     # Add a language to the database
-    nom_idioma = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    nom_idioma = StringField("Nombre", validators=[InputRequired(message='Esto es requerido.')])
     delete_idioma = SelectField("Idioma actualmente en la base de datos", validators=[Optional()])
 
 
 class GenMusForm(Form):
     # Add a musical genre to the database
-    nom_gen_mus = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
-    delete_gen_mus = SelectField("Genero musical actualmente en la base de datos", validators=[Optional()])
+    nom_gen_mus = StringField("Nombre", validators=[InputRequired(message='Esto es requerido.')])
+    delete_gen_mus = SelectField("Género musical actualmente en la base de datos", validators=[Optional()])
     coment_gen_mus = TextAreaField("Comentario", validators=[Optional()])
 
 
 class AlbumForm(Form):
     # Add an album to the database
-    nom_album = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
+    nom_album = StringField("Nombre", validators=[InputRequired(message='Esto es requerido.')])
     serie_id = SelectField("Parte de esta serie", validators=[InputRequired(message='Esto es requerido.')])
-    delete_album = SelectField("Album actualmente en la base de datos", validators=[Optional()])
+    delete_album = SelectField("Álbum actualmente en la base de datos", validators=[Optional()])
 
 
 class TemaForm(Form):
     # Add a serie to the database
-    nom_tema = StringField("Nom", validators=[
+    nom_tema = StringField("Nombre", validators=[
         InputRequired(message='Esto es requerido.'),
         Length(min=4, max=25, message='debe tener entre 4 y 25 caracteres'),
         Regexp('^[a-zÀ-ÿ0-9_-]+$', message='Tema debe ser números, letras, guiones o subrayados')
@@ -387,8 +387,8 @@ class TemaForm(Form):
 
 
 class InstrForm(Form):
-    nom_inst = StringField("Nom", validators=[InputRequired(message='Esto es requerido.')])
-    familia_instr_id = SelectField("Familia Instrumento", validators=[InputRequired(message='Esto es requerido.')])
+    nom_inst = StringField("Nombre", validators=[InputRequired(message='Esto es requerido.')])
+    familia_instr_id = SelectField("Familia instrumental", validators=[InputRequired(message='Esto es requerido.')])
     electronico = BooleanField("Es un instrumento eléctrico")
     instrumento_comentario = TextAreaField("Comentario", validators=[Optional()])
     delete_inst = SelectField("Instrumento actualmente en la base de datos", validators=[Optional()])
@@ -397,11 +397,11 @@ class InstrForm(Form):
 class ChangePasswordForm(Form):
     old_password = PasswordField('Introducir contraseña antigua',
                                  validators=[InputRequired(message='Esto es requerido.')])
-    new_password = PasswordField('Contraseña', validators=[
+    new_password = PasswordField('Nueva contraseña', validators=[
         InputRequired(message='Esto es requerido.'),
         EqualTo('confirm', message='los paswords no coinciden')
     ])
-    confirm = PasswordField('Confirmar Contraseña',
+    confirm = PasswordField('Confirmar contraseña',
                             validators=[InputRequired(message='Esto es requerido.')])
 
     def validate(self):
