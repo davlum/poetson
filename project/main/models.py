@@ -12,6 +12,7 @@ def autors_comps_query():
                                 , g.part_id gr_id
                                 , g.nom_part nom_part_ag
                                 , p.nom_part
+                                , pc.rol_composicion
                                 , p.seudonimo
                                 , p.nom_paterno
                                 , p.nom_paterno
@@ -600,6 +601,28 @@ def comp_autor_view(con, part_id):
     return comps_arr
 
 
+def interp_autor_view(con, part_id):
+    # query all compositions including those made by this artist when in a colectivo
+    composicion_query = text("""SELECT c.composicion_id
+                                     , c.nom_tit
+                                     , c.nom_alt
+                                     , public.get_fecha(c.fecha_pub) fecha_pub
+                                  FROM public.persona pers
+                                  JOIN public.participante_pista_son pps
+                                    ON pers.part_id = pps.part_id
+                                  JOIN public.pista_son ps
+                                    ON ps.pista_son_id = pps.pista_son_id
+                                  JOIN public.composicion c
+                                    ON c.composicion_id = ps.composicion_id
+                                  WHERE pers.part_id=:part_id
+                                  AND c.estado = 'PUBLICADO'
+                                  AND (pps.rol_pista_son = 'Interpretación musical' OR
+                                   pps.rol_pista_son = 'Lectura en voz alta') """)
+    comps = con.execute(composicion_query, part_id=part_id)
+    comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
+    return comps_arr
+
+
 def pers_grupo_view(con, part_id):
     # get the list of artists in that colectivo
     author_query = text("""SELECT p.part_id
@@ -646,6 +669,7 @@ def comp_view_query(con, comp_id):
                                      , s.serie_id
                                      , s.ruta_foto
                                      , s.nom_serie
+                                     , cobl.licencia_cobertura
                                      FROM public.composicion c
                                      JOIN public.participante_composicion pc
                                        ON c.composicion_id = pc.composicion_id
@@ -657,6 +681,10 @@ def comp_view_query(con, comp_id):
                                        ON p.part_id = pc.part_id
                                      LEFT JOIN public.gr_view g
                                        ON g.part_id = pc.part_id
+                                     LEFT JOIN PUBLIC.cobertura cob
+                                       ON cob.composicion_id = c.composicion_id
+                                     JOIN public.cobertura_licencia cobl
+                                       ON cobl.cobertura_lic_id = cob.cobertura_lic_id  
                                      WHERE c.composicion_id=:comp_id 
                                      AND c.estado = 'PUBLICADO' """)
     comp = con.execute(composicion_query, comp_id=comp_id).first()
@@ -677,6 +705,7 @@ def pista_archivo_view(con, comp_id):
                            , l.subdivision
                            , l.pais
                            , s.nom_serie
+                           , s.serie_id
                       FROM public.pista_son ps
                       JOIN public.archivo a
                         ON a.pista_son_id = ps.pista_son_id
@@ -703,7 +732,14 @@ def pista_archivo_view(con, comp_id):
                           JOIN public.instrumento i
                             ON i.instrumento_id = pps.instrumento_id     
                             WHERE pps.pista_son_id=:pista_id """)
-    result_arr = [(res, con.execute(inst_query, pista_id=res.pista_son_id)) for res in result]
+    generos = text("""SELECT g.nom_gen_mus
+                           , g.gen_mus_id 
+                           FROM public.genero_musical g
+                           JOIN public.genero_pista gp
+                             ON g.gen_mus_id = gp.gen_mus_id
+                             WHERE gp.pista_son_id=:pista_id""")
+    result_arr = [(res, con.execute(inst_query, pista_id=res.pista_son_id)
+                   , con.execute(generos, pista_id=res.pista_son_id)) for res in result]
     return result_arr
 
 
@@ -716,12 +752,14 @@ def comp_serie_view(con, serie_id):
         query = text("""SELECT c.composicion_id
                                , c.nom_tit
                                , c.nom_alt
+                               , ps.numero_de_pista
                                , public.get_fecha(c.fecha_pub) fecha_pub
                               FROM public.composicion c
                               JOIN public.pista_son ps
                                 ON ps.composicion_id = c.composicion_id  
                               WHERE ps.serie_id = :serie_id
-                              AND ps.estado = 'PUBLICADO'""")
+                              AND ps.estado = 'PUBLICADO' 
+                              ORDER BY ps.numero_de_pista, c.nom_tit""")
         comps = con.execute(query, serie_id=serie_id)
         comps_arr = [(res, con.execute(autors_comps_query(), comp_id=res.composicion_id)) for res in comps]
         return comps_arr

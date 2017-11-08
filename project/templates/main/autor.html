@@ -41,5 +41,12 @@
         </div>
         <hr>
         {{ composicion(result) }}
+        {% if 'comps' in result_interp and result_interp.comps|length > 0 %}
+            <hr>
+            <div>
+                <h4>Realizado</h4>
+                {{ composicion(result_interp) }}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

@@ -12,8 +12,8 @@
                         <h4>Título</h4>
                         <h3 class="indented">
                             {{ comp.nom_tit }}
-                            {% if comp.nom_alt is not none %}
-                                    {{ comp.nom_alt }}
+                            {% if comp.nom_alt is not none and comp.nom_alt|trim != "" %}
+                                    ({{ comp.nom_alt }})
                             {% endif %}
                         </h3>
                     </div>
@@ -22,7 +22,7 @@
                         <h4>Autor</h4>
                         <h3 class="indented">
                             {% for autor in autors %}
-                                {{ nom_link(autor) }}
+                                {{ nom_link(autor) }} ({{ autor.rol_composicion }}) <br>
                             {% endfor %}
                         </h3>
                     </div>
@@ -37,7 +37,7 @@
                      <div>
                         {% if comp.serie_id is not none %}
                             <h4>Serie</h4>
-                            <h3 class="indented"><a href="{{ url_for("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }} </a></h3>
+                            <h3 class="indented"><a href="{{ url_for("main.serie", serie_id=comp.serie_id) }}">{{ comp.nom_serie }}</a></h3>
                         {% endif %}
                     </div>
                 </div>
@@ -54,15 +54,18 @@
             </div>
         </div>
         <div>
-            {% if comp.texto is not none and comp.texto != "" %}
+            {% if comp.texto is not none and comp.texto|trim != "" %}
                 <h4>Texto</h4>
-                <p class="indented"> {{ comp.texto }}</p>
+                <p class="skinny text-center center-block"> {{ comp.texto }}</p>
                 <br>
             {% endif %}
         </div>
         <div class="row">
             <div class="col-md-6">{{ tema(result) }}</div>
             <div class="col-md-6">{{ idioma(result) }}</div>
+        </div>
+        <div>
+            <p class="text-center center-block">{{ comp.licencia_cobertura }}</p>
         </div>
         {% for pista in result.pistas %}
             {{ archivo_inst(pista) }}

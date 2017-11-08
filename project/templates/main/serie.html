@@ -1,5 +1,5 @@
 {% extends 'searchlayout.html' %}
-{% from 'macros.html' import composicion, album %}
+{% from 'macros.html' import compo_serie, album %}
 
 {% block resultbody %}
     <div class="center-block" style="width: 80%;">
@@ -23,6 +23,13 @@
                             <br>
                         {% endif %}
                     </div>
+                    <div>
+                        {% if serie.coment_serie is not none and serie.coment_serie|trim != "" %}
+                            <h4>Comentario</h4>
+                            <p class="indented"> {{ serie.coment_serie }}</p>
+                            <br>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="col-md-6">
                     {% if serie.ruta_foto is not none %}
@@ -38,6 +45,6 @@
         </div>
         {{ album(result) }}
         <hr>
-        {{ composicion(result) }}
+        {{ compo_serie(result) }}
     </div>
 {% endblock %}

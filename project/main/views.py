@@ -11,7 +11,8 @@ from project import engine
 from project.main.models import composicion_query, colectivo_query, autor_query, serie_query, genero_query, \
     tema_query, instrumento_query, interp_query, idioma_query, comp_autor_view, pers_grupo_view, comp_grupo_view, \
     comp_view_query, pista_archivo_view, serie_view, comp_serie_view, genero_autor_query, usuario_comp_query, \
-    usuario_autor_query, usuario_colectivo_query, lugar_autor_query, lugar_colectivo_query, lugar_comp_query
+    usuario_autor_query, usuario_colectivo_query, lugar_autor_query, lugar_colectivo_query, lugar_comp_query, \
+    interp_autor_view
 
 ################
 #### config ####
@@ -47,9 +48,6 @@ def parse_int(s):
         return abs(int(s))
     except ValueError:
         return None
-
-
-
 
 
 # The main search page. The logic is designed to be
@@ -115,6 +113,7 @@ def search():
 @main_blueprint.route('/autor/<int:part_id>/')
 def autor(part_id):
     result = {}
+    result_interp = {}
     # _query author
     con = engine.connect()
     author_query = text("""SELECT * FROM public.pers_view WHERE part_id=:part_id AND estado = 'PUBLICADO'""")
@@ -122,8 +121,9 @@ def autor(part_id):
     if author is None:
         abort(404)
     result['comps'] = comp_autor_view(con, part_id)
+    result_interp['comps'] = interp_autor_view(con, part_id)
     con.close()
-    return render_template('main/autor.html', autor=author, result=result)
+    return render_template('main/autor.html', autor=author, result=result, result_interp=result_interp)
 
 
 @main_blueprint.route('/colectivo/<int:part_id>/')

@@ -305,6 +305,58 @@
 {% endmacro %}
 
 
+
+{% macro compo_serie(result) -%}
+    {% if 'comps' in result and result.comps|length > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="composicion-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#composicion-collapse" aria-expanded="true" aria-controls="composicion-collapse">
+                        Composición
+                    </a>
+                </h3>
+            </div>
+            <div id="composicion-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped mod-tables">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Número de pista</th>
+                            <th>Fecha publicación</th>
+                            <th>Autor(es)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in result.comps %}
+                        <tr>
+                            <td><a class="no-underline" href="{{ url_for("main.composicion", comp_id=entry.0.composicion_id) }}">
+                                {{ entry.0.nom_tit }}
+                                    {% if entry.0.nom_alt is not none and entry.0.nom_alt != "" %}
+                                        | {{ entry.0.nom_alt }}
+                                    {% endif %}
+                                </a>
+                            </td>
+                            <td>{{ entry.0.numero_de_pista }}</td>
+                            <td>{{ render_none(entry.0.fecha_pub) }}</td>
+                            <td>
+                                {% for autor in entry.1 %}
+                                    {{ nom_link(autor) }} |
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+
+
 {% macro composicion(result) -%}
     {% if 'comps' in result and result.comps|length > 0 %}
         <div class="card">
@@ -345,7 +397,7 @@
                             <td>{{ render_none(entry.0.fecha_pub) }}</td>
                             <td>
                                 {% for autor in entry.1 %}
-                                    {{ nom_link(autor) }}
+                                    {{ nom_link(autor) }} |
                                 {% endfor %}
                             </td>
                             {% if 'mod' in result and result.mod == True %}
@@ -507,6 +559,35 @@
 {% endmacro %}
 
 
+{% macro genero(result) -%}
+    {% if result.rowcount > 0 %}
+        <div class="card">
+            <div class="card-header" role="tab" id="tema-heading">
+                <h3 class="mb-0">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#tema-collapse" aria-expanded="true" aria-controls="tema-collapse">
+                        Géneros
+                    </a>
+                </h3>
+            </div>
+            <div id="tema-collapse" class="collapse in">
+                <div class="card-block">
+                    <table class="table table-striped">
+                    <tbody>
+                    {% for entry in result %}
+                        <tr>
+                            <td>{{ entry.nom_gen_mus }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   {% endif %}
+{% endmacro %}
+
+
+
 {% macro idioma(result) -%}
     {% if 'idiomas' in result and result.idiomas is not none and result.idiomas.rowcount > 0 %}
         <hr>
@@ -609,11 +690,20 @@
                Lugar; &nbsp; {{ lugar(result.0) }}
             </div>
             <div class="col-md-3">
-              {{ render_none(result.0.fecha_grab) }}
+                {% if result.0.fecha_grab is not none %}
+                    {{ render_none(result.0.fecha_grab) }} <br>
+                {% endif %}
+                <a href="{{ url_for("main.serie", serie_id=result.0.serie_id) }}">{{ result.0.nom_serie }}</a>
             </div>
         </div>
         <br>
-        <div>{{ result.0.coment_pista_son }}</div>
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Comentario</h3>
+                <p>{{ result.0.coment_pista_son }}</p>
+            </div>
+            <div class="col-md-6">{{ genero(result.2) }}</div>
+        </div>
         <br>
         <table class="table">
             <thead>
@@ -621,6 +711,7 @@
                     <th>Nom</th>
                     <th>Rol</th>
                     <th>Instrumento</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
