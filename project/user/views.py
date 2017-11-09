@@ -679,7 +679,7 @@ def poner_serie(obra_id=None):
                 if validated:
                     upload_album_image_update(con, form, session['id'], file, obra_id)
                 else:
-                    update_serie(con, form, session['id'], None)
+                    update_serie(con, form, session['id'], obra_id, None)
             trans.commit()
             flash('La actualización se ha realizado correctamente.', 'success')
         except Exception as ex:
