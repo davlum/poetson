@@ -184,7 +184,8 @@ def set_years(bind_params):
 
 def autor_query(con, bind_params, result):
     local_params = deepcopy(bind_params)
-    query_string = """SELECT p.part_id
+    query_string = """SELECT DISTINCT 
+                            p.part_id
                           , p.nom_part
                           , p.seudonimo
                           , p.nom_paterno
@@ -215,7 +216,8 @@ def autor_query(con, bind_params, result):
 
 def colectivo_query(con, bind_params, result):
     local_params = deepcopy(bind_params)
-    query_string = """SELECT g.part_id
+    query_string = """SELECT DISTINCT 
+                             g.part_id
                            , g.nom_part
                            , g.ciudad
                            , g.subdivision
@@ -239,7 +241,8 @@ def colectivo_query(con, bind_params, result):
 
 def composicion_query(con, bind_params, result):
     local_params = deepcopy(bind_params)
-    query_string = """SELECT composicion_id
+    query_string = """SELECT DISTINCT 
+                              composicion_id
                             , public.get_fecha(fecha_pub) fecha_pub
                             ,nom_tit
                             ,nom_alt
@@ -295,7 +298,7 @@ def tema_query(con, bind_params, result):
 def genero_query(con, bind_params, result):
     local_params = deepcopy(bind_params)
     query_string = """SELECT c.composicion_id
-                            , get_fecha(c.fecha_pub) fecha_pub
+                            , public.get_fecha(c.fecha_pub) fecha_pub
                             ,c.nom_tit
                             ,c.nom_alt 
                             FROM public.composicion c
@@ -321,7 +324,7 @@ def genero_query(con, bind_params, result):
 def lugar_comp_query(con, bind_params, result, tipo_lugar):
     local_params = deepcopy(bind_params)
     query_string = """SELECT c.composicion_id
-                            , get_fecha(c.fecha_pub) fecha_pub
+                            , public.get_fecha(c.fecha_pub) fecha_pub
                             ,c.nom_tit
                             ,c.nom_alt 
                           FROM public.composicion c
@@ -603,7 +606,8 @@ def comp_autor_view(con, part_id):
 
 def interp_autor_view(con, part_id):
     # query all compositions including those made by this artist when in a colectivo
-    composicion_query = text("""SELECT c.composicion_id
+    composicion_query = text("""SELECT DISTINCT
+                                       c.composicion_id
                                      , c.nom_tit
                                      , c.nom_alt
                                      , public.get_fecha(c.fecha_pub) fecha_pub
