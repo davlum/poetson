@@ -21,3 +21,7 @@ def unauthorized(e):
 @errors_blueprint.errorhandler(500)
 def unauthorized(e):
     return render_template('errors/500.html'), 500
+
+@errors_blueprint.errorhandler(429)
+def unauthorized(e):
+    return render_template('errors/500.html'), 429

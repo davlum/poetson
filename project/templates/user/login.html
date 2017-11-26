@@ -21,9 +21,22 @@
                   {{render_field(form.password, class ="form-control")}}
             </div>
         </div>
-      <button class="btn btn-success" type="submit">Iniciar sesión</button>
-      <br><br>
-      <p>¿Necesita <a class="underline" href="{{ url_for('user.register') }}">registrarse</a>?</p>
+       {# <br>
+          {{ form.recaptcha }}
+        <br> #}
+        <div class="row">
+            <div class="form-group col-md-6">
+                <button class="btn btn-success" type="submit">Iniciar sesión</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <span>
+                    ¿Olvidó su <a class="underline" href="{{ url_for('user.reset') }}">contraseña</a> o
+                    necesita <a class="underline" href="{{ url_for('user.register') }}">registrarse</a>?
+                </span>
+            </div>
+        </div>
     </form>
 </div>
 {% endblock %}

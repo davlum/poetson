@@ -7,6 +7,7 @@ from project import app, mail
 from re import compile
 from flask import session
 
+
 def current_user(con, email):
     query = text("""SELECT * 
                       FROM public.usuario 

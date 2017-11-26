@@ -6,13 +6,21 @@ import unittest
 import coverage
 
 from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
+from flask_migrate import MigrateCommand
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from project import app
 
 
 app.config.from_object(os.environ['APP_SETTINGS'])
 
 manager = Manager(app)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["500 per day", "100 per hour"]
+)
+
 
 # migrations
 manager.add_command('db', MigrateCommand)
