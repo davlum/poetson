@@ -2,6 +2,7 @@
 # coding=utf-8
 
 from flask_wtf import FlaskForm as Form
+from flask_wtf import RecaptchaField
 from wtforms import StringField, PasswordField, RadioField, \
     TextAreaField, SelectField, BooleanField, FileField, FieldList, FormField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, \
@@ -78,15 +79,30 @@ class RequiredIf(DataRequired):
             super(RequiredIf, self).__call__(form, field)
 
 
-# Forms
+#  Password reset Email
 class EmailForm(Form):
-    email = StringField('Email', validators=[InputRequired(), Email()])
+    email = StringField('Correo electrónico', validators=[InputRequired(), Email()])
+    #recaptcha = RecaptchaField()
+
+    def validate(self):
+        initial_validation = super(EmailForm, self).validate()
+        if not initial_validation:
+            return False
+        con = engine.connect()
+        user = current_user(con, self.email.data)
+        con.close()
+        if user is None:
+            self.email.errors.append("Este correo electrónico no está registrado")
+            return False
+        return True
 
 
 class PasswordForm(Form):
-    password = PasswordField('Contraseña', validators=[
-        InputRequired(message='Esto es requerido.')
+    contrasena = PasswordField('Contraseña', validators=[
+        InputRequired(message='Esto es requerido.'),
+        EqualTo('confirm', message='los contraseñas no coinciden')
     ])
+    confirm = PasswordField('Confirmar contraseña', [InputRequired(message='Esto es requerido.')])
 
 
 class LoginForm(Form):
@@ -95,6 +111,7 @@ class LoginForm(Form):
         Email(message='No un correo electrónico adecuado.')
     ])
     password = PasswordField('Contraseña', validators=[InputRequired(message='Esto es requerido.')])
+    #recaptcha = RecaptchaField()
 
     def validate(self):
         initial_validation = super(LoginForm, self).validate()
@@ -137,6 +154,8 @@ class RegisterForm(Form):
         EqualTo('confirm', message='los contraseñas no coinciden')
     ])
     confirm = PasswordField('Confirmar contraseña', [InputRequired(message='Esto es requerido.')])
+    recaptcha = RecaptchaField()
+
 
     def validate(self):
         initial_validation = super(RegisterForm, self).validate()

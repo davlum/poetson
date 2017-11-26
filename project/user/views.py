@@ -27,7 +27,7 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie
+    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie, init_pers_grupo
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -270,26 +270,29 @@ def reset():
         con = engine.connect()
         user = current_user(con, form.email.data)
         con.close()
-        subject = "Reajuste de contraseña solicitado"
+        if user is not None:
 
-        # Here we use the URLSafeTimedSerializer we created in `util` at the
-        # beginning of the chapter
-        token = ts.dumps(user.email, salt='recover-key')
+            subject = "Reajuste de contraseña solicitado"
 
-        recover_url = url_for(
-            'reset_with_token',
-            token=token,
-            _external=True)
+            # Here we use the URLSafeTimedSerializer we created in `util` at the
+            # beginning of the chapter
+            token = ts.dumps(form.email.data, salt='recover-key')
 
-        html = render_template(
-            'email/recover.html',
-            recover_url=recover_url)
+            recover_url = url_for(
+                'user.reset_with_token',
+                token=token,
+                _external=True)
 
-        # Let's assume that send_email was defined in myapp/util.py
-        send_email(user.email, subject, html)
+            html = render_template(
+                'user/recover.html',
+                recover_url=recover_url)
 
-        return redirect(url_for('index'))
-    return render_template('reset.html', form=form)
+            # Let's assume that send_email was defined in myapp/util.py
+            send_email(form.email.data, subject, html)
+        flash('Se envió un correo electrónico a esa dirección si el correo electrónico se registró en nuestro sitio.',
+              'success')
+        return redirect(url_for('user.login'))
+    return render_template('user/reset.html', form=form)
 
 
 @user_blueprint.route('/reset/<token>', methods=["GET", "POST"])
@@ -300,19 +303,22 @@ def reset_with_token(token):
         abort(404)
 
     form = PasswordForm()
-
     if request.method == 'POST' and form.validate():
         con = engine.connect()
         user = current_user(con, email)
         if user and user.confirmado:
-            password = bcrypt.using(rounds=13).hash(str(form.password.data))
+            password = bcrypt.using(rounds=13).hash(str(form.contrasena.data))
             reset_pass = text("""UPDATE public.usuario SET contrasena=:password 
                                   WHERE usuario_id=:id""")
-            con.execute(reset_pass, id=user.part_id, password=password)
-        con.close()
-        flash('Este correo electrónico no está registrado.', 'danger')
-        return redirect(url_for('signin'))
-    return render_template('reset_with_token.html', form=form, token=token)
+            con.execute(reset_pass, id=user.usuario_id, password=password)
+            con.close()
+            flash('La contraseña fue cambiada con éxito', 'success')
+            return redirect(url_for('user.login'))
+        else:
+            con.close()
+            flash('Este correo electrónico no está registrado.', 'danger')
+            return redirect(url_for('user.register'))
+    return render_template('user/reset_with_token.html', form=form, token=token)
 
 
 @user_blueprint.route('/resend')
@@ -397,6 +403,7 @@ def perfil():
 def poner_part():
     form = AddEntityForm(request.form)
     con = engine.connect()
+    init_pers_grupo(form)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():

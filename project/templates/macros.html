@@ -247,6 +247,7 @@
                     <thead>
                         <tr>
                             <th>Título</th>
+                            <th>Fecha de grabación</th>
                             <th>Origen</th>
                             <th>Serie</th>
                         {% if 'mod' in result and result.mod == True %}
@@ -265,6 +266,7 @@
                                 {{ entry.nom_tit }}
                                 </a>
                             </td>
+                            <td>{{ entry.fecha_grab }}</td>
                             <td>{{ lugar(entry) }}</td>
                             <td>
                                 {% if pista.serie_id is not none %}

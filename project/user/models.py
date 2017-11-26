@@ -225,6 +225,16 @@ def add_part_choices(con, form):
     form.pais_muer.choices = populate_pais_form(con)
 
 
+def init_pers_grupo(form):
+    org_form = OrgForm()
+    org_form.grupo_id = "0"
+    org_form.titulo = None
+    org_form.fecha_comienzo = None
+    org_form.fecha_finale = None
+
+    form.org_form.append_entry(org_form)
+
+
 def populate_pers_grupo(form, result):
     if result.rowcount == 0:
         org_form = OrgForm()
@@ -602,6 +612,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                              , l.ciudad
                              , l.subdivision
                              , l.pais
+                             , s.nom_serie
+                             , s.serie_id
                              , p.estado
                              , public.get_fecha(p.fecha_grab) fecha_grab
                              FROM public.pista_son p
@@ -609,6 +621,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
                                ON l.lugar_id = p.lugar_id
+                             LEFT JOIN public.serie s
+                               ON s.serie_id = p.serie_id  
                              WHERE p.cargador_id=:part_id
                              AND (p.estado = 'PENDIENTE'
                               OR p.estado = 'PUBLICADO') """)
@@ -619,6 +633,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                              , c.nom_tit
                              , l.ciudad
                              , l.subdivision
+                             , s.serie_id
+                             , s.nom_serie
                              , l.pais
                              , public.get_fecha(p.fecha_grab) fecha_grab
                              , p.estado
@@ -628,6 +644,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
                                ON  l.lugar_id = P.lugar_id
+                             LEFT JOIN public.serie s
+                               ON s.serie_id = p.serie_id  
                              JOIN public.usuario u
                                ON u.usuario_id = p.cargador_id""")
         return con.execute(query)

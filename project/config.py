@@ -15,6 +15,10 @@ class BaseConfig(object):
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get("POETSON_SECRET_KEY", "")
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT", "")
+    RECAPTCHA_PUBLIC_KEY = "6Lf5ZDoUAAAAAOFlJrRwA9TEm0Qe23pkzdT0sDEt"
+    RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY", "")
+    RECAPTCHA_PARAMETERS = {'hl': 'es'}
+
     UPLOAD_FOLDER = os.environ.get("POETSON_UPLOAD_FOLDER", "")
     ALLOWED_AUDIO_EXTENSIONS = set(['mp3', 'flac', 'opus', 'mp4', 'aiff'])
     ALLOWED_IMAGE_EXTENSIONS = set(['jpg', 'png'])
