@@ -508,7 +508,7 @@ def poner_pista(obra_id=None):
     result = {}
     form = AddTrackForm(request.form)
     con = engine.connect()
-    if request.method == 'GET' and obra_id is not None:
+    if request.method == 'GET':
         populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
     result['archivos'] = query_archivos(con, obra_id)
