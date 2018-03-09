@@ -154,7 +154,7 @@ class RegisterForm(Form):
         EqualTo('confirm', message='los contraseñas no coinciden')
     ])
     confirm = PasswordField('Confirmar contraseña', [InputRequired(message='Esto es requerido.')])
-    recaptcha = RecaptchaField()
+    #recaptcha = RecaptchaField()
 
 
     def validate(self):
@@ -165,7 +165,7 @@ class RegisterForm(Form):
         user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(gr_email) = LOWER(:email)
                                                                         OR LOWER(pers_email) = LOWER(:email)""")
         user_email = con.execute(user_email_query, email=self.email.data).first()
-        username_query = text("""SELECT nom_usuario FROM public.usuario 
+        username_query = text("""SELECT nom_usuario FROM public.usuario
                                   WHERE LOWER(nom_usuario) = LOWER(:nom_usuario)""")
         username = con.execute(username_query, nom_usuario=self.nom_usuario.data).first()
         con.close()
