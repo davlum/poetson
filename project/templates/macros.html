@@ -265,10 +265,13 @@
                                 {{ entry.nom_tit }}
                                 </a>
                             </td>
+                            <td>
+                              {{ render_none(entry.fecha_grab) }}
+                            </td>
                             <td>{{ lugar(entry) }}</td>
                             <td>
-                                {% if pista.serie_id is not none %}
-                                    <a href="/serie/{{ pista.serie_id }}/">{{ pista.nom_serie }}</a>
+                                {% if entry.serie_id is not none %}
+                                    <a href="/serie/{{ entry.serie_id }}/">{{ entry.nom_serie }}</a>
                                 {% endif %}
                             </td>
                             {% if 'mod' in result and result.mod == True %}
@@ -734,5 +737,3 @@
         </table>
     </div>
 {% endmacro %}
-
-

@@ -68,7 +68,7 @@ def delete_wrapper(fun, con, row_id, usuario_id=None):
             init_session(con, session['email'])
             flash('la eliminación se ha realizado correctamente.', 'success')
         else:
-            flash("""No se puede borrar. Esto todavía se refiere por otra pieza de datos. 
+            flash("""No se puede borrar. Esto todavía se refiere por otra pieza de datos.
             Elimine todos los datos que se refieren a éste antes de él.""", 'danger')
     except Exception as ex:
         if app.config['DEBUG']:
@@ -201,11 +201,11 @@ def register():
         contrasena = bcrypt.using(rounds=13).hash(str(form.contrasena.data))
         con = engine.connect()
         if form.user_type.data == 'persona':
-            user_query = text("""INSERT INTO public.us_pers (email, nom_usuario, contrasena) VALUES 
+            user_query = text("""INSERT INTO public.us_pers (email, nom_usuario, contrasena) VALUES
                           (:email, :nom_usuario, :contrasena);""")
             con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         else:
-            user_query = text("""INSERT INTO public.us_gr (email, nom_usuario, contrasena) VALUES 
+            user_query = text("""INSERT INTO public.us_gr (email, nom_usuario, contrasena) VALUES
                           (:email, :nom_usuario, :contrasena);""")
             con.execute(user_query, email=email, nom_usuario=nom_usuario, contrasena=contrasena)
         # set session data
@@ -254,7 +254,7 @@ def confirm_email(token):
     else:
         confirm_user = text("""UPDATE public.usuario
                                   SET confirmado=TRUE
-                                    , fecha_confirmado=now() 
+                                    , fecha_confirmado=now()
                                   WHERE usuario_id=:id""")
         con.execute(confirm_user, id=session['id'])
         session['confirmed'] = True
@@ -306,7 +306,7 @@ def reset_with_token(token):
         user = current_user(con, email)
         if user and user.confirmado:
             password = bcrypt.using(rounds=13).hash(str(form.password.data))
-            reset_pass = text("""UPDATE public.usuario SET contrasena=:password 
+            reset_pass = text("""UPDATE public.usuario SET contrasena=:password
                                   WHERE usuario_id=:id""")
             con.execute(reset_pass, id=user.part_id, password=password)
         con.close()
@@ -373,7 +373,7 @@ def perfil():
         if user and bcrypt.verify(password_form.old_password.data, user.contrasena):
             con = engine.connect()
             password = bcrypt.using(rounds=13).hash(str(password_form.new_password.data))
-            reset_pass = text("""UPDATE public.usuario SET contrasena=:password 
+            reset_pass = text("""UPDATE public.usuario SET contrasena=:password
                                   WHERE usuario_id=:id""")
             con.execute(reset_pass, id=user.part_id, password=password)
             con.close()
@@ -501,7 +501,7 @@ def poner_pista(obra_id=None):
     result = {}
     form = AddTrackForm(request.form)
     con = engine.connect()
-    if request.method == 'GET' and obra_id is not None:
+    if request.method == 'GET':
         populate_pista(con, form, obra_id)
     add_pista_choices(con, form)
     result['archivos'] = query_archivos(con, obra_id)
@@ -872,4 +872,3 @@ def retirar_album(obra_id):
     delete_wrapper(delete_album, con, obra_id)
     con.close()
     return redirect(url_for('user.perfil', _anchor='tab_pista'))
-
