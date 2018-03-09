@@ -2,7 +2,7 @@
 # coding=utf-8
 
 from flask_wtf import FlaskForm as Form
-from flask_wtf import RecaptchaField
+#from flask_wtf import RecaptchaField
 from wtforms import StringField, PasswordField, RadioField, \
     TextAreaField, SelectField, BooleanField, FileField, FieldList, FormField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, \
