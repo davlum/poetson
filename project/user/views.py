@@ -15,7 +15,7 @@ from mutagen import File
 from passlib.hash import bcrypt
 from .forms import LoginForm, RegisterForm, \
     ChangePasswordForm, EmailForm, PasswordForm, InstrForm, GenMusForm, IdiomaForm, TemaForm, AlbumForm, \
-    InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm
+    InfoForm, AddEntityForm, AddTrackForm, UpdateEntityForm, AddCompForm, SerieForm, GrupoForm
 from project.decorators import check_confirmed, is_admin, is_logged_in, is_mod, is_author
 from project.util import current_user, current_gr, current_pers, send_email, allowed_audio_file, allowed_image_file
 
@@ -27,7 +27,8 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie
+    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie, init_pers_grupo, \
+    add_grupo_part_choices
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -397,6 +398,7 @@ def perfil():
 def poner_part():
     form = AddEntityForm(request.form)
     con = engine.connect()
+    init_pers_grupo(form)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
@@ -430,11 +432,11 @@ def poner_persona(obra_id):
 @check_confirmed
 @is_author
 def poner_grupo(obra_id):
-    form = UpdateEntityForm(request.form)
+    form = GrupoForm(request.form)
     con = engine.connect()
     if request.method == 'GET':
         populate_poner_grupo(con, form, obra_id)
-    add_part_choices(con, form)
+    add_grupo_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
         con = engine.connect()

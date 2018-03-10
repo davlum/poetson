@@ -247,6 +247,7 @@
                     <thead>
                         <tr>
                             <th>Título</th>
+                            <th>Fecha de grabación</th>
                             <th>Origen</th>
                             <th>Serie</th>
                         {% if 'mod' in result and result.mod == True %}
@@ -265,12 +266,10 @@
                                 {{ entry.nom_tit }}
                                 </a>
                             </td>
-                            <td>
-                              {{ render_none(entry.fecha_grab) }}
-                            </td>
+                            <td>{{ render_none(entry.fecha_grab) }}</td>
                             <td>{{ lugar(entry) }}</td>
                             <td>
-                                {% if entry.serie_id is not none %}
+                                {% if entry.serie_id is not none and entry.serie_id != ''%}
                                     <a href="/serie/{{ entry.serie_id }}/">{{ entry.nom_serie }}</a>
                                 {% endif %}
                             </td>
@@ -696,7 +695,9 @@
                 {% if result.0.fecha_grab is not none %}
                     {{ render_none(result.0.fecha_grab) }} <br>
                 {% endif %}
-                <a href="{{ url_for("main.serie", serie_id=result.0.serie_id) }}">{{ result.0.nom_serie }}</a>
+                {% if result.0.serie_id is not none %}
+                    <a href="{{ url_for("main.serie", serie_id=result.0.serie_id) }}">{{ result.0.nom_serie }}</a>
+                {% endif %}
             </div>
         </div>
         <br>

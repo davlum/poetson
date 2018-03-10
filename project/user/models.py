@@ -225,6 +225,11 @@ def add_part_choices(con, form):
     form.pais_muer.choices = populate_pais_form(con)
 
 
+def add_grupo_part_choices(con, form):
+    form.tipo_grupo.choices = populate_tipo_grupos_form(con)
+    form.pais.choices = populate_pais_form(con)
+
+
 def populate_pers_grupo(form, result):
     if result.rowcount == 0:
         org_form = OrgForm()
@@ -454,6 +459,14 @@ def query_pers_gr(con, part_id):
                               WHERE pa.persona_id=:id""")
     return con.execute(query, id=part_id)
 
+def init_pers_grupo(form):
+    org_form = OrgForm()
+    org_form.grupo_id = "0"
+    org_form.titulo = None
+    org_form.fecha_comienzo = None
+    org_form.fecha_finale = None
+
+    form.org_form.append_entry(org_form)
 
 def query_grupos(con, part_id, permission='EDITOR'):
     if permission == 'EDITOR':
@@ -602,6 +615,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                              , l.ciudad
                              , l.subdivision
                              , l.pais
+                             , s.nom_serie
+                             , s.serie_id
                              , p.estado
                              , public.get_fecha(p.fecha_grab) fecha_grab
                              FROM public.pista_son p
@@ -609,6 +624,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
                                ON l.lugar_id = p.lugar_id
+                             LEFT JOIN public.serie s
+                               ON s.serie_id = p.serie_id  
                              WHERE p.cargador_id=:part_id
                              AND (p.estado = 'PENDIENTE'
                               OR p.estado = 'PUBLICADO') """)
@@ -619,6 +636,8 @@ def query_pista(con, part_id, permission='EDITOR'):
                              , c.nom_tit
                              , l.ciudad
                              , l.subdivision
+                             , s.serie_id
+                             , s.nom_serie
                              , l.pais
                              , public.get_fecha(p.fecha_grab) fecha_grab
                              , p.estado
@@ -628,9 +647,11 @@ def query_pista(con, part_id, permission='EDITOR'):
                                ON p.composicion_id = c.composicion_id
                              LEFT JOIN public.lugar l
                                ON  l.lugar_id = P.lugar_id
+                             LEFT JOIN public.serie s
+                               ON s.serie_id = p.serie_id  
                              JOIN public.usuario u
                                ON u.usuario_id = p.cargador_id""")
-        return con.execute(query)
+    return con.execute(query)
 
 
 def update_permiso(con, usuario_id, permiso):
@@ -860,9 +881,8 @@ def populate_poner_grupo(con, form, part_id):
 def update_poner_grupo(con, form, usuario_id, part_id):
     user_query = text("""UPDATE public.gr_view SET nom_part=strip(:nom_part_gr)
                                              , ciudad=strip(:ciudad)
-                                             , subdivision=strip(:nom_sudivision)
+                                             , subdivision=strip(:subdivision)
                                              , pais=strip(:pais)
-                                             , fecha_comienzo_insert=:fecha_comienzo
                                              , fecha_comienzo_insert=:fecha_comienzo
                                              , sitio_web=strip(:sitio_web)
                                              , direccion=strip(:direccion)
@@ -875,14 +895,14 @@ def update_poner_grupo(con, form, usuario_id, part_id):
                 , ciudad=form.ciudad.data
                 , subdivision=form.subdivision.data
                 , pais=form.pais.data
-                , date_formed=parse_fecha(form.fecha_comienzo.data)
+                , fecha_comienzo=parse_fecha(form.fecha_comienzo.data)
                 , sitio_web=form.sitio_web.data
                 , direccion=form.direccion.data
                 , telefono=form.telefono.data
                 , coment_part=form.coment_part.data
                 , tipo_grupo=form.tipo_grupo.data
                 , mod_id=usuario_id
-                , part_i=part_id)
+                , part_id=part_id)
 
 
 def populate_cob(con, form, ent_id, is_pista=True):

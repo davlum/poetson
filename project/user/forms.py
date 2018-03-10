@@ -214,6 +214,54 @@ class InfoForm(Form):
     coment_part = TextAreaField('Comentarios', validators=[Optional()])
 
 
+class GrupoForm(Form):
+    # The optional fields to add additional information to a user
+    nom_part_gr = StringField('Nombre del Organización', validators=[Optional()])
+    sitio_web = StringField('Sitio web', validators=[
+        URL(),
+        Optional()
+    ])
+
+    direccion = StringField('Dirección postal', validators=[Optional()])
+    telefono = StringField('Teléfono', validators=[Optional()])
+    fecha_comienzo = StringField('Fecha de nacimiento', validators=[
+        Optional(),
+        Date(),
+    ])
+    fecha_finale = StringField('Fecha Finale', validators=[
+        Optional(),
+        Date(),
+    ])
+
+    # If a sublocation is entered, its parent location is required
+    ciudad = StringField('Ciudad', validators=[Optional()])
+    subdivision = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad')])
+    pais = SelectField('País', validators=[RequiredIf(other_field_name='subdivision')])
+
+    # if organization just specify type
+    tipo_grupo = SelectField('Tipo de organización', validators=[Optional()])
+
+    coment_part = TextAreaField('Comentarios', validators=[Optional()])
+    email = StringField('Correo electrónico ', validators=[
+        Optional(),
+        Email(message='No un correo electrónico adecuado.')
+    ])
+
+    def validate(self):
+        initial_validation = super(GrupoForm, self).validate()
+        if not initial_validation:
+            return False
+        con = engine.connect()
+        user_email_query = text("""SELECT usuario_id FROM public.usuario WHERE LOWER(gr_email) = LOWER(:email)
+                                                                          OR LOWER(pers_email) = LOWER(:email)""")
+        user_email = con.execute(user_email_query, email=self.email.data).first()
+        con.close()
+        if user_email:
+            self.email.errors.append("Este correo electrónico ya está registradod")
+            return False
+        return True
+
+
 class UpdateEntityForm(InfoForm):
     ciudad_muer = StringField('Ciudad', validators=[Optional()])
     subdivision_muer = StringField('Estado, provincia o depto.', validators=[RequiredIf('ciudad_muer')])

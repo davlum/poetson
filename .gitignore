@@ -8,6 +8,7 @@
 .*.*.swo
 *.pyc
 bin/
+~/
 include/
 project/static/audio/
 project/static/images/
