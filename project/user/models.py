@@ -7,7 +7,7 @@ from project.user.forms import OrgForm, DynamicGenMusForm, DynamicAuthorForm, Dy
 
 # Queries for admin view
 def get_users(con):
-    query = text("""SELECT nom_usuario, COALESCE(gr_email, pers_email) email, permiso, fecha_registro, prohibido FROM public.usuario 
+    query = text("""SELECT usuario_id, nom_usuario, COALESCE(gr_email, pers_email) email, permiso, fecha_registro, prohibido FROM public.usuario 
                       WHERE permiso <> 'ADMIN'""")
     return con.execute(query)
 
@@ -318,6 +318,30 @@ def populate_info(con, form):
     form.pais.data = user.pais
 
 
+# Queries for the poner_pers view
+def populate_poner_pers(con, form, part_id):
+    query = text("""SELECT * FROM public.pers_view WHERE part_id=:part_id""")
+    user = con.execute(query, part_id=part_id).first()
+    pers_org_query = text("""SELECT pa.grupo_id
+                                  , public.get_fecha(pa.fecha_comienzo) fecha_comienzo
+                                  , public.get_fecha(pa.fecha_finale) fecha_finale
+                                  , pa.titulo
+                                  FROM public.persona_grupo pa
+                                  WHERE pa.persona_id=:part_id""")
+    pers_org_result = con.execute(pers_org_query, part_id=part_id)
+
+    populate_pers_grupo(form, pers_org_result)
+    form.nom_part.data = user.nom_part
+    form.nom_paterno.data = user.nom_paterno
+    form.nom_materno.data = user.nom_materno
+    form.seudonimo.data = user.seudonimo
+    form.genero.data = user.genero
+    form.ciudad_muer.data = user.ciudad_muer
+    form.subdivision_muer.data = user.subdivision_muer
+    form.pais_muer.data = user.pais_muer
+    populate_part(form, user)
+
+
 def estado_serie(con, obra_id, estado, mod_id):
     query = text("""UPDATE public.serie SET estado=:estado, mod_id=:mod_id WHERE serie_id=:obra_id""")
     con.execute(query, obra_id=obra_id, estado=estado, mod_id=mod_id)
@@ -459,14 +483,14 @@ def query_pers_gr(con, part_id):
                               WHERE pa.persona_id=:id""")
     return con.execute(query, id=part_id)
 
-def init_pers_grupo(form):
-    org_form = OrgForm()
-    org_form.grupo_id = "0"
-    org_form.titulo = None
-    org_form.fecha_comienzo = None
-    org_form.fecha_finale = None
-
-    form.org_form.append_entry(org_form)
+#def init_pers_grupo(form):
+#    org_form = OrgForm()
+#    org_form.grupo_id = "0"
+#    org_form.titulo = None
+#    org_form.fecha_comienzo = None
+#    org_form.fecha_finale = None
+#
+#    form.org_form.append_entry(org_form)
 
 def query_grupos(con, part_id, permission='EDITOR'):
     if permission == 'EDITOR':
@@ -804,29 +828,6 @@ def populate_serie(con, form, obra_id):
     form.coment_serie.data = result.coment_serie
     return result.ruta_foto, result.serie_id
 
-
-# Queries for the poner_pers view
-def populate_poner_pers(con, form, part_id):
-    query = text("""SELECT * FROM public.pers_view WHERE part_id=:part_id""")
-    user = con.execute(query, part_id=part_id).first()
-    pers_org_query = text("""SELECT pa.grupo_id
-                                  , public.get_fecha(pa.fecha_comienzo) fecha_comienzo
-                                  , public.get_fecha(pa.fecha_finale) fecha_finale
-                                  , pa.titulo
-                                  FROM public.persona_grupo pa
-                                  WHERE pa.persona_id=:part_id""")
-    pers_org_result = con.execute(pers_org_query, part_id=part_id)
-
-    populate_pers_grupo(form, pers_org_result)
-    form.nom_part.data = user.nom_part
-    form.nom_paterno.data = user.nom_paterno
-    form.nom_materno.data = user.nom_materno
-    form.seudonimo.data = user.seudonimo
-    form.genero.data = user.genero
-    form.ciudad_muer.data = user.ciudad_muer
-    form.subdivision_muer.data = user.subdivision_muer
-    form.pais_muer.data = user.pais_muer
-    populate_part(form, user)
 
 
 def update_poner_pers(con, form, usuario_id, part_id):

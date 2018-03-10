@@ -27,8 +27,8 @@ from project.user.models import query_perfil, query_pers_gr, populate_info, upda
     add_part_choices, add_comp_choices, add_pista_choices, add_info_choices, update_comp, update_pista, \
     populate_instrumento_form, populate_idiomas_form, populate_serie_form, populate_gen_mus_form, populate_temas_form, \
     populate_album_form, insert_album, insert_genero, insert_idioma, insert_tema, delete_tema, delete_idioma, \
-    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie, init_pers_grupo, \
-    add_grupo_part_choices
+    delete_genero, delete_album, delete_grupo, init_series, populate_serie, estado_serie, update_serie, \
+    add_grupo_part_choices #, init_pers_grupo, \
 
 
 user_blueprint = Blueprint('user', __name__,)
@@ -223,24 +223,6 @@ def register():
     return render_template('user/register.html', form=form)
 
 
-@user_blueprint.route('/info', methods=['GET', 'POST'])
-@is_logged_in
-def info():
-    form = InfoForm(request.form)
-    con = engine.connect()
-    if request.method == 'GET':
-        # prepopulate
-        populate_info(con, form)
-    con = engine.connect()
-    add_info_choices(con, form)
-    con.close()
-    if request.method == 'POST' and form.validate():
-        con = engine.connect()
-        upsert_wrapper(update_info, con, form)
-        return redirect(url_for('user.perfil'))
-    return render_template('user/info.html', form=form)
-
-
 @user_blueprint.route('/confirm/<token>')
 @is_logged_in
 def confirm_email(token):
@@ -392,13 +374,31 @@ def perfil():
     ##################################
 
 
+@user_blueprint.route('/info', methods=['GET', 'POST'])
+@is_logged_in
+def info():
+    form = InfoForm(request.form)
+    con = engine.connect()
+    if request.method == 'GET':
+        # prepopulate
+        populate_info(con, form)
+    con = engine.connect()
+    add_info_choices(con, form)
+    con.close()
+    if request.method == 'POST' and form.validate():
+        con = engine.connect()
+        upsert_wrapper(update_info, con, form)
+        return redirect(url_for('user.perfil'))
+    return render_template('user/info.html', form=form)
+
+
 @user_blueprint.route('/poner/part', methods=['GET', 'POST'])
 @is_logged_in
 @check_confirmed
 def poner_part():
     form = AddEntityForm(request.form)
     con = engine.connect()
-    init_pers_grupo(form)
+  #  init_pers_grupo(form)
     add_part_choices(con, form)
     con.close()
     if request.method == 'POST' and form.validate():
@@ -631,8 +631,9 @@ def estado(obra, estado, obra_id):
 def permiso(usuario_id):
     con = engine.connect()
     json = request.get_json()
-    permiso = json['permiso'].upper()
-    update_permiso(con, usuario_id, permiso)
+    print("in view")
+    permiso_resp = json['permiso'].upper()
+    update_permiso(con, usuario_id, permiso_resp)
     con.close()
     return '', 204
 

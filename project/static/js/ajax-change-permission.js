@@ -13,7 +13,7 @@ $(function(){
         e.preventDefault();
         var request = $.ajax({
             type: "POST",
-            url: "https://poeticasonora.me/permiso/"+$(this).data('id') +"/",
+            url: "/permiso/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 permiso: $(this).val()
             }),
@@ -33,7 +33,7 @@ $(function(){
         e.preventDefault();
         var request = $.ajax({
             type: "POST",
-            url: "https://poeticasonora.me/prohibido/"+$(this).data('id') +"/",
+            url: "/prohibido/"+$(this).data('id') +"/",
             data: JSON.stringify({
                 prohibido: $(this).val()
             }),
