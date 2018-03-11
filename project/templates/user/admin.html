@@ -57,8 +57,15 @@
                                 <td>
                                     <select class="form-control ajax-permission"
                                             data-id="{{ entry.usuario_id }}">
-                                        {{ render_select('Editor', entry.permiso) }}
-                                        {{ render_select('Mod', entry.permiso) }}
+                                        {% if entry.permiso == 'EDITOR' %}
+                                            <option value="Editor" selected>Editor</option>
+                                            <option value="Mod">Mod</option>
+                                        {% else %}
+                                            <option value="Editor">Editor</option>
+                                            <option value="Mod" selected>Mod</option>
+                                        {% endif %}
+                                       {# {{ render_select('Editor', entry.permiso) }}
+                                        {{ render_select('Mod', entry.permiso) }} #}
                                     </select>
                                 </td>
                                 <td>

@@ -630,8 +630,7 @@ def estado(obra, estado, obra_id):
 @is_admin
 def permiso(usuario_id):
     con = engine.connect()
-    json = request.get_json()
-    print("in view")
+    json = request.get_json(force=True)
     permiso_resp = json['permiso'].upper()
     update_permiso(con, usuario_id, permiso_resp)
     con.close()
