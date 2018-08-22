@@ -18,8 +18,8 @@ class BaseConfig(object):
     UPLOAD_FOLDER = os.environ.get("POETSON_UPLOAD_FOLDER", "")
     ALLOWED_AUDIO_EXTENSIONS = set(['mp3', 'flac', 'opus', 'mp4', 'aiff'])
     ALLOWED_IMAGE_EXTENSIONS = set(['jpg', 'png'])
-    # Max content length is 10 minutes of 32 bit wav file mono ~100mbs
-    MAX_CONTENT_LENGTH = 4 * 44100 * 60 * 10
+    # Max content length is ~ 200 mbs
+    MAX_CONTENT_LENGTH = 200 * 1024 * 1024
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_DATABASE_URI = 'postgresql:///postgres'
