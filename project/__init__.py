@@ -38,6 +38,7 @@ engine = create_engine('postgresql:///postgres')
 from project.main.views import main_blueprint
 from project.user.views import user_blueprint
 from project.errors.views import errors_blueprint
+import logging
 app.register_blueprint(errors_blueprint)
 app.register_blueprint(main_blueprint)
 app.register_blueprint(user_blueprint)
@@ -48,6 +49,13 @@ app.register_blueprint(user_blueprint)
 def catch_all(path):
     abort(404)
 
+
+@app.before_first_request
+def setup_logging():
+    if not app.debug:
+        # In production mode, add log handler to sys.stderr.
+        app.logger.addHandler(logging.StreamHandler())
+        app.logger.setLevel(logging.INFO)
 
 
 def current_user(con, email):
