@@ -16,7 +16,9 @@ class BaseConfig(object):
     SECRET_KEY = os.environ.get("POETSON_SECRET_KEY", "")
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT", "")
     UPLOAD_FOLDER = os.environ.get("POETSON_UPLOAD_FOLDER", "")
-    ALLOWED_AUDIO_EXTENSIONS = set(['mp3', 'flac', 'opus', 'mp4', 'aiff'])
+    ALLOWED_AUDIO_EXTENSIONS = set(['wv', 'wma', 'webm', 'wav', 'vox', 'tta', 'sln', 'raw',
+    'ra','rm','opus','ogg','oga','mogg','nsf','msv','mpc','mp3','mmf','m4p','m4b','m4a','ivs','iklax','gsm','flac',
+    'dvf','dss','dct','awb','au','ape','amr','aiff','act','aax','aac','aa','8svx','3gp',])
     ALLOWED_IMAGE_EXTENSIONS = set(['jpg', 'png'])
     # Max content length is ~ 200 mbs
     MAX_CONTENT_LENGTH = 200 * 1024 * 1024
