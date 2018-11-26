@@ -109,13 +109,24 @@ def insert_wrapper(fun, con, form):
 
 def validate_audio_file():
     if 'archivo' not in request.files:
-        return False, 'Ningún archivo seleccionado'
+        raise ValueError('Ningún archivo seleccionado')
     file = request.files['archivo']
+
     if file.filename == '':
-        return False, 'Ningún archivo seleccionado'
+        raise ValueError('Ningún archivo seleccionado')
     if not file or not allowed_audio_file(file.filename):
-        return False, 'Este tipo de archivo no es aceptado'
-    return True, file
+        raise ValueError('Este tipo de archivo no es aceptado')
+
+    file.seek(0)
+    audio = File(file)
+
+    if not audio:
+        raise ValueError('No es un archivo de audio')
+    return {
+        'metadata': audio,
+        'filename': secure_filename(file.filename),
+        'file': file
+    }
 
 
 def validate_image_file():
@@ -129,19 +140,14 @@ def validate_image_file():
     return True, file
 
 
-def upload_audio(con, pista_id, file):
+def upload_audio(con, pista_id, file_dict):
+    archivo_id = str(insert_archivo(con, file_dict['metadata'], file_dict['filename'], pista_id))
+    path = app.config['UPLOAD_FOLDER'] + '/audio/' + str(pista_id) + '/' + archivo_id
+    file = file_dict['file']
     file.seek(0)
-    audio = File(file)
-    if audio is not None:
-        filename = secure_filename(file.filename)
-        archivo_id = str(insert_archivo(con, audio, filename, pista_id))
-        path = app.config['UPLOAD_FOLDER'] + '/audio/' + str(pista_id) + '/' + archivo_id
-        file.seek(0)
-        os.makedirs(path, exist_ok=True)
-        file.save(os.path.join(path, filename))
-        file.close()
-    else:
-        flash('No es un archivo de audio', 'danger')
+    os.makedirs(path, exist_ok=True)
+    file.save(os.path.join(path, file_dict['filename']))
+    file.close()
 
 
 def upload_album_image_update(con, form, usuario_id, file, serie_id):
@@ -512,25 +518,31 @@ def poner_pista(obra_id=None):
         result['obra_id'] = obra_id
     con.close()
     if request.method == 'POST' and form.validate():
-        validated, file = validate_audio_file()
         con = engine.connect()
         if obra_id is None:
-            # When inserting for the first time there must be a file
-            if not validated:
-                return jsonify(success="danger", msg=file)
-            msg, success = upsert_pista_wrapper(insert_pista, con, form, file)
+            try:
+                audio_file = validate_audio_file()
+                # When inserting for the first time there must be a file
+                msg, success = upsert_pista_wrapper(insert_pista, con, form, audio_file)
+            except ValueError as e:
+                return jsonify(success='danger', msg=str(e))
+            finally:
+                con.close()
         else:
-            if not validated:
+            try:
+                audio_file = validate_audio_file()
+                msg, success = upsert_pista_wrapper(insert_pista, con, form, audio_file, obra_id)
+            except ValueError as e:
+                flash(str(e), 'warning')
                 # On update a file need not be uploaded
-                flash(file, 'warning')
                 msg, success = upsert_pista_wrapper(update_pista, con, form, file=None, pista_id=obra_id)
-            else:
-                msg, success = upsert_pista_wrapper(update_pista, con, form, file, obra_id)
-        con.close()
+            finally:
+                con.close()
         if success:
             return jsonify(success=success, msg=msg)
         else:
             return jsonify(success=success, msg=msg)
+
     return render_template('poner/pista.html', form=form, result=result)
 
 
